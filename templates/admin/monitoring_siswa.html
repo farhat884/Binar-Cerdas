@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Monitoring {{ siswa.name }} — Admin Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ session.get('name') }}</div>
+    <div class="role-tag">Admin</div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
+      <a href="{{ url_for('admin.siswa') }}">Kelola Siswa</a>
+      <a href="{{ url_for('admin.monitoring') }}" class="active">Monitoring Siswa</a>
+      <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+      <a href="{{ url_for('admin.materi') }}">Materi</a>
+      <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+    </nav>
+  </aside>
+
+  <main class="dash-content monitoring-page" data-live-url="{{ url_for('admin.monitoring_siswa_live', user_id=siswa.id) }}">
+    <a href="{{ url_for('admin.monitoring') }}" class="btn btn-ghost btn-sm" style="margin-bottom:14px">← Semua Siswa</a>
+    <div class="monitor-profile card-simple">
+      <div>
+        <div class="monitor-avatar is-lg">{{ siswa.name[0]|upper if siswa.name else '?' }}</div>
+        <div class="monitor-profile-text">
+          <h1 style="margin-bottom:4px">{{ siswa.name }}</h1>
+          <p class="muted" style="margin:0">{{ siswa.jenjang }} · Kelas {{ siswa.kelas }} · {{ siswa.email }}</p>
+        </div>
+      </div>
+      <div class="monitor-live-indicator" id="liveIndicator"><span></span> Memantau otomatis</div>
+    </div>
+
+    <section class="monitor-section">
+      <div class="section-title-row"><h2>📚 Akses & Aktivitas Materi</h2><span class="muted">Status diperbarui otomatis</span></div>
+      {% if materials %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Materi</th><th>Akses</th><th>Sudah Dibuka?</th><th>Selesai?</th><th>Jumlah Buka</th><th>Terakhir Dibuka</th></tr></thead>
+          <tbody id="materialRows">
+          {% for m in materials %}
+          <tr data-material-id="{{ m.id }}">
+            <td><strong>{{ m.judul }}</strong><br><span class="muted">{{ m.mapel }}</span></td>
+            <td><span class="monitor-status {{ 'is-ok' if m.sudah_akses else 'is-no' }}">{{ '✓ Punya akses' if m.sudah_akses else '🔒 Belum akses' }}</span></td>
+            <td><span class="monitor-status material-opened {{ 'is-ok' if m.sudah_baca else 'is-no' }}">{{ '✓ Ya' if m.sudah_baca else 'Belum' }}</span></td>
+            <td><span class="monitor-status material-completed {{ 'is-ok' if m.selesai else 'is-no' }}">{{ '✓ Selesai' if m.selesai else 'Belum selesai' }}</span></td>
+            <td class="material-views">{{ m.view_count }}</td>
+            <td class="material-last muted">{{ m.last_accessed_at_text }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="empty-state"><p>Tidak ada materi untuk kelas siswa ini.</p></div>{% endif %}
+    </section>
+
+    <section class="monitor-section">
+      <div class="section-title-row">
+        <h2>🟢 Jawaban Sedang Dikerjakan</h2>
+        <span class="muted">Admin melihat pilihan siswa setelah tombol <b>Jawab</b> ditekan.</span>
+      </div>
+      <div id="liveAnswers">
+        {% if live_sessions %}
+          {% for session in live_sessions %}
+          <div class="card-simple live-session-card" data-scope-key="{{ session.scope_key }}">
+            <div class="live-session-head"><div><h3>{{ session.label }}</h3><span class="muted">{{ session.answered }}/{{ session.total }} soal terjawab · terakhir {{ session.updated_at_text }}</span></div><span class="badge-status badge-live">SEDANG MENGERJAKAN</span></div>
+            <div class="table-wrap"><table><thead><tr><th>No.</th><th>Soal</th><th>Pilihan Siswa</th><th>Status</th><th>Waktu</th></tr></thead><tbody>
+            {% for row in session.rows %}<tr><td>{{ loop.index }}</td><td>{{ row.question.pertanyaan }}</td><td><strong>{{ row.selected or '-' }}</strong></td><td>{{ '✓ Benar' if row.benar else '✗ Salah' }}</td><td class="muted">{{ row.answered_at }}</td></tr>{% endfor %}
+            </tbody></table></div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state" id="liveEmpty"><div class="glyph">⏳</div><p>Siswa belum sedang mengerjakan soal.</p><small class="muted">Halaman ini mengecek jawaban baru setiap 4 detik.</small></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="monitor-section">
+      <div class="section-title-row"><h2>📝 Riwayat UTS, UAS & Latihan</h2><span class="muted">Setiap percobaan disimpan terpisah.</span></div>
+      {% if attempts %}
+      {% for a in attempts %}
+      <details class="card-simple attempt-card" {% if loop.first %}open{% endif %}>
+        <summary>
+          <span><strong>{{ a.tipe }}</strong> · {{ a.mapel }}{% if a.material_judul %} · {{ a.material_judul }}{% endif %}</span>
+          <span class="attempt-score">{{ a.score }}/{{ a.total }} · <span class="score-pill {{ 'is-high' if a.percent >= 75 else ('is-mid' if a.percent >= 50 else 'is-low') }}">{{ a.percent|round|int }}%</span> · {{ a.created_at_text }}</span>
+        </summary>
+        <div class="attempt-detail">
+          {% for row in a.answer_rows %}
+          <div class="answer-review-card {{ 'correct' if row.benar else 'wrong' }}">
+            <div class="answer-review-head"><strong>Soal {{ loop.index }}</strong><span>{{ '✓ Benar' if row.benar else '✗ Salah' }}</span></div>
+            <p>{{ row.question.pertanyaan }}</p>
+            {% if row.question.gambar_url %}<img src="{{ row.question.gambar_url }}" class="soal-gambar" alt="Gambar soal">{% endif %}
+            <div class="answer-options-mini">
+              {% for option in row.question.pilihan %}
+              <div class="option-mini {{ 'selected' if row.selected == 'ABCD'[loop.index0] else '' }} {{ 'correct-option' if row.question.jawaban_benar == 'ABCD'[loop.index0] else '' }}">
+                <b>{{ 'ABCD'[loop.index0] }}</b>
+                {% if option %}<span>{{ option }}</span>{% endif %}
+                {% if row.question.pilihan_gambar and row.question.pilihan_gambar[loop.index0] %}<img src="{{ row.question.pilihan_gambar[loop.index0] }}" alt="Pilihan {{ 'ABCD'[loop.index0] }}">{% endif %}
+                {% if row.selected == 'ABCD'[loop.index0] %}<em>Dipilih siswa</em>{% endif %}
+                {% if row.question.jawaban_benar == 'ABCD'[loop.index0] %}<em>Jawaban benar</em>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+      {% else %}<div class="empty-state"><p>Belum ada riwayat pengerjaan.</p></div>{% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.querySelector('.monitoring-page');
+  if (!page) return;
+  const liveUrl = page.dataset.liveUrl;
+  const liveBox = document.getElementById('liveAnswers');
+  const indicator = document.getElementById('liveIndicator');
+  const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  function renderLive(data) {
+    const sessions = data.live_sessions || [];
+    if (!sessions.length) {
+      liveBox.innerHTML = '<div class="empty-state"><div class="glyph">⏳</div><p>Siswa belum sedang mengerjakan soal.</p><small class="muted">Halaman ini mengecek jawaban baru setiap 4 detik.</small></div>';
+      return;
+    }
+    liveBox.innerHTML = sessions.map(session => `
+      <div class="card-simple live-session-card">
+        <div class="live-session-head"><div><h3>${esc(session.label)}</h3><span class="muted">${session.answered}/${session.total} soal terjawab · terakhir ${esc(session.updated_at_text)}</span></div><span class="badge-status badge-live">SEDANG MENGERJAKAN</span></div>
+        <div class="table-wrap"><table><thead><tr><th>No.</th><th>Soal</th><th>Pilihan Siswa</th><th>Status</th><th>Waktu</th></tr></thead><tbody>
+        ${session.rows.map((row, i) => `<tr><td>${i+1}</td><td>${esc(row.question.pertanyaan)}</td><td><strong>${esc(row.selected || '-')}</strong></td><td>${row.benar ? '✓ Benar' : '✗ Salah'}</td><td class="muted">${esc(row.answered_at)}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div>`).join('');
+  }
+
+  function renderMaterials(materials) {
+    (materials || []).forEach(m => {
+      const row = document.querySelector(`[data-material-id="${CSS.escape(m.id)}"]`);
+      if (!row) return;
+      const access = row.querySelector('td:nth-child(2) .monitor-status');
+      if (access) { access.className = 'monitor-status ' + (m.sudah_akses ? 'is-ok' : 'is-no'); access.textContent = m.sudah_akses ? '✓ Punya akses' : '🔒 Belum akses'; }
+      const opened = row.querySelector('.material-opened');
+      opened.className = 'monitor-status material-opened ' + (m.sudah_baca ? 'is-ok' : 'is-no');
+      opened.textContent = m.sudah_baca ? '✓ Ya' : 'Belum';
+      const completed = row.querySelector('.material-completed');
+      completed.className = 'monitor-status material-completed ' + (m.selesai ? 'is-ok' : 'is-no');
+      completed.textContent = m.selesai ? '✓ Selesai' : 'Belum selesai';
+      row.querySelector('.material-views').textContent = m.view_count;
+      row.querySelector('.material-last').textContent = m.last_accessed_at || '-';
+    });
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch(liveUrl, {cache: 'no-store'});
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal');
+      renderLive(data);
+      renderMaterials(data.materials);
+      indicator.classList.add('is-connected');
+    } catch (e) {
+      indicator.classList.remove('is-connected');
+    }
+  }
+  refresh();
+  setInterval(refresh, 4000);
+});
+</script>
+{% endblock %}

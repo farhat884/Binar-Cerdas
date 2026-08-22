@@ -5,10 +5,10 @@ import requests
 from urllib.parse import urlencode
 
 
-def _cfg():
+def _cfg(bucket_env="SUPABASE_MATERI_BUCKET", bucket_default="materi"):
     url = os.environ.get("SUPABASE_URL", "").rstrip("/")
     key = os.environ.get("SUPABASE_SECRET_KEY", "")
-    bucket = os.environ.get("SUPABASE_MATERI_BUCKET", "materi")
+    bucket = os.environ.get(bucket_env, bucket_default)
 
     if not url or not key:
         raise RuntimeError(
@@ -36,10 +36,31 @@ def safe_pdf_name(filename):
     )
 
 
-def create_signed_upload(filename):
-    url, key, bucket = _cfg()
+EKSTENSI_GAMBAR_DIIZINKAN = (".jpg", ".jpeg", ".png", ".webp", ".gif")
 
-    path = safe_pdf_name(filename)
+
+def safe_image_name(filename):
+    if not filename or not filename.lower().endswith(EKSTENSI_GAMBAR_DIIZINKAN):
+        raise ValueError("Gambar harus berformat JPG, PNG, WEBP, atau GIF.")
+
+    ext = filename.rsplit(".", 1)[1].lower()
+    stem = re.sub(
+        r"[^A-Za-z0-9._-]+",
+        "-",
+        filename.rsplit(".", 1)[0]
+    ).strip("-") or "gambar-soal"
+
+    return (
+        f"soal-images/"
+        f"{uuid.uuid4().hex}-"
+        f"{stem[:80]}.{ext}"
+    )
+
+
+def create_signed_upload(filename, kind="pdf"):
+    """kind: 'pdf' untuk materi, 'image' untuk gambar soal (misalnya soal matriks/grafik)."""
+    url, key, bucket = _cfg()
+    path = safe_image_name(filename) if kind == "image" else safe_pdf_name(filename)
 
     response = requests.post(
         f"{url}/storage/v1/object/upload/sign/{bucket}/{path}",

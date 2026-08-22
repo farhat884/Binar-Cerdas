@@ -55,6 +55,8 @@ Kelola Siswa — Admin Binar Cerdas
       Kelola Siswa
     </h1>
 
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><a href="{{ url_for('admin.monitoring') }}" class="btn btn-gold btn-sm">📊 Monitoring Siswa</a></div>
+
     <p class="muted">
 
       Admin dapat menambahkan pertemuan secara manual
@@ -102,6 +104,10 @@ Kelola Siswa — Admin Binar Cerdas
 
             <th>
               Kurangi
+            </th>
+
+            <th>
+              Hapus Akun
             </th>
 
           </tr>
@@ -230,6 +236,39 @@ Kelola Siswa — Admin Binar Cerdas
                 >
 
                   − 1 Pertemuan
+
+                </button>
+
+              </form>
+
+            </td>
+
+            <td>
+
+              <form
+                method="POST"
+
+                action="{{ url_for(
+                  'admin.hapus_siswa',
+                  user_id=s.id
+                ) }}"
+
+                data-confirm="
+                  Yakin mau menghapus akun {{ s.name }}
+                  secara PERMANEN? Semua data akses materi,
+                  progress, dan riwayat pengerjaan soal
+                  siswa ini juga akan ikut terhapus dan
+                  TIDAK BISA dikembalikan.
+                "
+              >
+
+                <button
+                  type="submit"
+
+                  class="btn btn-danger btn-sm"
+                >
+
+                  🗑️ Hapus Akun
 
                 </button>
 

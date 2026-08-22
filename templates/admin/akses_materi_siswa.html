@@ -54,25 +54,31 @@ Akses Materi — {{ siswa.name }} — Admin Binar Cerdas
     </h1>
 
     <p class="muted">
-      Centang materi yang ingin digratiskan khusus untuk <strong>{{ siswa.name }}</strong>
-      ({{ siswa.jenjang }} · Kelas {{ siswa.kelas }}). Materi yang tidak dicentang tetap
-      butuh 1 kuota pertemuan seperti biasa. Ini tidak memengaruhi akses siswa lain.
+      Aktifkan toggle per <strong>bab</strong> yang ingin digratiskan khusus untuk
+      <strong>{{ siswa.name }}</strong> ({{ siswa.jenjang }} · Kelas {{ siswa.kelas }}).
+      Satu toggle akan menggratiskan/mencabut akses SEMUA subbab yang ada di dalam bab
+      tersebut sekaligus. Bab yang tidak diaktifkan tetap butuh 1 kuota pertemuan per
+      subbab seperti biasa. Ini tidak memengaruhi akses siswa lain.
     </p>
 
     <a href="{{ url_for('admin.siswa') }}" class="btn btn-ghost btn-sm" style="margin-bottom:16px;display:inline-block;">
       ← Kembali ke Kelola Siswa
     </a>
 
-    {% if materi_siswa %}
+    {% if subject_groups %}
 
-    <div class="table-wrap" style="margin-top:16px;">
+    {% for g in subject_groups %}
+
+    <h2 style="margin-top:24px;">{{ g.mapel }}</h2>
+
+    <div class="table-wrap" style="margin-top:8px;">
 
       <table>
 
         <thead>
           <tr>
-            <th>Mapel</th>
-            <th>Judul Materi</th>
+            <th>Bab</th>
+            <th>Jumlah Subbab</th>
             <th>Status</th>
             <th>Gratis untuk {{ siswa.name }}?</th>
           </tr>
@@ -80,27 +86,29 @@ Akses Materi — {{ siswa.name }} — Admin Binar Cerdas
 
         <tbody>
 
-          {% for m in materi_siswa %}
+          {% for b in g.bab %}
           <tr>
-            <td>{{ m.mapel }}</td>
-            <td>{{ m.judul }}</td>
+            <td>{{ b.nama }}</td>
+            <td>{{ b.total_subbab }} subbab</td>
             <td>
-              {% if m.akses_gratis %}
-              <span class="status-open">Gratis (manual admin)</span>
+              {% if b.akses_gratis %}
+              <span class="status-open">Gratis semua (manual admin)</span>
+              {% elif b.akses_sebagian %}
+              <span class="status-lock">Sebagian gratis ({{ b.granted_subbab }}/{{ b.total_subbab }})</span>
               {% else %}
               <span class="status-lock">Pakai kuota pertemuan</span>
               {% endif %}
             </td>
             <td>
-              <form method="POST" action="{{ url_for('admin.toggle_akses_materi_siswa', user_id=siswa.id, material_id=m.id) }}">
+              <form method="POST" action="{{ url_for('admin.toggle_akses_bab_siswa', user_id=siswa.id, mapel=g.mapel, bab=b.nama) }}">
                 <label style="display:flex;gap:8px;align-items:center;">
                   <input
                     type="checkbox"
                     name="aktif"
                     onchange="this.form.requestSubmit()"
-                    {% if m.akses_gratis %}checked{% endif %}
+                    {% if b.akses_gratis %}checked{% endif %}
                   >
-                  Gratis
+                  Gratis 1 Bab
                 </label>
               </form>
             </td>
@@ -112,6 +120,8 @@ Akses Materi — {{ siswa.name }} — Admin Binar Cerdas
       </table>
 
     </div>
+
+    {% endfor %}
 
     {% else %}
 

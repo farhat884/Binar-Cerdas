@@ -13,6 +13,39 @@
 </div>
 {% endmacro %}
 
+{% macro daftar_riwayat_percobaan(riwayat) %}
+{# riwayat = list attempt milik SATU materi/ujian, urut terbaru->terlama (dari get_attempts).
+   Nampilin tiap percobaan dengan tombol "Lihat Hasil" masing-masing, bukan cuma yang
+   terakhir -> siswa bisa buka lagi review percobaan ke-1, ke-2, dst kapan aja. #}
+{% if riwayat %}
+{% if riwayat|length > 1 %}
+<details class="riwayat-percobaan">
+  <summary class="muted" style="cursor:pointer">Lihat semua percobaan ({{ riwayat|length }}x)</summary>
+  <div class="table-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>Percobaan</th><th>Tanggal</th><th>Nilai</th><th></th></tr></thead>
+      <tbody>
+      {% for a in riwayat %}
+      <tr>
+        <td>ke-{{ riwayat|length - loop.index0 }}</td>
+        <td>{{ a.created_at.strftime('%d %b %Y, %H:%M') if a.created_at and a.created_at.strftime else a.created_at }}</td>
+        <td>{{ a.percent|round|int }}%</td>
+        <td><a class="btn btn-ghost btn-sm" href="{{ url_for('student.riwayat_detail', attempt_id=a.id) }}">Lihat Hasil</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+{% else %}
+<p class="muted" style="margin:8px 0">
+  Dikerjakan {{ riwayat[0].created_at.strftime('%d %b %Y, %H:%M') if riwayat[0].created_at and riwayat[0].created_at.strftime else riwayat[0].created_at }} · nilai {{ riwayat[0].percent|round|int }}%
+  · <a href="{{ url_for('student.riwayat_detail', attempt_id=riwayat[0].id) }}">Lihat Hasil</a>
+</p>
+{% endif %}
+{% endif %}
+{% endmacro %}
+
 {% macro badge_status(status) %}
   {% if status == 'pending' %}<span class="badge-status badge-pending">Menunggu</span>
   {% elif status == 'approved' %}<span class="badge-status badge-approved">Disetujui</span>

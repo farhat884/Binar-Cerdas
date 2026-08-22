@@ -32,12 +32,139 @@ PERUBAHAN BINAR CERDAS
    Jangan tulis API key langsung di source code.
 
 
+UPDATE LATIHAN SOAL PER MATERI (Agustus 2026)
+- Latihan Soal di halaman materi sekarang tidak langsung tampil semua: ada tombol
+  "Mulai Latihan" dulu, baru soal nomor 1 muncul (bukan gaya dropdown/accordion).
+- Tiap nomor dikerjakan satu-satu: pilih jawaban -> tekan "Jawab" -> langsung
+  ketahuan benar/salah + penjelasan AI di bawahnya (tanpa reload halaman).
+- Fitur chat lanjutan ke AI ("Masih bingung? Tanya lagi di sini") tetap ada
+  setelah jawaban dan penjelasan muncul, sama seperti di Latihan UTS/UAS.
+- Setelah semua nomor selesai dikerjakan, ada tombol "Lihat Hasil & Penilaian"
+  yang menampilkan skor akhir (persentase) + rekomendasi belajar dari AI
+  (menyebutkan topik yang masih perlu dipelajari lagi, dengan gaya bahasa
+  yang santai dan relevan buat Gen Alpha). Route baru:
+  POST /materi/<material_id>/latihan/selesai
+- Pilihan jawaban (A/B/C/D) sekarang boleh berupa gambar, bukan cuma teks
+  (misalnya buat soal bentuk bangun ruang, grafik, dsb). Admin bisa isi teks
+  saja, gambar saja, atau dua-duanya di form Bank Soal. Field baru di
+  Firestore: pilihan_gambar (list url) dan pilihan_gambar_path (list path
+  Supabase, dipakai buat hapus file saat soal dihapus).
+- Penjelasan AI: superscript unicode buat pangkat sekarang mendukung huruf
+  variabel juga (bukan cuma angka), misal aⁿ, x⁽ᵏ⁺¹⁾, bukan cuma x². AI juga
+  diminta jangan coba gambar tabel pembagian bersusun pakai karakter teks,
+  supaya penjelasannya gak terlihat berantakan/kaku di layar HP.
+
 UPDATE MATERI PDF
 - Admin tidak lagi mengetik isi materi panjang di website.
 - Materi dibuat dari PPT lalu di-export menjadi PDF dan di-upload oleh admin.
 - PDF disimpan di Firebase Storage, metadata materi tetap di Firestore.
+
+UPDATE REVIEW JAWABAN (biar gak bikin bingung siswa)
+- Sebelumnya halaman review jawaban cuma nampilin huruf pilihannya doang,
+  misal "Jawaban benar: D" dan "Jawaban kamu: D" -> siswa gak tau isi si D
+  apa, jadi bingung padahal jawabannya sama-sama D tapi ditulis seolah beda.
+- Sekarang semua tempat review jawaban nampilin huruf + isi pilihannya,
+  contoh: "Jawaban benar: D. Nilai satuan terbesar". Berlaku di:
+  hasil satu soal (Latihan Materi), hasil UTS/UAS, halaman review riwayat,
+  dan juga pas ngecek jawaban langsung (AJAX) di halaman Latihan Soal &
+  Latihan UTS/UAS.
+- Filter Jinja baru "teks_pilihan" (di utils/formatter.py, didaftarkan di
+  app.py) buat halaman yang di-render server-side. Helper JS baru
+  window.teksPilihanDariForm (di static/js/main.js) buat hasil yang muncul
+  langsung tanpa reload halaman.
+
+UPDATE RIWAYAT PERCOBAAN DI HALAMAN MATERI
+- Sebelumnya di halaman Materi & Latihan Soal cuma ada link "lihat review
+  jawaban terakhir" -> percobaan-percobaan sebelumnya cuma bisa dibuka dari
+  halaman Progress terpisah.
+- Sekarang di halaman Materi dan halaman Latihan Soal per materi langsung
+  ada daftar SEMUA percobaan (kalau lebih dari 1x dikerjakan, dibungkus
+  <details> "Lihat semua percobaan (Nx)"), masing-masing dengan tanggal,
+  nilai, dan tombol "Lihat Hasil" sendiri-sendiri.
+- Macro baru daftar_riwayat_percobaan() di templates/macros.html, dipakai
+  bareng di detail_materi.html dan latihan_materi.html supaya tampilannya
+  konsisten dengan yang di halaman Progress.
+
+UPDATE TAMPILAN REVIEW JAWABAN (nomor soal + semua pilihan ganda kelihatan)
+- Sebelumnya halaman Hasil UTS/UAS dan Review Riwayat nampilin semua soal
+  ditumpuk ke bawah -> siswa harus scroll panjang buat lihat soal ke-sekian,
+  dan cuma nampilin jawaban siswa + jawaban benar (bukan seluruh pilihannya).
+- Sekarang di kedua halaman itu ada navigasi nomor soal di atas (kotak
+  bernomor 1, 2, 3, ...): ijo kalau jawabannya benar, merah kalau salah.
+  Klik satu nomor -> yang tampil cuma soal itu (pertanyaan + SEMUA pilihan
+  A/B/C/D + penjelasan AI), soal lain otomatis disembunyikan. Gak ada lagi
+  scroll panjang ke bawah.
+- Semua pilihan ganda (bukan cuma yang dipilih/benar) sekarang selalu
+  ditampilkan, dengan tanda "Jawabanmu" di pilihan yang dipilih siswa dan
+  "Jawaban benar" di pilihan yang benar (dipakai ulang style option-mini
+  yang tadinya cuma ada di halaman monitoring admin).
+- Berlaku di: templates/student/riwayat_detail.html (review riwayat lama)
+  dan templates/student/hasil_ujian.html (hasil UTS/UAS setelah submit).
+  Style baru: .review-nav, .review-nav-btn, .review-question di
+  static/css/style.css.
 - Siswa dapat membaca PDF langsung di halaman materi atau membukanya di tab baru.
 - Edit materi dapat mengganti PDF tanpa menghapus metadata lainnya.
 - Hapus materi juga mencoba menghapus PDF dari Firebase Storage.
 - Maksimal upload aplikasi dinaikkan menjadi 20 MB.
 - Wajib mengatur SUPABASE_URL + SUPABASE_SECRET_KEY di environment lokal/Vercel.
+
+UPDATE PANGKAT/SUBSCRIPT & IMPOR SOAL PILIHAN GANDA LENGKAP (Agustus 2026)
+- Form Tambah/Edit Soal (Pertanyaan & tiap Pilihan A-D) sekarang punya dua
+  tombol kecil di atas kotak teksnya: "x^n Pangkat" dan "x_n Bawah".
+  Caranya: ketik teks biasa dulu (misal "x2" atau "C6H12O6"), blok bagian
+  angka/hurufnya (misal "2"-nya aja), lalu klik tombolnya -> otomatis
+  dibungkus jadi LaTeX ($x^{2}$ / $C_{6}$) dan langsung ke-render di
+  preview di bawahnya. Gak perlu hafal syntax LaTeX manual lagi.
+  Kode: fungsi initLatexToolbar() & terapkanLatexPangkatSubscript() di
+  static/js/main.js, style .latex-toolbar/.latex-toolbar-btn di
+  static/css/style.css. Otomatis nempel ke semua field yang punya atribut
+  data-latex-source, jadi jalan di form Tambah maupun Edit Soal.
+- Fitur "Impor Banyak Soal Sekaligus" sekarang punya 2 mode:
+  * Sederhana: seperti sebelumnya, cuma pertanyaan (pilihan diisi belakangan
+    lewat Edit).
+  * Lengkap (baru): pertanyaan + pilihan A-D + jawaban benar diimpor
+    sekaligus dalam satu tempel teks, format per soal:
+      1. Pertanyaan...?
+      A. isi pilihan a
+      B. isi pilihan b
+      C. isi pilihan c
+      D. isi pilihan d
+      JAWABAN: B
+  - Parsing SENGAJA dibikin ketat (utils/formatter.py: parse_full_mcq) --
+    tiap pilihan diambil berdasarkan HURUFNYA (bukan urutan baris), jadi
+    walau urutan A/B/C/D ketulis acak tetap kepasang benar dan gak ketuker
+    antar soal. Soal yang pilihannya gak lengkap 4 atau baris JAWABAN-nya
+    gak ketemu/valid TIDAK ikut disimpan -- dilaporkan terpisah per nomor
+    soal (pesan "gagal") biar admin bisa perbaiki, bukan kesimpan asal2an.
+  - Jenjang/Kelas/Mapel/Tipe/Bab/Tahapan Materi yang dipilih di atas form
+    berlaku SAMA buat semua soal dalam satu batch impor (baik mode
+    Sederhana maupun Lengkap) -- jadi soal gak bisa nyasar ke kategori lain.
+  - Boleh pakai LaTeX ($...$) di teks soal/pilihan mode Lengkap juga,
+    termasuk syntax pangkat/subscript di atas.
+  - Route: POST /soal/impor (routes/admin_routes.py: impor_soal), field
+    form baru `mode` ("sederhana"/"lengkap").
+
+FIX BUG LIVE KUIS: SISWA NYANGKUT DI "MENUNGGU PENGAJAR" (Agustus 2026)
+- Bug: begitu admin pencet "Mulai Sesi", HALAMAN SISWA (dan progress bar di
+  halaman admin) berhenti update dan nyangkut selamanya di layar "Menunggu
+  pengajar memulai kuis...", padahal di backend sesi udah aktif.
+  Penyebab: routes/live_routes.py -> _sisa_detik() ngurangin
+  datetime.utcnow() (naive) dengan field current_started_at yang dibaca
+  balik dari Firestore (timezone-aware) -> TypeError -> endpoint
+  /status (yang di-poll tiap 1.5 detik oleh JS siswa & admin) jadi error
+  500 PERSIS pas status pindah ke "soal". Di sisi JS ada `if (!res.ok)
+  return;` yang diam-diam nyerah tiap gagal poll, jadi keliatannya kayak
+  "nge-hang" tanpa pesan error apapun.
+  Perbaikan: _sisa_detik() sekarang nyamain current_started_at ke
+  timezone-aware UTC dulu sebelum dikurangin (aman baik data lama yang
+  naive maupun data baru yang aware). models/live_model.py (start_session
+  & advance_session) juga diubah nulis current_started_at pakai
+  datetime.now(timezone.utc), bukan utcnow() yang deprecated.
+- Soal "siswa lag/ke-refresh bisa lanjut lagi": ini SEBENARNYA udah
+  kepasang di data model dari awal (tiap jawaban kesimpen per soal di
+  dokumen participant Firestore, dan /status ngirim balik status "udah
+  jawab soal ini apa belum" + hasil soal pas jeda) -- cuma keliatan gak
+  jalan gara-gara bug di atas bikin polling-nya crash duluan. Sekarang
+  udah kepakai normal: refresh/lag di tengah soal -> polling jalan lagi
+  -> halaman otomatis nampilin soal yang sama & status jawaban sesuai
+  yang tersimpan di server (tombol disabled kalau udah kejawab, dst).

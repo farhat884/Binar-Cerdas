@@ -1,548 +1,77 @@
 {% extends "base.html" %}
-
-{% block title %}
-Kelola Materi — Binar Cerdas
-{% endblock %}
-
-
+{% block title %}Kelola Materi — Binar Cerdas{% endblock %}
 {% block content %}
-
-<div class="dash">
-
-  <aside class="dash-sidebar">
-
-    <div class="who">
-      {{ session.get('name') }}
-    </div>
-
-    <div class="role-tag">
-      Admin
-    </div>
-
-    <nav>
-      <a href="{{ url_for('admin.dashboard') }}">
-        Dashboard
-      </a>
-
-      <a
-        class="active"
-        href="{{ url_for('admin.materi') }}"
-      >
-        Materi
-      </a>
-
-      <a href="{{ url_for('admin.soal') }}">
-        Bank Soal
-      </a>
-
-      <a href="{{ url_for('admin.siswa') }}">
-        Siswa
-      </a>
-    </nav>
-
-  </aside>
-
-
-  <main class="dash-content">
-
-    <h1>Materi Pembelajaran</h1>
-
-    <p class="muted">
-      Upload materi yang sudah kamu buat dari PowerPoint
-      dalam format PDF.
-    </p>
-
-
-    <form
-      method="POST"
-      class="card-simple"
-      style="max-width:800px;margin:20px 0"
-    >
-
-      <div class="field-row">
-
-        <div class="field">
-
-          <label>Jenjang</label>
-
-          <select name="jenjang" required>
-            <option value="SD">SD</option>
-            <option value="SMP">SMP</option>
-            <option value="SMA">SMA</option>
-          </select>
-
-        </div>
-
-
-        <div class="field">
-
-          <label>Kelas</label>
-
-          <select name="kelas" required>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-          </select>
-
-        </div>
-
-
-        <div class="field">
-
-          <label>Mapel</label>
-
-          <input
-            name="mapel"
-            required
-            placeholder="Contoh: Matematika"
-          >
-
-        </div>
-
-      </div>
-
-
-      <div class="field">
-
-        <label>Judul Materi</label>
-
-        <input
-          name="judul"
-          required
-          placeholder="Contoh: Persamaan Kuadrat"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label>
-          Ringkasan singkat
-          <span class="muted">(opsional)</span>
-        </label>
-
-        <input
-          name="ringkasan"
-          placeholder="Deskripsi singkat materi"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label>File Materi PDF</label>
-
-        <input
-          type="file"
-          id="file_pdf"
-          accept="application/pdf,.pdf"
-          required
-        >
-
-        <small class="muted">
-          Upload PDF hasil export dari PPT.
-          Hanya file PDF yang diterima.
-        </small>
-
-      </div>
-
-
-      <input
-        type="hidden"
-        name="pdf_url"
-        id="pdf_url"
-      >
-
-      <input
-        type="hidden"
-        name="pdf_path"
-        id="pdf_path"
-      >
-
-      <input
-        type="hidden"
-        name="pdf_filename"
-        id="pdf_filename"
-      >
-
-
-      <button
-        type="submit"
-        id="submit_materi"
-        class="btn btn-gold"
-      >
-        📄 Upload Materi PDF
-      </button>
-
-    </form>
-
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-            <th>Materi</th>
-            <th>Jenjang</th>
-            <th>Mapel</th>
-            <th>File</th>
-            <th></th>
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          {% for m in materials %}
-
-          <tr>
-
-            <td>
-              {{ m.judul }}
-            </td>
-
-            <td>
-              {{ m.jenjang }}
-              {{ m.kelas }}
-            </td>
-
-            <td>
-              {{ m.mapel }}
-            </td>
-
-
-            <td>
-
-              {% if m.pdf_url %}
-
-              <a
-                href="{{ m.pdf_url }}"
-                target="_blank"
-                class="payment-proof-link"
-              >
-                Buka PDF 📄
-              </a>
-
-              {% else %}
-
-              <span class="muted">
-                Belum ada PDF
-              </span>
-
-              {% endif %}
-
-            </td>
-
-
-            <td>
-
-              <a
-                class="btn btn-ghost btn-sm"
-                href="{{ url_for(
-                  'admin.edit_materi',
-                  material_id=m.id
-                ) }}"
-              >
-                Edit
-              </a>
-
-
-              <form
-                style="display:inline"
-                method="POST"
-                action="{{ url_for(
-                  'admin.hapus_materi',
-                  material_id=m.id
-                ) }}"
-              >
-
-                <button
-                  type="submit"
-                  class="btn btn-danger btn-sm"
-                >
-                  Hapus
-                </button>
-
-              </form>
-
-            </td>
-
-          </tr>
-
-
-          {% else %}
-
-          <tr>
-
-            <td
-              colspan="5"
-              class="muted"
-            >
-              Belum ada materi.
-            </td>
-
-          </tr>
-
-          {% endfor %}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  </main>
-
+<div class="dash"><aside class="dash-sidebar"><div class="who">{{ session.get('name') }}</div><div class="role-tag">Admin</div><nav><a href="{{ url_for('admin.dashboard') }}">Dashboard</a><a class="active" href="{{ url_for('admin.materi') }}">Materi</a><a href="{{ url_for('admin.soal') }}">Bank Soal</a><a href="{{ url_for('admin.siswa') }}">Siswa</a></nav></aside>
+<main class="dash-content"><h1>Kelola Materi Pembelajaran</h1><p class="muted">Struktur materi sekarang: <strong>Mapel → Bab → Tahapan/Subbab</strong>. Setiap tahapan cuma satu jenis konten — <strong>Rangkuman (gambar)</strong> ATAU <strong>PDF Full</strong> — biar gak numpuk berdua dalam satu halaman. Latihan soal dihubungkan lewat menu Bank Soal dan otomatis tampil sebagai tahapan terpisah di paling bawah bab.</p>
+<form method="POST" class="card-simple" style="max-width:900px;margin:20px 0"><h2>+ Tambah Tahapan Materi</h2>
+<div class="field-row"><div class="field"><label>Jenjang</label><select name="jenjang" id="add_jenjang" required><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div><div class="field"><label>Kelas</label><select name="kelas" id="add_kelas" required></select></div><div class="field"><label>Mapel</label><select name="mapel" id="add_mapel" required></select></div></div>
+<div class="field-row"><div class="field"><label>Nama Bab</label><input name="bab" required placeholder="Contoh: Bab 1 — Bilangan"></div><div class="field"><label>Urutan Bab</label><input type="number" name="urutan_bab" min="1" value="1" required></div><div class="field"><label>Urutan Tahapan</label><input type="number" name="urutan_subbab" min="1" value="1" required></div></div>
+<div class="field"><label>Judul Tahapan / Subbab</label><input name="judul" required placeholder="Contoh: Konsep Bilangan Berpangkat"></div>
+<div class="field"><label>Jenis Konten Tahapan Ini</label><select name="tipe" id="tipe_konten"><option value="pdf">📄 PDF Full (materi lengkap)</option><option value="rangkuman">🖼️ Rangkuman (gambar)</option></select><small class="muted">Buat 2 tahapan terpisah kalau mau ada rangkuman DAN PDF untuk topik yang sama — satu tahapan cuma boleh salah satu.</small></div>
+<div id="blok_pdf">
+  <div class="field"><label>File Materi PDF Full</label><input type="file" id="file_pdf" accept="application/pdf,.pdf"><small class="muted">PDF adalah materi lengkap seperti sebelumnya.</small></div>
+  <input type="hidden" name="pdf_url" id="pdf_url"><input type="hidden" name="pdf_path" id="pdf_path"><input type="hidden" name="pdf_filename" id="pdf_filename">
 </div>
+<div id="blok_rangkuman" style="display:none">
+  <div class="field"><label>Gambar Rangkuman</label><input type="file" id="file_rangkuman" accept="image/png,image/jpeg,image/webp,image/gif"><small class="muted">Upload gambar rangkuman (misal hasil desain Canva) yang langsung dibaca siswa.</small><div id="preview_rangkuman" style="margin-top:8px"></div></div>
+  <input type="hidden" name="rangkuman_gambar_url" id="rangkuman_gambar_url"><input type="hidden" name="rangkuman_gambar_path" id="rangkuman_gambar_path">
+  <div class="field"><label>Catatan Singkat <span class="muted">(opsional, teks pelengkap di bawah gambar)</span></label><textarea name="ringkasan" rows="3" placeholder="Opsional..."></textarea></div>
+</div>
+<button type="submit" id="submit_materi" class="btn btn-gold">💾 Simpan Tahapan</button></form>
+<div class="table-wrap"><table><thead><tr><th>Struktur</th><th>Tahapan</th><th>Tipe</th><th>Konten</th><th></th></tr></thead><tbody>
+{% for m in materials %}<tr><td><strong>{{ m.mapel }}</strong><br>{{ m.jenjang }} {{ m.kelas }} · {{ m.bab or 'Bab 1' }}</td><td>{{ m.urutan_subbab or 1 }}. {{ m.judul }}</td><td>{% if m.tipe=='rangkuman' %}<span class="badge-status badge-pending">🖼️ Rangkuman</span>{% else %}<span class="badge-status badge-approved">📄 PDF</span>{% endif %}</td><td>{% if m.tipe=='rangkuman' %}{% if m.rangkuman_gambar_url %}<a href="{{ m.rangkuman_gambar_url }}" target="_blank" class="payment-proof-link">Lihat Gambar 🖼️</a>{% else %}<span class="muted">-</span>{% endif %}{% else %}{% if m.pdf_url %}<a href="{{ m.pdf_url }}" target="_blank" class="payment-proof-link">Buka PDF 📄</a>{% else %}<span class="muted">-</span>{% endif %}{% endif %}</td><td style="white-space:nowrap"><a class="btn btn-ghost btn-sm" href="{{ url_for('admin.edit_materi',material_id=m.id) }}">Edit</a> <form style="display:inline" method="POST" action="{{ url_for('admin.hapus_materi',material_id=m.id) }}"><button type="submit" class="btn btn-danger btn-sm">Hapus</button></form></td></tr>{% else %}<tr><td colspan="5" class="muted">Belum ada materi.</td></tr>{% endfor %}
+</tbody></table></div></main></div>
+{% endblock %}
+{% block scripts %}<script>
+(async()=>{
+  const form=document.querySelector('form.card-simple');
+  const tipeSelect=document.getElementById('tipe_konten');
+  const blokPdf=document.getElementById('blok_pdf'); const blokRangkuman=document.getElementById('blok_rangkuman');
+  const filePdf=document.getElementById('file_pdf'); const fileRangkuman=document.getElementById('file_rangkuman');
+  if(!form) return;
+  function syncTipe(){
+    const isRangkuman=tipeSelect.value==='rangkuman';
+    blokPdf.style.display=isRangkuman?'none':'block'; blokRangkuman.style.display=isRangkuman?'block':'none';
+  }
+  tipeSelect.addEventListener('change',syncTipe); syncTipe();
 
-
-<script>
-
-(async () => {
-
-  const form = document.querySelector(
-    "form.card-simple"
-  );
-
-  const fileInput = document.getElementById(
-    "file_pdf"
-  );
-
-  const pdfUrlInput = document.getElementById(
-    "pdf_url"
-  );
-
-  const pdfPathInput = document.getElementById(
-    "pdf_path"
-  );
-
-  const pdfFilenameInput = document.getElementById(
-    "pdf_filename"
-  );
-
-  const submitButton = document.getElementById(
-    "submit_materi"
-  );
-
-
-  if (!form || !fileInput) {
-    return;
+  async function uploadFile(file,kind,contentType){
+    const r=await fetch('{{ url_for("admin.materi_upload_url") }}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name,kind})});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||'Gagal menyiapkan upload.');
+    const up=await fetch(d.upload_url,{method:'PUT',headers:{'Content-Type':contentType},body:file}); if(!up.ok) throw new Error('Upload gagal.');
+    return d;
   }
 
-
-  form.addEventListener(
-    "submit",
-
-    async function (event) {
-
-      /*
-       * Kalau PDF sudah berhasil diupload,
-       * biarkan form dikirim ke Flask.
-       */
-      if (pdfUrlInput.value) {
-        return;
-      }
-
-
-      if (!fileInput.files.length) {
-
-        event.preventDefault();
-
-        alert(
-          "Pilih file PDF terlebih dahulu."
-        );
-
-        return;
-      }
-
-
-      const file = fileInput.files[0];
-
-
-      if (
-        !file.name
-          .toLowerCase()
-          .endsWith(".pdf")
-      ) {
-
-        event.preventDefault();
-
-        alert(
-          "Materi harus berupa file PDF."
-        );
-
-        return;
-      }
-
-
-      event.preventDefault();
-
-
-      submitButton.disabled = true;
-
-      submitButton.textContent =
-        "Mengunggah PDF...";
-
-
-      try {
-
-        /*
-         * Minta signed upload URL
-         * dari backend Flask.
-         */
-
-        const response = await fetch(
-
-          "{{ url_for('admin.materi_upload_url') }}",
-
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-              filename: file.name
-            })
-
-          }
-
-        );
-
-
-        const data =
-          await response.json();
-
-
-        if (!response.ok) {
-
-          throw new Error(
-
-            data.error ||
-            "Gagal menyiapkan upload."
-
-          );
-
-        }
-
-
-        /*
-         * Upload file PDF langsung
-         * ke Supabase Storage.
-         */
-
-        const uploadResponse = await fetch(
-            data.upload_url,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type":
-                        file.type || "application/pdf",
-
-                    "x-signature":
-                        data.token
-                },
-
-                body: file
-            }
-        );
-
-
-        if (!uploadResponse.ok) {
-
-          const errorText =
-            await uploadResponse.text();
-
-
-          console.error(
-
-            "Supabase upload gagal:",
-
-            uploadResponse.status,
-
-            errorText
-
-          );
-
-
-          throw new Error(
-
-            "Upload PDF gagal: " +
-
-            uploadResponse.status +
-
-            " - " +
-
-            errorText
-
-          );
-
-        }
-
-
-        /*
-         * Simpan informasi PDF
-         * ke hidden input.
-         */
-
-        pdfUrlInput.value =
-          data.public_url;
-
-        pdfPathInput.value =
-          data.path;
-
-        pdfFilenameInput.value =
-          file.name;
-
-
-        /*
-         * Setelah upload berhasil,
-         * submit form ke Flask.
-         */
-
+  window.SOAL_PROGRAM_MAP={{ program_map|tojson }};
+  window.SOAL_MATERIALS=[];
+  const cascadeScript=document.createElement('script');
+  cascadeScript.src='{{ url_for("static", filename="js/soal-cascade.js") }}';
+  cascadeScript.onload=()=>wireSoalCascade('add_');
+  document.head.appendChild(cascadeScript);
+
+  form.addEventListener('submit',async e=>{
+    const isRangkuman=tipeSelect.value==='rangkuman';
+    if(isRangkuman){
+      if(document.getElementById('rangkuman_gambar_url').value) return;
+      if(!fileRangkuman.files.length){e.preventDefault();alert('Pilih gambar rangkuman terlebih dahulu.');return}
+      e.preventDefault(); const btn=document.getElementById('submit_materi'); btn.disabled=true; btn.textContent='Mengunggah gambar...';
+      try{
+        const f=fileRangkuman.files[0]; const d=await uploadFile(f,'image',f.type||'application/octet-stream');
+        document.getElementById('rangkuman_gambar_url').value=d.public_url; document.getElementById('rangkuman_gambar_path').value=d.path;
+        document.getElementById('preview_rangkuman').innerHTML='<img src="'+d.public_url+'" alt="Preview rangkuman" class="soal-thumb-preview">';
         form.submit();
-
-
-      }
-      catch (error) {
-
-        console.error(
-          "Error upload:",
-          error
-        );
-
-
-        alert(
-          error.message ||
-          "Upload PDF gagal."
-        );
-
-
-        submitButton.disabled = false;
-
-        submitButton.textContent =
-          "📄 Upload Materi PDF";
-
-      }
-
+      }catch(err){alert(err.message); btn.disabled=false; btn.textContent='💾 Simpan Tahapan';}
+    } else {
+      if(document.getElementById('pdf_url').value) return;
+      if(!filePdf.files.length){e.preventDefault();alert('Pilih file PDF terlebih dahulu.');return}
+      const f=filePdf.files[0]; if(!f.name.toLowerCase().endsWith('.pdf')){e.preventDefault();alert('Materi harus berupa PDF.');return}
+      e.preventDefault(); const btn=document.getElementById('submit_materi'); btn.disabled=true; btn.textContent='Mengunggah PDF...';
+      try{
+        const d=await uploadFile(f,'pdf','application/pdf');
+        document.getElementById('pdf_url').value=d.public_url; document.getElementById('pdf_path').value=d.path; document.getElementById('pdf_filename').value=f.name;
+        form.submit();
+      }catch(err){alert(err.message); btn.disabled=false; btn.textContent='💾 Simpan Tahapan';}
     }
-
-  );
-
+  });
 })();
-
-</script>
-
-{% endblock %}
+</script>{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "macros.html" import daftar_riwayat_percobaan %}
+{% block title %}{{ bab if bab is defined else chapter.nama }} — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash"><aside class="dash-sidebar"><div class="who">{{ user.name }}</div><div class="role-tag">Siswa</div><nav><a href="{{ url_for('student.materi') }}">Semua Mapel</a><a href="{{ url_for('student.detail_mapel',mapel=mapel) }}">← {{ mapel }}</a><a class="active" href="{{ url_for('student.detail_bab',mapel=mapel,bab=chapter.nama) }}">{{ chapter.nama }}</a></nav></aside>
+<main class="dash-content bab-learning-page">
+  <div class="bab-title"><div><span class="badge">{{ mapel }} · Kelas {{ user.kelas }}</span><h1>{{ chapter.nama }}</h1><p class="muted">Pelajari setiap tahapan secara berurutan. Ringkasan untuk memahami cepat, PDF untuk materi lengkap.</p></div></div>
+  <section class="card-simple recommendation-row"><div><strong>💡 Tips belajar</strong><p class="muted">Mulai dari rangkuman, buka PDF jika ingin pembahasan lengkap, lalu kerjakan latihan sebelum lanjut.</p></div></section>
+  {% if bab_locked %}
+  <section class="card-simple unlock-box" id="buka-bab-atas">
+    <h3>🔒 Bab ini belum dibuka</h3>
+    <p>Buka bab <strong>{{ chapter.nama }}</strong> sekali untuk membuka akses ke <strong>semua {{ chapter.subbab|length }} tahap sekaligus</strong> di bab ini. Hanya perlu <strong>1 kuota pertemuan</strong>. Sisa pertemuan kamu: {{ user.sisa_pertemuan or 0 }}.</p>
+    <form method="POST" action="{{ url_for('student.buka_bab',mapel=mapel,bab=chapter.nama) }}"><button class="btn btn-gold">Buka Bab Ini — Gunakan 1 Pertemuan</button></form>
+  </section>
+  {% endif %}
+  <section class="subbab-section"><div class="section-title-row"><div><h2>Semua Tahapan</h2><p class="muted">{{ chapter.subbab|length }} subbab dalam {{ chapter.nama }} — materi dan latihannya langsung berurutan.</p></div></div>
+  <div class="subbab-list">
+  {% for m in chapter.subbab %}
+    <article class="subbab-card {% if m.progress.completed %}is-done{% endif %}">
+      <div class="subbab-index">{{ loop.index }}</div><div class="subbab-main"><div class="subbab-head"><div><span class="tiny-label">TAHAP {{ loop.index }} · {% if m.tipe=='rangkuman' %}🖼️ RANGKUMAN{% else %}📄 PDF FULL{% endif %}</span><h3>{{ m.judul }}</h3></div>{% if m.progress.completed %}<span class="status-ok">✓ Selesai</span>{% elif m.can_access %}<span class="status-open">Terbuka</span>{% else %}<span class="status-lock">🔒 Terkunci</span>{% endif %}</div>
+      <div class="subbab-actions">{% if m.can_access %}<a class="btn btn-gold btn-sm" href="{{ url_for('student.detail_materi',material_id=m.id) }}">Pelajari Tahap →</a>{% else %}<a class="btn btn-ghost btn-sm" href="#buka-bab-atas">Buka Bab Dulu ↑</a>{% endif %}</div>
+      </div>
+    </article>
+    {% if m.jumlah_latihan and m.jumlah_latihan > 0 %}
+    <article class="subbab-card subbab-card-latihan">
+      <div class="subbab-index">✏️</div><div class="subbab-main"><div class="subbab-head"><div><span class="tiny-label">LATIHAN TAHAP {{ loop.index }} · {{ m.jumlah_latihan }} SOAL</span><h3>Latihan — {{ m.judul }}</h3></div>{% if not m.can_access %}<span class="status-lock">🔒 Terkunci</span>{% endif %}</div>
+      <div class="subbab-actions">{% if m.can_access %}<a class="btn btn-gold btn-sm" href="{{ url_for('student.latihan_materi',material_id=m.id) }}">Kerjakan Latihan →</a>{% else %}<a class="btn btn-ghost btn-sm" href="#buka-bab-atas">Buka Bab Dulu ↑</a>{% endif %}</div>
+      </div>
+    </article>
+    {% endif %}
+  {% else %}<div class="empty-state"><p>Belum ada tahapan materi di bab ini.</p></div>{% endfor %}
+  </div></section>
+  <section class="daily-quiz-card"><div><span class="eyebrow">Evaluasi Bab</span><h2>Ulangan Harian {{ chapter.nama }}</h2><p>Setelah mempelajari tahapan di atas, kerjakan ulangan harian untuk mengukur pemahamanmu.</p></div><div class="daily-quiz-meta"><span>{{ questions|length }} soal</span><a class="btn btn-gold" href="{{ url_for('student.ulangan_bab',mapel=mapel,bab=chapter.nama) }}">Mulai Ulangan →</a></div></section>
+</main></div>
+{% endblock %}

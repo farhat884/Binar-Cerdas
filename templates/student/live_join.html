@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}Live Kuis — Binar Cerdas{% endblock %}{% block content %}
+<div class="dash">
+<aside class="dash-sidebar">
+  <div class="who">{{ session.get('name') }}</div>
+  <div class="role-tag">Siswa</div>
+  <nav>
+    <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('student.materi') }}">Materi</a>
+    <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
+    <a href="{{ url_for('student.progress') }}">Progress</a>
+    <a class="active" href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
+  </nav>
+</aside>
+<main class="dash-content">
+  <h1>Gabung Live Kuis</h1>
+  <p class="muted" style="max-width:520px">Minta kode gabung ke pengajar kamu, terus masukkan di bawah ini. Begitu masuk, tunggu pengajar mulai kuisnya.</p>
+
+  <form method="POST" class="card-simple" style="max-width:420px;margin:20px 0;text-align:center">
+    <div class="field" style="text-align:left">
+      <label>Kode Sesi</label>
+      <input name="kode" required maxlength="6" placeholder="Misal: AB3K9Q" style="text-transform:uppercase;font-family:var(--font-mono);font-size:1.3rem;letter-spacing:.15em;text-align:center">
+    </div>
+    <button type="submit" class="btn btn-gold btn-block">Gabung</button>
+  </form>
+</main>
+</div>
+{% endblock %}

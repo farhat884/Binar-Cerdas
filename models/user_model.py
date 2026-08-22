@@ -250,3 +250,30 @@ def gunakan_pertemuan_untuk_materi(user_id):
         raise ValueError(error)
     user = get_user_by_id(user_id)
     return int(user.get("sisa_pertemuan", 0))
+
+
+def delete_siswa(user_id):
+    """
+    Hapus akun siswa secara permanen. Sengaja HANYA mau menghapus dokumen
+    dengan role == "siswa" (bukan admin), sebagai jaring pengaman supaya
+    fitur ini gak bisa kepakai buat menghapus akun admin lain lewat rute
+    yang sama.
+    """
+
+    user = get_user_by_id(user_id)
+
+    if not user:
+        return (
+            False,
+            "Siswa tidak ditemukan."
+        )
+
+    if user.get("role") != "siswa":
+        return (
+            False,
+            "Akun ini bukan akun siswa, tidak bisa dihapus lewat sini."
+        )
+
+    db.collection(COLLECTION).document(user_id).delete()
+
+    return (True, None)

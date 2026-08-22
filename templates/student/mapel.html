@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ subject.mapel }} — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash"><aside class="dash-sidebar"><div class="who">{{ user.name }}</div><div class="role-tag">Siswa</div><nav><a href="{{ url_for('student.materi') }}">← Semua Mapel</a><a class="active" href="{{ url_for('student.detail_mapel',mapel=subject.mapel) }}">{{ subject.mapel }}</a><a href="{{ url_for('student.progress') }}">Progress</a></nav></aside>
+<main class="dash-content chapter-page">
+  <div class="chapter-header"><div><span class="badge">{{ user.jenjang }} · Kelas {{ user.kelas }}</span><h1>{{ subject.mapel }}</h1><p class="muted">Pilih bab untuk melihat tahapan materi, rangkuman, PDF, dan latihan.</p></div><div class="chapter-count">{{ subject.jumlah_bab }}<small>Bab</small></div></div>
+  <section class="card-simple"><h2>Semua Bab</h2><div class="chapter-list">
+    {% for b in subject.bab %}<a class="chapter-card" href="{{ url_for('student.detail_bab',mapel=subject.mapel,bab=b.nama) }}"><div class="chapter-number">{{ loop.index }}</div><div class="chapter-info"><h3>{{ b.nama }}</h3><p>{{ b.subbab|length }} tahapan materi · {{ b.selesai or 0 }}/{{ b.subbab|length }} selesai</p><div class="mini-progress"><span style="width:{{ ((b.selesai or 0)*100/(b.subbab|length))|round|int if b.subbab else 0 }}%"></span></div></div><span class="chapter-arrow">›</span></a>{% else %}<p class="muted">Belum ada bab.</p>{% endfor %}
+  </div></section>
+</main></div>
+{% endblock %}

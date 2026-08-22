@@ -1,1 +1,80 @@
-{% extends "base.html" %}{% block title %}Hasil {{ attempt.tipe }} — Binar Cerdas{% endblock %}{% block content %}<main class="container section"><div class="card-simple result-card"><h1>Hasil {{ attempt.tipe }}</h1><div class="score-circle">{{ attempt.percent|round|int }}</div><p><strong>{{ attempt.score }}</strong> dari {{ attempt.total }} jawaban benar.</p><a href="{{ url_for('student.progress') }}" class="btn btn-gold">Lihat Progress</a></div>{% for r in reviews %}<div class="card-simple result-card"><div class="glyph">{% if r.benar %}✅{% else %}❌{% endif %}</div><p><strong>Soal:</strong> {{ r.question.pertanyaan }}</p><p>Jawaban kamu: {{ r.selected or '-' }}</p><p>Jawaban benar: <strong>{{ r.question.jawaban_benar }}</strong></p><div class="ai-explanation"><h3>✨ Penjelasan AI</h3><p>{{ r.penjelasan_ai }}</p><div class="ai-chat" data-question-id="{{ r.question.id }}" data-selected="{{ r.selected }}" data-url="{{ url_for('student.tanya_ai_soal', question_id=r.question.id) }}"><div class="ai-chat-title">Masih bingung? Tanya lagi di sini 👇</div><div class="ai-chat-messages"></div><div class="ai-chat-row"><input type="text" class="ai-chat-input" placeholder="Tulis pertanyaanmu..." maxlength="500"><button type="button" class="ai-chat-send">Kirim</button></div></div></div></div>{% endfor %}</main>{% endblock %}
+{% extends "base.html" %}{% block title %}Hasil {{ attempt.tipe }} — Binar Cerdas{% endblock %}{% block content %}<main class="container section">
+<div class="card-simple result-card">
+  <h1>Hasil {{ attempt.tipe }}{% if percobaan_ke and percobaan_ke > 1 %} <span class="muted" style="font-size:.6em;font-weight:600">(percobaan ke-{{ percobaan_ke }})</span>{% endif %}</h1>
+  <div class="score-circle">{{ attempt.percent|round|int }}</div>
+  <p><strong>{{ attempt.score }}</strong> dari {{ attempt.total }} jawaban benar.</p>
+  {% if riwayat_sebelumnya %}
+  <p class="muted">Dibanding percobaan sebelumnya ({{ riwayat_sebelumnya[0].percent|round|int }}%): {% set selisih = (attempt.percent - riwayat_sebelumnya[0].percent)|round(1) %}{% if selisih > 0 %}naik {{ selisih }}% 📈{% elif selisih < 0 %}turun {{ -selisih }}% — gapapa, coba pelajari lagi ya{% else %}sama aja{% endif %}</p>
+  {% endif %}
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a href="{{ url_for('student.progress') }}" class="btn btn-gold">Lihat Progress</a>
+    <a href="{{ url_for('student.ujian',tipe=attempt.tipe,mapel=attempt.mapel) }}" class="btn btn-ghost">↻ Kerjakan Ulang</a>
+  </div>
+</div>
+{% if evaluasi %}
+<div class="card-simple result-card evaluasi-card"><h3>🎯 Rekomendasi Belajar Kamu</h3><p>{{ evaluasi }}</p></div>
+{% endif %}
+{% if reviews %}
+<div class="card-simple result-card">
+  <p class="muted" style="margin:0 0 4px">Klik nomor soal buat lihat soal, pilihan jawaban &amp; penjelasannya:</p>
+  <div class="review-nav">
+    {% for r in reviews %}
+    <button type="button" class="review-nav-btn {{ 'is-correct' if r.benar else 'is-wrong' }}{{ ' active' if loop.first }}" data-index="{{ loop.index0 }}">{{ loop.index }}</button>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% for r in reviews %}
+<div class="card-simple result-card review-question" data-index="{{ loop.index0 }}" style="{{ '' if loop.first else 'display:none' }}">
+  <div class="glyph">{% if r.benar %}✅{% else %}❌{% endif %}</div>
+  <p><strong>Soal {{ loop.index }}:</strong> {{ r.question.pertanyaan }}</p>
+  {% if r.question.gambar_url %}<img src="{{ r.question.gambar_url }}" alt="Gambar soal" class="soal-gambar">{% endif %}
+  <div class="answer-options-mini">
+    {% for option in r.question.pilihan %}
+    <div class="option-mini {{ 'selected' if r.selected == 'ABCD'[loop.index0] else '' }} {{ 'correct-option' if r.question.jawaban_benar == 'ABCD'[loop.index0] else '' }}">
+      <b>{{ 'ABCD'[loop.index0] }}</b>
+      {% if option %}<span>{{ option }}</span>{% endif %}
+      {% if r.question.pilihan_gambar and r.question.pilihan_gambar[loop.index0] %}<img src="{{ r.question.pilihan_gambar[loop.index0] }}" alt="Pilihan {{ 'ABCD'[loop.index0] }}">{% endif %}
+      {% if r.selected == 'ABCD'[loop.index0] %}<em>Jawabanmu</em>{% endif %}
+      {% if r.question.jawaban_benar == 'ABCD'[loop.index0] %}<em>Jawaban benar</em>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="ai-explanation"><h3>✨ Penjelasan AI</h3><p>{{ r.penjelasan_ai }}</p>
+    <div class="ai-chat" data-question-id="{{ r.question.id }}" data-selected="{{ r.selected }}" data-url="{{ url_for('student.tanya_ai_soal', question_id=r.question.id) }}">
+      <div class="ai-chat-title">Masih bingung? Tanya lagi di sini 👇</div>
+      <div class="ai-chat-messages"></div>
+      <div class="ai-chat-row"><input type="text" class="ai-chat-input" placeholder="Tulis pertanyaanmu..." maxlength="500"><button type="button" class="ai-chat-send">Kirim</button></div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Navigasi nomor soal: klik nomor -> tampilkan cuma soal itu, yang lain disembunyikan.
+  const navBtns = Array.from(document.querySelectorAll(".review-nav-btn"));
+  const questionBlocks = Array.from(document.querySelectorAll(".review-question"));
+  const navWrap = document.querySelector(".review-nav");
+  navBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = btn.dataset.index;
+      navBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      questionBlocks.forEach((q) => {
+        q.style.display = q.dataset.index === idx ? "block" : "none";
+        if (q.dataset.index === idx) window.typesetMath(q);
+      });
+      if (navWrap) window.scrollTo({ top: navWrap.offsetTop - 70, behavior: "smooth" });
+    });
+  });
+  // Chat AI ada di tiap soal (bukan cuma yang lagi kelihatan) supaya pas
+  // pindah nomor, kotak tanya-AI-nya udah langsung siap dipakai.
+  questionBlocks.forEach((q) => {
+    const chat = q.querySelector(".ai-chat");
+    if (chat && window.initAIChat) window.initAIChat(chat);
+  });
+});
+</script>
+{% endblock %}

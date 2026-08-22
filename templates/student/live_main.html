@@ -1,0 +1,187 @@
+{% extends "base.html" %}{% block title %}{{ sesi.judul }} — Live Kuis{% endblock %}{% block content %}
+<div class="dash">
+<aside class="dash-sidebar">
+  <div class="who">{{ session.get('name') }}</div>
+  <div class="role-tag">Siswa</div>
+  <nav>
+    <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('student.materi') }}">Materi</a>
+    <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
+    <a href="{{ url_for('student.progress') }}">Progress</a>
+    <a class="active" href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
+  </nav>
+</aside>
+<main class="dash-content">
+  <h1>{{ sesi.judul }}</h1>
+
+  <div id="live_root" data-status-url="{{ url_for('live_student.status', session_id=sesi.id) }}" data-jawab-url="{{ url_for('live_student.jawab', session_id=sesi.id) }}" data-durasi="{{ sesi.durasi_detik }}">
+
+    <div id="layar_lobi" class="card-simple" style="text-align:center;max-width:480px">
+      <p style="font-size:1.1rem">⏳ Menunggu pengajar memulai kuis...</p>
+      <p class="muted">Skor kamu sekarang: <strong id="skor_lobi">0</strong></p>
+    </div>
+
+    <div id="layar_soal" style="display:none;max-width:640px">
+      <div class="live-timer-bar"><div class="live-timer-fill" id="siswa_timer_fill" style="width:100%"></div></div>
+      <p class="muted" id="siswa_progress_text" style="margin:8px 0"></p>
+      <div class="card-simple">
+        <h2 id="siswa_pertanyaan" style="margin-bottom:6px"></h2>
+      </div>
+      <div class="live-choice-grid" id="siswa_pilihan_grid"></div>
+      <p class="muted" id="siswa_menunggu_text" style="display:none">Jawaban terkirim, menunggu soal ditutup...</p>
+    </div>
+
+    <div id="layar_jeda" style="display:none;max-width:640px">
+      <div class="card-simple">
+        <p id="jeda_pertanyaan" style="font-weight:700;margin-bottom:10px"></p>
+        <p>Jawaban benar: <strong id="jeda_jawaban_benar"></strong></p>
+        <p id="jeda_hasil_saya" class="muted" style="margin-top:6px"></p>
+        <p id="jeda_penjelasan" class="muted" style="margin-top:10px"></p>
+      </div>
+      <h3 style="margin:18px 0 10px">Papan Skor Sementara</h3>
+      <div id="jeda_leaderboard"></div>
+    </div>
+
+    <div id="layar_selesai" style="display:none;max-width:640px">
+      <div class="card-simple" style="text-align:center">
+        <h2>🎉 Kuis Selesai!</h2>
+        <p>Skor akhir kamu: <strong id="selesai_skor">0</strong></p>
+        <p class="muted" id="selesai_peringkat"></p>
+      </div>
+      <h3 style="margin:18px 0 10px">Papan Skor Akhir</h3>
+      <div id="selesai_leaderboard"></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('live_root');
+  const statusUrl = root.dataset.statusUrl;
+  const jawabUrl = root.dataset.jawabUrl;
+  const durasi = parseInt(root.dataset.durasi, 10) || 20;
+
+  const layarLobi = document.getElementById('layar_lobi');
+  const layarSoal = document.getElementById('layar_soal');
+  const layarJeda = document.getElementById('layar_jeda');
+  const layarSelesai = document.getElementById('layar_selesai');
+  const skorLobi = document.getElementById('skor_lobi');
+
+  const timerFill = document.getElementById('siswa_timer_fill');
+  const progressText = document.getElementById('siswa_progress_text');
+  const pertanyaanEl = document.getElementById('siswa_pertanyaan');
+  const pilihanGrid = document.getElementById('siswa_pilihan_grid');
+  const menungguText = document.getElementById('siswa_menunggu_text');
+
+  const warnaKelas = ['live-choice-a', 'live-choice-b', 'live-choice-c', 'live-choice-d'];
+  const labelHuruf = ['A', 'B', 'C', 'D'];
+
+  let questionIdTerlihat = null;
+  let questionSeenAt = null;
+  let sudahKirimUntukSoalIni = false;
+
+  function tampilkanLayar(nama) {
+    layarLobi.style.display = nama === 'lobi' ? 'block' : 'none';
+    layarSoal.style.display = nama === 'soal' ? 'block' : 'none';
+    layarJeda.style.display = nama === 'jeda' ? 'block' : 'none';
+    layarSelesai.style.display = nama === 'selesai' ? 'block' : 'none';
+  }
+
+  function renderLeaderboard(container, list) {
+    if (!list.length) { container.innerHTML = '<p class="muted">Belum ada skor.</p>'; return; }
+    container.innerHTML = list.map((p, i) => `
+      <div class="live-leaderboard-row">
+        <span><span class="peringkat">#${i + 1}</span> ${p.nama}</span>
+        <span class="skor">${p.skor}</span>
+      </div>`).join('');
+  }
+
+  async function kirimJawaban(questionId, huruf) {
+    if (sudahKirimUntukSoalIni) return;
+    sudahKirimUntukSoalIni = true;
+    Array.from(pilihanGrid.children).forEach(btn => btn.disabled = true);
+    const waktuMs = questionSeenAt ? (Date.now() - questionSeenAt) : 0;
+    try {
+      await fetch(jawabUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question_id: questionId, selected: huruf, waktu_ms: waktuMs }),
+      });
+    } catch (e) { /* biarin, status berikutnya akan tetap sinkron dari server */ }
+    menungguText.style.display = 'block';
+  }
+
+  function renderSoal(soal) {
+    if (soal.id !== questionIdTerlihat) {
+      questionIdTerlihat = soal.id;
+      questionSeenAt = Date.now();
+      sudahKirimUntukSoalIni = false;
+      menungguText.style.display = 'none';
+      pertanyaanEl.textContent = soal.pertanyaan;
+      pilihanGrid.innerHTML = '';
+      soal.pilihan.forEach((teks, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'live-choice-btn ' + warnaKelas[i];
+        btn.textContent = labelHuruf[i] + '. ' + teks;
+        btn.addEventListener('click', () => kirimJawaban(soal.id, labelHuruf[i]));
+        pilihanGrid.appendChild(btn);
+      });
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch(statusUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.status === 'lobi') {
+        tampilkanLayar('lobi');
+        skorLobi.textContent = data.skor_saya;
+      } else if (data.status === 'soal' && data.soal_aktif) {
+        tampilkanLayar('soal');
+        renderSoal(data.soal_aktif);
+        progressText.textContent = `Soal ${data.current_index + 1} dari ${data.total_soal}`;
+        if (data.sisa_detik !== null) {
+          timerFill.style.width = Math.max(0, Math.min(100, (data.sisa_detik / durasi) * 100)) + '%';
+        }
+        if (data.sudah_jawab) {
+          sudahKirimUntukSoalIni = true;
+          Array.from(pilihanGrid.children).forEach(btn => btn.disabled = true);
+          menungguText.style.display = 'block';
+        }
+      } else if (data.status === 'jeda') {
+        tampilkanLayar('jeda');
+        questionIdTerlihat = null;
+        if (data.hasil_soal_ini) {
+          document.getElementById('jeda_pertanyaan').textContent = data.hasil_soal_ini.pertanyaan;
+          document.getElementById('jeda_jawaban_benar').textContent = data.hasil_soal_ini.jawaban_benar;
+          const jawabanSaya = data.hasil_soal_ini.jawaban_saya;
+          const hasilEl = document.getElementById('jeda_hasil_saya');
+          if (jawabanSaya) {
+            hasilEl.textContent = jawabanSaya.benar
+              ? `Jawaban kamu benar! +${jawabanSaya.skor} poin`
+              : `Jawaban kamu (${jawabanSaya.selected}) kurang tepat.`;
+          } else {
+            hasilEl.textContent = 'Kamu belum sempat jawab soal ini.';
+          }
+          document.getElementById('jeda_penjelasan').textContent = data.hasil_soal_ini.penjelasan || '';
+        }
+        renderLeaderboard(document.getElementById('jeda_leaderboard'), data.leaderboard || []);
+      } else if (data.status === 'selesai') {
+        tampilkanLayar('selesai');
+        document.getElementById('selesai_skor').textContent = data.skor_saya;
+        document.getElementById('selesai_peringkat').textContent = data.peringkat_saya ? `Peringkat kamu: #${data.peringkat_saya}` : '';
+        renderLeaderboard(document.getElementById('selesai_leaderboard'), data.leaderboard || []);
+      }
+    } catch (e) { /* diam-diam retry di poll berikutnya */ }
+  }
+
+  poll();
+  setInterval(poll, 1500);
+})();
+</script>
+{% endblock %}

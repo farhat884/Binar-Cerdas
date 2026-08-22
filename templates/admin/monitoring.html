@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Monitoring Siswa — Admin Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ session.get('name') }}</div>
+    <div class="role-tag">Admin</div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
+      <a href="{{ url_for('admin.siswa') }}">Kelola Siswa</a>
+      <a href="{{ url_for('admin.monitoring') }}" class="active">Monitoring Siswa</a>
+      <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+      <a href="{{ url_for('admin.materi') }}">Materi</a>
+      <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Monitoring Siswa</h1>
+    <p class="muted">Pilih siswa untuk melihat akses materi, progress, riwayat UTS/UAS/latihan, dan jawaban yang sedang dikerjakan.</p>
+
+    {% if siswa %}
+    <div class="monitor-topbar">
+      <div class="monitor-stats">
+        <span class="monitor-stat-chip"><span class="num">{{ siswa|length }}</span> Total Siswa</span>
+        <span class="monitor-stat-chip is-live"><span class="num">{{ siswa|selectattr('live_answer_count')|list|length }}</span> Sedang Live</span>
+      </div>
+    </div>
+    <div class="monitor-grid">
+      {% for s in siswa %}
+      <div class="card-simple monitor-student-card{% if s.live_answer_count %} is-live{% endif %}">
+        <div class="monitor-student-head">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div class="monitor-avatar">{{ s.name[0]|upper if s.name else '?' }}</div>
+            <div style="min-width:0">
+              <h3>{{ s.name }}</h3>
+              <p class="muted">{{ s.jenjang }} · Kelas {{ s.kelas }}{% if s.email %} · {{ s.email }}{% endif %}</p>
+            </div>
+          </div>
+          {% if s.live_answer_count %}
+          <span class="badge-status badge-live">LIVE · {{ s.live_answer_count }} jawaban</span>
+          {% else %}
+          <span class="badge-status badge-neutral">Tidak sedang menjawab</span>
+          {% endif %}
+        </div>
+        {% if s.latest_attempt %}
+        <p class="monitor-last">Terakhir: <strong>{{ s.latest_attempt.tipe }} · {{ s.latest_attempt.mapel }}</strong> — {{ s.latest_attempt.percent|round|int }}%</p>
+        {% else %}
+        <p class="monitor-last muted">Belum ada latihan/ujian yang selesai.</p>
+        {% endif %}
+        <a class="btn btn-gold btn-sm" href="{{ url_for('admin.monitoring_siswa', user_id=s.id) }}">Pantau Siswa →</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="glyph">🧑‍🎓</div><p>Belum ada siswa.</p></div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

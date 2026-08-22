@@ -1,1 +1,48 @@
-{% extends "base.html" %}{% block title %}Materi Pembelajaran — Binar Cerdas{% endblock %}{% block content %}<div class="dash"><aside class="dash-sidebar"><div class="who">{{ user.name }}</div><div class="role-tag">Siswa</div><nav><a href="{{ url_for('student.dashboard') }}">Dashboard</a><a class="active" href="{{ url_for('student.materi') }}">Materi</a><a href="{{ url_for('student.progress') }}">Progress</a><a href="{{ url_for('student.daftar_les') }}">Beli Paket</a></nav></aside><main class="dash-content"><h1>Materi Pembelajaran</h1><p class="muted">Materi untuk {{ user.jenjang }} kelas {{ user.kelas }}. Materi yang belum dibuka menggunakan 1 kuota pertemuan per materi, kecuali materi tertentu yang digratiskan admin.</p><div class="material-grid">{% for m in materials %}<article class="material-card"><span class="badge">{{ m.mapel }}</span><h3>{{ m.judul }}</h3><p class="muted">{{ m.ringkasan or 'Pelajari materi ini dan lanjutkan dengan latihan soal.' }}</p>{% if m.progress.completed %}<span class="status-ok">✓ Selesai</span>{% elif m.can_access %}<span class="status-open">Akses terbuka</span>{% else %}<span class="status-lock">🔒 Butuh 1 pertemuan</span>{% endif %}<br><a class="btn btn-gold btn-sm" href="{{ url_for('student.detail_materi',material_id=m.id) }}">Buka Materi</a></article>{% else %}<div class="empty-state"><div class="glyph">📚</div><p>Belum ada materi untuk kelasmu.</p></div>{% endfor %}</div></main></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Materi Pembelajaran — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar"><div class="who">{{ user.name }}</div><div class="role-tag">Siswa</div><nav><a href="{{ url_for('student.dashboard') }}">Dashboard</a><a class="active" href="{{ url_for('student.materi') }}">Materi</a><a href="{{ url_for('student.progress') }}">Progress</a><a href="{{ url_for('student.daftar_les') }}">Beli Paket</a></nav></aside>
+  <main class="dash-content material-learning-page" id="materiPage">
+    <div class="learning-hero">
+      <div><span class="eyebrow">Ruang Belajar</span><h1>Mulai Belajar sesuai Pilihanmu! 📚</h1><p class="muted">Pilih mata pelajaran, lanjut ke bab, lalu pelajari subbab satu per satu.</p></div>
+      <button type="button" class="btn btn-ghost btn-sm" id="openMateriTutorial">Cara Menggunakan</button>
+    </div>
+    <div class="subject-grid">
+      {% for s in subjects %}
+      <a class="subject-card" href="{{ url_for('student.detail_mapel', mapel=s.mapel) }}" data-tutorial="subject">
+        <div class="subject-icon">{% if s.mapel.startswith('Matematika') %}∑{% elif s.mapel == 'IPA' %}⚗{% elif s.mapel == 'Fisika' %}⚡{% elif s.mapel == 'Kimia' %}⚗{% else %}📚{% endif %}</div>
+        <div><h3>{{ s.mapel }}</h3><p>{{ user.jenjang }} · Kelas {{ user.kelas }}</p><small>{{ s.jumlah_bab }} bab · {{ s.jumlah_subbab }} subbab</small></div><span>›</span>
+      </a>
+      {% else %}<div class="empty-state"><div class="glyph">📚</div><p>Belum ada materi untuk kelasmu.</p></div>{% endfor %}
+    </div>
+  </main>
+</div>
+<div class="tutorial-overlay" id="materiTutorial" aria-hidden="true">
+  <div class="tutorial-backdrop"></div>
+  <div class="tutorial-card" role="dialog" aria-modal="true">
+    <div class="tutorial-step" id="tutorialStep">1 / 4</div><button class="tutorial-close" id="skipTutorial" type="button">Lewati</button>
+    <div class="tutorial-icon">✨</div><h2 id="tutorialTitle">Pilih mata pelajaran</h2><p id="tutorialText">Pilih mata pelajaran yang ingin kamu pelajari. Setelah itu kamu akan melihat daftar bab dan tahapan materi.</p>
+    <div class="tutorial-dots"><span class="active"></span><span></span><span></span><span></span></div>
+    <button class="btn btn-gold btn-block" id="nextTutorial" type="button">Lanjut</button>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(() => {
+  const overlay=document.getElementById('materiTutorial'); const next=document.getElementById('nextTutorial'); const skip=document.getElementById('skipTutorial'); const open=document.getElementById('openMateriTutorial');
+  if(!overlay) return;
+  const steps=[
+    ['Pilih mata pelajaran','Pilih mata pelajaran yang ingin kamu pelajari. Setelah itu kamu akan melihat daftar bab dan tahapan materi.'],
+    ['Pilih bab','Klik salah satu bab untuk melihat semua tahapan/subbab yang tersedia.'],
+    ['Pelajari rangkuman & PDF','Setiap subbab berisi rangkuman singkat dan materi full dalam bentuk PDF. Kamu juga bisa langsung mengerjakan latihan soal.'],
+    ['Kerjakan ulangan bab','Di bagian paling bawah bab tersedia Ulangan Harian untuk mengukur pemahamanmu setelah semua subbab dipelajari.']
+  ]; let idx=0;
+  function show(){ overlay.setAttribute('aria-hidden','false'); overlay.classList.add('show'); document.getElementById('tutorialStep').textContent=(idx+1)+' / '+steps.length; document.getElementById('tutorialTitle').textContent=steps[idx][0]; document.getElementById('tutorialText').textContent=steps[idx][1]; document.querySelectorAll('.tutorial-dots span').forEach((d,i)=>d.classList.toggle('active',i===idx)); next.textContent=idx===steps.length-1?'Selesai':'Lanjut'; }
+  function close(){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); localStorage.setItem('binar_materi_tutorial_seen','1'); }
+  next.onclick=()=>{ if(idx<steps.length-1){idx++;show()}else close() }; skip.onclick=close; open.onclick=()=>{idx=0;show()};
+  if(!localStorage.getItem('binar_materi_tutorial_seen')) setTimeout(show,350);
+})();
+</script>
+{% endblock %}

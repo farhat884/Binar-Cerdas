@@ -29,17 +29,25 @@ print(
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.student_routes import student_bp
+from routes.live_routes import live_admin_bp, live_student_bp
+from utils.formatter import teks_pilihan
 
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-ganti-ini")
 
+    # Filter Jinja buat nampilin "D. isi pilihannya" di halaman review jawaban,
+    # bukan cuma hurufnya doang -> lihat CHANGELOG_PERUBAHAN.txt bagian review jawaban.
+    app.jinja_env.filters["teks_pilihan"] = teks_pilihan
+
     # Setiap blueprint = satu "wilayah" role. Prefix URL juga sudah
     # mencerminkan role supaya jelas dari alamatnya siapa yang mengakses.
     app.register_blueprint(auth_bp)                              # /login /register /logout
     app.register_blueprint(admin_bp, url_prefix="/admin")        # /admin/...
     app.register_blueprint(student_bp, url_prefix="/siswa")      # /siswa/...
+    app.register_blueprint(live_admin_bp, url_prefix="/admin/live")     # /admin/live/...
+    app.register_blueprint(live_student_bp, url_prefix="/siswa/live")  # /siswa/live/...
 
     @app.route("/")
     def index():

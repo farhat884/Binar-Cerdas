@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Binar Cerdas{% endblock %}</title>
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16.png') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -21,9 +25,11 @@
         <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
         <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
         <a href="{{ url_for('admin.siswa') }}">Siswa</a>
+        <a href="{{ url_for('admin.monitoring') }}">Monitoring</a>
         <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
         <a href="{{ url_for('admin.materi') }}">Materi</a>
         <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+        <a href="{{ url_for('live_admin.daftar') }}">Live Kuis</a>
         <span class="pill-role">Admin</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% elif session.get('role') == 'siswa' %}
@@ -32,7 +38,9 @@
         <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
         <a href="{{ url_for('student.riwayat') }}">Riwayat</a>
         <a href="{{ url_for('student.materi') }}">Materi</a>
+        <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
         <a href="{{ url_for('student.progress') }}">Progress</a>
+        <a href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
         <span class="pill-role">Siswa</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% else %}
@@ -60,10 +68,25 @@
 <footer>
   <div class="container">
     <span>© {{ 2026 }} Binar Cerdas — Bimbingan belajar online untuk SD, SMP, & SMA.</span>
-    <span>Dibuat dengan Flask + Firebase</span>
   </div>
 </footer>
 
+<script>
+  // Konfigurasi MathJax HARUS didefinisikan sebelum script MathJax di-load.
+  // Delimiter $...$ / $$...$$ dipakai biar gampang diketik admin, sekalian
+  // dukung \(...\) / \[...\] buat yang lebih terbiasa gaya itu.
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    },
+    options: {
+      ignoreHtmlClass: 'tex2jax_ignore',
+      processHtmlClass: 'tex2jax_process'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

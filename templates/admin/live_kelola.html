@@ -1,0 +1,208 @@
+{% extends "base.html" %}{% block title %}Kelola {{ sesi.judul }} — Live Kuis{% endblock %}{% block content %}
+<div class="dash">
+<aside class="dash-sidebar">
+  <div class="who">{{ session.get('name') }}</div>
+  <div class="role-tag">Admin</div>
+  <nav>
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin.materi') }}">Materi</a>
+    <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+    <a class="active" href="{{ url_for('live_admin.daftar') }}">Live Kuis</a>
+  </nav>
+</aside>
+<main class="dash-content">
+  <p class="muted"><a href="{{ url_for('live_admin.daftar') }}">&larr; Kembali ke daftar sesi</a></p>
+  <h1>{{ sesi.judul }}</h1>
+
+  <div class="live-kode-box" style="margin:16px 0">
+    <div class="label">Kode Gabung — bagikan ke siswa</div>
+    <div class="live-kode-huruf">{{ sesi.kode }}</div>
+    <div class="muted" style="color:#C9CDE4">Siswa buka menu <strong>Live Kuis</strong> lalu masukkan kode ini.</div>
+  </div>
+
+  <div id="live_admin_root" data-session-id="{{ sesi.id }}" data-status-url="{{ url_for('live_admin.status', session_id=sesi.id) }}" data-durasi="{{ sesi.durasi_detik }}">
+
+    {% if sesi.status == 'lobi' %}
+    <div class="card-simple" style="margin-bottom:18px">
+      <strong id="jumlah_peserta_lobi">{{ peserta|length }}</strong> siswa sudah join.
+      <form method="POST" action="{{ url_for('live_admin.mulai', session_id=sesi.id) }}" style="display:inline;margin-left:12px">
+        <button type="submit" class="btn btn-gold" {% if not sesi.questions %}disabled{% endif %}>▶ Mulai Sesi</button>
+      </form>
+      {% if not sesi.questions %}<p class="muted" style="margin-top:8px">Tambahkan minimal 1 soal dulu di bawah sebelum bisa mulai.</p>{% endif %}
+    </div>
+
+    <form method="POST" action="{{ url_for('live_admin.tambah_soal', session_id=sesi.id) }}" class="card-simple" style="max-width:850px;margin-bottom:20px">
+      <h3 style="margin-bottom:14px">Tambah Soal</h3>
+      <div class="field">
+        <label>Pertanyaan</label>
+        <textarea name="pertanyaan" required placeholder="Tulis soal pilihan gandanya di sini"></textarea>
+      </div>
+      <div class="field-row">
+        {% for l in ['a','b'] %}
+        <div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>
+        {% endfor %}
+      </div>
+      <div class="field-row">
+        {% for l in ['c','d'] %}
+        <div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>
+        {% endfor %}
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Jawaban Benar</label>
+          <select name="jawaban_benar"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+        </div>
+        <div class="field">
+          <label>Penjelasan <span class="muted">(opsional, ditampilkan pas jeda antar soal)</span></label>
+          <input name="penjelasan">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-gold">+ Tambah Soal ke Sesi</button>
+    </form>
+
+    <details class="card-simple" style="max-width:850px;margin-bottom:20px">
+      <summary style="cursor:pointer;font-weight:700;color:var(--color-navy)">📋 Impor Banyak Soal Sekaligus (dari Word)</summary>
+      <p class="muted" style="margin:10px 0">Tempel teks soal LENGKAP (pertanyaan + pilihan A-D + baris jawaban) yang sudah dinomori. Semua soal yang kebaca akan langsung ditambahkan ke sesi ini.</p>
+      <form method="POST" action="{{ url_for('live_admin.impor_soal', session_id=sesi.id) }}" style="margin-top:12px">
+        <div class="field">
+          <label>Teks Soal</label>
+          <textarea name="teks_soal" rows="12" required placeholder="1. Ibukota Indonesia adalah?&#10;A. Bandung&#10;B. Jakarta&#10;C. Surabaya&#10;D. Medan&#10;JAWABAN: B&#10;&#10;2. Berapa hasil dari 5 + 3?&#10;A. 7&#10;B. 8&#10;C. 9&#10;D. 10&#10;JAWABAN: B"></textarea>
+          <small class="muted">Tiap soal diawali angka + titik ("1. "), diikuti pilihan "A. " s/d "D. ", lalu baris "JAWABAN: <em>huruf</em>". Boleh langsung copy-paste dari file Word.</small>
+        </div>
+        <button type="submit" class="btn btn-gold">Impor Semua Soal</button>
+      </form>
+    </details>
+
+    <div class="table-wrap" style="margin-bottom:24px">
+      <table>
+        <thead><tr><th>#</th><th>Pertanyaan</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Jawaban</th><th></th></tr></thead>
+        <tbody>
+        {% for q in sesi.questions %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td style="min-width:200px">{{ q.pertanyaan }}</td>
+          <td>{{ q.pilihan[0] }}</td><td>{{ q.pilihan[1] }}</td><td>{{ q.pilihan[2] }}</td><td>{{ q.pilihan[3] }}</td>
+          <td><strong>{{ q.jawaban_benar }}</strong></td>
+          <td>
+            <form method="POST" action="{{ url_for('live_admin.hapus_soal', session_id=sesi.id, question_id=q.id) }}" onsubmit="return confirm('Hapus soal ini?')">
+              <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if not sesi.questions %}<p class="muted">Belum ada soal ditambahkan.</p>{% endif %}
+
+    {% else %}
+    <!-- Sesi sudah berjalan / jeda / selesai: kontrol + leaderboard live via polling -->
+    <div class="card-simple" style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <span id="live_status_pill" class="live-status-pill">-</span>
+          <span class="muted" id="live_progress_text" style="margin-left:10px"></span>
+        </div>
+        <div id="live_timer_text" class="muted" style="font-family:var(--font-mono)"></div>
+      </div>
+      <div class="live-timer-bar"><div class="live-timer-fill" id="live_timer_fill" style="width:100%"></div></div>
+
+      <p style="margin-top:14px"><strong id="live_soal_text"></strong></p>
+      <p class="muted"><span id="live_sudah_jawab">0</span> / <span id="live_jumlah_peserta">0</span> siswa sudah jawab</p>
+
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none">
+          <button type="submit" class="btn btn-gold" id="btn_lanjut">Lanjut</button>
+        </form>
+        <form method="POST" action="{{ url_for('live_admin.akhiri', session_id=sesi.id) }}" id="form_akhiri" onsubmit="return confirm('Akhiri sesi sekarang?')" style="display:none">
+          <button type="submit" class="btn btn-ghost">Akhiri Sesi</button>
+        </form>
+        <form method="POST" action="{{ url_for('live_admin.ulang', session_id=sesi.id) }}" id="form_ulang" onsubmit="return confirm('Kembali ke lobi? Skor & jawaban peserta akan direset.')" style="display:none">
+          <button type="submit" class="btn btn-ghost">🔁 Ulang dari Lobi</button>
+        </form>
+      </div>
+    </div>
+
+    <h3 style="margin:18px 0 10px">Papan Skor</h3>
+    <div id="live_leaderboard"></div>
+    {% endif %}
+  </div>
+</main>
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('live_admin_root');
+  if (!root) return;
+  const statusUrl = root.dataset.statusUrl;
+  const durasi = parseInt(root.dataset.durasi, 10) || 20;
+  const jumlahLobi = document.getElementById('jumlah_peserta_lobi');
+
+  const pill = document.getElementById('live_status_pill');
+  const progressText = document.getElementById('live_progress_text');
+  const timerText = document.getElementById('live_timer_text');
+  const timerFill = document.getElementById('live_timer_fill');
+  const soalText = document.getElementById('live_soal_text');
+  const sudahJawabEl = document.getElementById('live_sudah_jawab');
+  const jumlahPesertaEl = document.getElementById('live_jumlah_peserta');
+  const formLanjut = document.getElementById('form_lanjut');
+  const btnLanjut = document.getElementById('btn_lanjut');
+  const formAkhiri = document.getElementById('form_akhiri');
+  const formUlang = document.getElementById('form_ulang');
+  const leaderboardEl = document.getElementById('live_leaderboard');
+
+  function renderLeaderboard(list) {
+    if (!leaderboardEl) return;
+    if (!list.length) { leaderboardEl.innerHTML = '<p class="muted">Belum ada peserta yang dapat skor.</p>'; return; }
+    leaderboardEl.innerHTML = list.map((p, i) => `
+      <div class="live-leaderboard-row">
+        <span><span class="peringkat">#${i + 1}</span> ${p.nama}</span>
+        <span class="skor">${p.skor}</span>
+      </div>`).join('');
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch(statusUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (jumlahLobi) jumlahLobi.textContent = data.jumlah_peserta;
+      if (!pill) return; // masih di layar lobi, gak ada elemen live lain
+
+      const labelStatus = { soal: 'Soal Berjalan', jeda: 'Jeda / Pembahasan', selesai: 'Selesai' }[data.status] || data.status;
+      pill.textContent = labelStatus;
+      pill.className = 'live-status-pill' + (data.status === 'soal' ? ' aktif' : data.status === 'jeda' ? ' jeda' : '');
+      progressText.textContent = data.total_soal ? `Soal ${data.current_index + 1} dari ${data.total_soal}` : '';
+      jumlahPesertaEl.textContent = data.jumlah_peserta;
+      sudahJawabEl.textContent = data.sudah_jawab;
+
+      if (data.status === 'soal' && data.sisa_detik !== null) {
+        timerText.textContent = data.sisa_detik + ' detik';
+        const pct = Math.max(0, Math.min(100, (data.sisa_detik / durasi) * 100));
+        timerFill.style.width = pct + '%';
+      } else {
+        timerText.textContent = '';
+        timerFill.style.width = '100%';
+      }
+
+      if (data.soal_aktif) {
+        soalText.textContent = data.soal_aktif.pertanyaan;
+      } else {
+        soalText.textContent = '';
+      }
+
+      formLanjut.style.display = (data.status === 'soal' || data.status === 'jeda') ? 'inline' : 'none';
+      if (btnLanjut) btnLanjut.textContent = data.status === 'soal' ? 'Tutup Soal & Tampilkan Jawaban' : 'Soal Berikutnya';
+      formAkhiri.style.display = (data.status === 'soal' || data.status === 'jeda') ? 'inline' : 'none';
+      formUlang.style.display = (data.status === 'selesai') ? 'inline' : 'none';
+
+      renderLeaderboard(data.leaderboard || []);
+    } catch (e) { /* diam-diam retry di poll berikutnya */ }
+  }
+
+  poll();
+  setInterval(poll, 2000);
+})();
+</script>
+{% endblock %}

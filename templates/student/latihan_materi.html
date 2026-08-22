@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% from "macros.html" import daftar_riwayat_percobaan %}
+{% block title %}Latihan {{ material.judul }} — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash"><aside class="dash-sidebar"><div class="who">{{ user.name }}</div><div class="role-tag">Siswa</div><nav><a href="{{ url_for('student.latihan') }}" class="active">← Semua Latihan</a><a href="{{ url_for('student.detail_materi', material_id=material.id) }}">Kembali ke Materi</a><a href="{{ url_for('student.progress') }}">Progress</a></nav></aside><main class="dash-content"><span class="badge">Latihan Soal · {{ material.mapel }}</span><h1>{{ material.judul }}</h1>
+    <section style="margin-top:28px">
+      <h2>Latihan Soal</h2>
+      {% if riwayat_latihan %}
+      <div class="card-simple riwayat-mini">
+        <p class="muted" style="margin:0 0 6px">
+          Riwayat latihan materi ini: <strong>{{ riwayat_latihan|length }}x</strong> dikerjakan,
+          nilai terakhir <strong>{{ riwayat_latihan[0].percent|round|int }}%</strong>{% if riwayat_latihan|length > 1 %}, nilai terbaik <strong>{{ (riwayat_latihan|map(attribute='percent')|max)|round|int }}%</strong>{% endif %}.
+        </p>
+        {{ daftar_riwayat_percobaan(riwayat_latihan) }}
+      </div>
+      {% endif %}
+      {% if latihan %}
+      <div class="card-simple latihan-gate" id="latihanGate" {% if draft and draft.answers %}style="display:none"{% endif %}>
+        <p>Ada <strong>{{ latihan|length }}</strong> soal latihan buat materi ini. Kerjain satu-satu yuk — abis jawab, langsung ketahuan bener/salahnya + ada penjelasan AI-nya.</p>
+        <button type="button" class="btn btn-gold" id="mulaiLatihanBtn">▶ {% if riwayat_latihan %}Kerjakan Lagi{% else %}Mulai Latihan{% endif %}</button>
+      </div>
+      {% if draft and draft.answers %}
+      <div class="card-simple resume-banner" id="resumeBanner">
+        <p>📌 Kamu punya progress latihan yang belum selesai di sini (<strong>{{ draft.answers|length }}</strong> dari {{ latihan|length }} soal sudah dijawab). Lanjutkan, atau mulai ulang dari nomor 1?</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button type="button" class="btn btn-gold btn-sm" id="lanjutkanBtn">Lanjutkan</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="mulaiUlangBtn">Mulai Ulang dari Nomor 1</button>
+        </div>
+      </div>
+      {% endif %}
+      <div id="latihanBody" style="display:none">
+        <p class="muted quiz-progress">Soal 1 dari {{ latihan|length }}</p>
+        <div class="quiz-bar"><span style="width:{{ (100/latihan|length)|round|int }}%"></span></div>
+        <div class="quiz-form" id="latihanForm" data-selesai-url="{{ url_for('student.selesai_latihan_materi', material_id=material.id) }}" data-scope-type="latihan" data-scope-key="{{ material.id }}">
+          {% for q in latihan %}
+          <div class="card-simple quiz-question" style="margin:14px 0{{ '' if loop.first else ';display:none' }}" data-index="{{ loop.index0 }}" data-question-id="{{ q.id }}" data-check-url="{{ url_for('student.cek_jawaban_soal', question_id=q.id) }}">
+            <p><strong>{{ loop.index }}. {{ q.pertanyaan }}</strong></p>
+            {% if q.gambar_url %}<img src="{{ q.gambar_url }}" alt="Gambar soal" class="soal-gambar">{% endif %}
+            {% for option in q.pilihan %}
+            <label class="answer-option">
+              <input type="radio" name="q_{{ q.id }}" value="{{ 'ABCD'[loop.index0] }}" required> {{ 'ABCD'[loop.index0] }}{% if option %}. {{ option }}{% endif %}
+              {% if q.pilihan_gambar and q.pilihan_gambar[loop.index0] %}<img src="{{ q.pilihan_gambar[loop.index0] }}" alt="Pilihan {{ 'ABCD'[loop.index0] }}" class="pilihan-gambar">{% endif %}
+            </label>
+            {% endfor %}
+            <div class="quiz-actions"><button type="button" class="btn btn-gold btn-sm cek-jawaban-btn">Jawab</button></div>
+            <div class="quiz-result"></div>
+            <div class="ai-chat" style="display:none" data-question-id="{{ q.id }}" data-selected="" data-url="{{ url_for('student.tanya_ai_soal', question_id=q.id) }}">
+              <div class="ai-chat-title">Masih bingung? Tanya lagi di sini 👇</div>
+              <div class="ai-chat-messages"></div>
+              <div class="ai-chat-row">
+                <input type="text" class="ai-chat-input" placeholder="Tulis pertanyaanmu..." maxlength="500">
+                <button type="button" class="ai-chat-send">Kirim</button>
+              </div>
+            </div>
+            <div class="quiz-nav">
+              {% if loop.last %}
+              <button type="button" class="btn btn-gold next-btn selesai-latihan-btn" style="display:none">Lihat Hasil &amp; Penilaian</button>
+              {% else %}
+              <button type="button" class="btn btn-gold btn-sm next-btn next-question" style="display:none">Soal Selanjutnya →</button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div id="latihanHasil" style="display:none"></div>
+      </div>
+      {% else %}
+      <p class="muted">Belum ada latihan untuk materi ini.</p>
+      {% endif %}
+    </section>
+    
+  
+</main></div>{% endblock %}
+{% block scripts %}
+<script id="draftData" type="application/json">{{ (draft.answers if draft else {})|tojson }}</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const gate = document.getElementById("latihanGate");
+  const body = document.getElementById("latihanBody");
+  const mulaiBtn = document.getElementById("mulaiLatihanBtn");
+  const form = document.getElementById("latihanForm");
+  if (!form) return;
+
+  let draftAnswers = {};
+  try { draftAnswers = JSON.parse(document.getElementById("draftData").textContent) || {}; } catch (e) { draftAnswers = {}; }
+  const scopeType = form.dataset.scopeType;
+  const scopeKey = form.dataset.scopeKey;
+
+  if (mulaiBtn) {
+    mulaiBtn.addEventListener("click", () => {
+      gate.style.display = "none";
+      body.style.display = "block";
+      window.scrollTo({ top: body.offsetTop - 70, behavior: "smooth" });
+    });
+  }
+
+  const questions = Array.from(form.querySelectorAll(".quiz-question"));
+  const progressEl = document.querySelector("#latihanBody .quiz-progress");
+  const barEl = document.querySelector("#latihanBody .quiz-bar span");
+  const hasilBox = document.getElementById("latihanHasil");
+  const total = questions.length;
+  const jawabanTerkumpul = {};
+
+  function tampilkanSoal(idx) {
+    questions.forEach((q, i) => (q.style.display = i === idx ? "block" : "none"));
+    if (progressEl) progressEl.textContent = "Soal " + (idx + 1) + " dari " + total;
+    if (barEl) barEl.style.width = Math.round(((idx + 1) / total) * 100) + "%";
+    window.scrollTo({ top: form.offsetTop - 70, behavior: "smooth" });
+  }
+
+  function tampilkanHasilDariDraft(qEl, hasil) {
+    const resultBox = qEl.querySelector(".quiz-result");
+    const chatBox = qEl.querySelector(".ai-chat");
+    const checkBtn = qEl.querySelector(".cek-jawaban-btn");
+    const nextBtn = qEl.querySelector(".next-btn");
+    const radios = qEl.querySelectorAll('input[type="radio"]');
+    radios.forEach((r) => { r.disabled = true; if (r.value === hasil.selected) r.checked = true; });
+    jawabanTerkumpul[qEl.dataset.questionId] = hasil.selected;
+    resultBox.className = "quiz-result " + (hasil.benar ? "is-correct" : "is-wrong");
+    resultBox.style.display = "block";
+    resultBox.innerHTML =
+      '<div class="glyph">' + (hasil.benar ? "✅" : "❌") + "</div>" +
+      '<p class="quiz-result-title">' + (hasil.benar ? "Jawaban Benar!" : "Belum Tepat") + "</p>" +
+      "<p>Jawaban kamu: " + window.teksPilihanDariForm(qEl, hasil.selected) + "</p>" +
+      "<p>Jawaban benar: <strong>" + window.teksPilihanDariForm(qEl, hasil.jawaban_benar) + "</strong></p>" +
+      '<div class="ai-explanation"><h3>✨ Penjelasan AI</h3><p>' + hasil.penjelasan_ai + "</p></div>";
+    window.typesetMath(resultBox);
+    if (chatBox) {
+      chatBox.dataset.selected = hasil.selected;
+      chatBox.style.display = "block";
+      if (window.initAIChat) window.initAIChat(chatBox);
+    }
+    if (checkBtn) checkBtn.style.display = "none";
+    if (nextBtn) nextBtn.style.display = "inline-block";
+  }
+
+  function terapkanDraft() {
+    let idxLanjut = 0;
+    questions.forEach((qEl, idx) => {
+      const qid = qEl.dataset.questionId;
+      if (draftAnswers[qid]) {
+        tampilkanHasilDariDraft(qEl, draftAnswers[qid]);
+        idxLanjut = idx + 1;
+      }
+    });
+    tampilkanSoal(Math.min(idxLanjut, total - 1));
+  }
+
+  const resumeBanner = document.getElementById("resumeBanner");
+  const lanjutkanBtn = document.getElementById("lanjutkanBtn");
+  const mulaiUlangBtn = document.getElementById("mulaiUlangBtn");
+  if (resumeBanner && Object.keys(draftAnswers).length) {
+    body.style.display = "block";
+    if (gate) gate.style.display = "none";
+    lanjutkanBtn.addEventListener("click", () => {
+      resumeBanner.style.display = "none";
+      terapkanDraft();
+    });
+    mulaiUlangBtn.addEventListener("click", async () => {
+      if (!confirm("Yakin mau mulai ulang dari nomor 1? Progress yang belum selesai ini bakal dihapus (nilai attempt yang sudah pernah selesai sebelumnya tetap aman).")) return;
+      try {
+        await fetch("{{ url_for('student.reset_draft') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scope_type: scopeType, scope_key: scopeKey }),
+        });
+      } catch (e) {}
+      draftAnswers = {};
+      resumeBanner.style.display = "none";
+      tampilkanSoal(0);
+    });
+  } else {
+    tampilkanSoal(0);
+  }
+
+  async function kirimHasilAkhir() {
+    hasilBox.style.display = "block";
+    hasilBox.innerHTML = '<div class="card-simple result-card latihan-selesai-card"><p>Lagi menghitung nilai kamu...</p></div>';
+    window.scrollTo({ top: hasilBox.offsetTop - 70, behavior: "smooth" });
+    try {
+      const res = await fetch(form.dataset.selesaiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: jawabanTerkumpul }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        hasilBox.innerHTML = '<div class="card-simple result-card latihan-selesai-card"><p class="quiz-error">' + (data.error || "Gagal memuat hasil.") + "</p></div>";
+        return;
+      }
+      const percobaanTxt = data.percobaan_ke > 1 ? " (percobaan ke-" + data.percobaan_ke + ")" : "";
+      hasilBox.innerHTML =
+        '<div class="card-simple result-card latihan-selesai-card">' +
+        "<h3>🎉 Latihan Selesai!" + percobaanTxt + "</h3>" +
+        '<div class="score-circle">' + Math.round(data.percent) + "</div>" +
+        "<p><strong>" + data.score + "</strong> dari " + data.total + " jawaban benar.</p>" +
+        "</div>" +
+        '<div class="card-simple result-card evaluasi-card latihan-selesai-card">' +
+        '<h3>🎯 Rekomendasi Belajar Kamu</h3><p>' + data.evaluasi + "</p></div>";
+      window.typesetMath(hasilBox);
+      window.scrollTo({ top: hasilBox.offsetTop - 70, behavior: "smooth" });
+    } catch (err) {
+      hasilBox.innerHTML = '<div class="card-simple result-card latihan-selesai-card"><p class="quiz-error">Gagal menghubungi server, coba lagi ya.</p></div>';
+    }
+  }
+
+  questions.forEach((qEl, idx) => {
+    const checkBtn = qEl.querySelector(".cek-jawaban-btn");
+    const nextBtn = qEl.querySelector(".next-btn");
+    const resultBox = qEl.querySelector(".quiz-result");
+    const chatBox = qEl.querySelector(".ai-chat");
+    const radios = qEl.querySelectorAll('input[type="radio"]');
+    const checkUrl = qEl.dataset.checkUrl;
+    const questionId = qEl.dataset.questionId;
+
+    checkBtn.addEventListener("click", async () => {
+      const checked = qEl.querySelector('input[type="radio"]:checked');
+      if (!checked) {
+        alert("Pilih salah satu jawaban dulu ya.");
+        return;
+      }
+      checkBtn.disabled = true;
+      checkBtn.textContent = "Mengecek...";
+      try {
+        const res = await fetch(checkUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jawaban: checked.value, scope_type: scopeType, scope_key: scopeKey }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          resultBox.className = "quiz-result is-wrong";
+          resultBox.style.display = "block";
+          resultBox.innerHTML = '<p class="quiz-error">' + (data.error || "Gagal mengecek jawaban.") + "</p>";
+          checkBtn.disabled = false;
+          checkBtn.textContent = "Jawab";
+          return;
+        }
+        radios.forEach((r) => (r.disabled = true));
+        jawabanTerkumpul[questionId] = checked.value;
+        resultBox.className = "quiz-result " + (data.benar ? "is-correct" : "is-wrong");
+        resultBox.style.display = "block";
+        resultBox.innerHTML =
+          '<div class="glyph">' + (data.benar ? "✅" : "❌") + "</div>" +
+          '<p class="quiz-result-title">' + (data.benar ? "Jawaban Benar!" : "Belum Tepat") + "</p>" +
+          "<p>Jawaban kamu: " + window.teksPilihanDariForm(qEl, checked.value) + "</p>" +
+          "<p>Jawaban benar: <strong>" + window.teksPilihanDariForm(qEl, data.jawaban_benar) + "</strong></p>" +
+          '<div class="ai-explanation"><h3>✨ Penjelasan AI</h3><p>' + data.penjelasan_ai + "</p></div>";
+        window.typesetMath(resultBox);
+        if (chatBox) {
+          chatBox.dataset.selected = checked.value;
+          chatBox.style.display = "block";
+          if (window.initAIChat) window.initAIChat(chatBox);
+        }
+        checkBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "inline-block";
+      } catch (err) {
+        resultBox.className = "quiz-result is-wrong";
+        resultBox.style.display = "block";
+        resultBox.innerHTML = '<p class="quiz-error">Gagal menghubungi server, coba lagi ya.</p>';
+        checkBtn.disabled = false;
+        checkBtn.textContent = "Jawab";
+      }
+    });
+
+    if (nextBtn && nextBtn.classList.contains("next-question")) {
+      nextBtn.addEventListener("click", () => tampilkanSoal(idx + 1));
+    }
+    if (nextBtn && nextBtn.classList.contains("selesai-latihan-btn")) {
+      nextBtn.addEventListener("click", kirimHasilAkhir);
+    }
+  });
+});
+</script>
+{% endblock %}
