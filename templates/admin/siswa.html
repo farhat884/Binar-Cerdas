@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Kelola Siswa — Admin Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ session.get('name') }}</div>
+    <div class="role-tag">Admin</div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
+      <a href="{{ url_for('admin.siswa') }}" class="active">Kelola Siswa</a>
+      <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Kelola Siswa</h1>
+    <p class="muted">
+      Klik <b>−1 Pertemuan</b> setiap kali satu sesi les untuk siswa tersebut sudah berlangsung.
+      Ini satu-satunya cara sisa pertemuan berkurang — siswa tidak punya akses ke tombol ini.
+    </p>
+
+    {% if daftar %}
+    <div class="table-wrap" style="margin-top:16px;">
+      <table>
+        <thead><tr><th>Nama</th><th>Jenjang</th><th>Kontak</th><th>Sisa Pertemuan</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {% for s in daftar %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.jenjang }} · Kelas {{ s.kelas }}</td>
+            <td class="mono">{{ s.phone }}</td>
+            <td>{{ m.star_meter(s.sisa_pertemuan) }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.kurangi_siswa', user_id=s.id) }}"
+                    data-confirm="Catat 1 pertemuan selesai untuk {{ s.name }}? Sisa pertemuan akan berkurang 1.">
+                <button type="submit" class="btn btn-ghost btn-sm" {% if s.sisa_pertemuan <= 0 %}disabled{% endif %}>
+                  − 1 Pertemuan
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="glyph">🧑‍🎓</div>
+      <p>Belum ada siswa terdaftar.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

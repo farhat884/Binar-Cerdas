@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Dashboard Siswa — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ user.name }}</div>
+    <div class="role-tag">Siswa · {{ user.jenjang }} kelas {{ user.kelas }}</div>
+    <nav>
+      <a href="{{ url_for('student.dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('student.jadwal') }}">Jadwal Kelas</a>
+      <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
+      <a href="{{ url_for('student.riwayat') }}">Riwayat Pendaftaran</a>
+    </nav>
+  </aside>
+
+  <main class="dash-content">
+    <h1>Halo, {{ user.name.split(' ')[0] }} 👋</h1>
+    <p class="muted">Ini ringkasan belajarmu di Binar Cerdas.</p>
+
+    <div class="card-simple" style="margin-top:20px;">
+      <div class="section-title-row">
+        <h3 style="margin:0;">Sisa Pertemuan</h3>
+        <a href="{{ url_for('student.daftar_les') }}" class="btn btn-gold btn-sm">+ Beli Paket</a>
+      </div>
+      {{ m.star_meter(user.sisa_pertemuan) }}
+      <p class="helper-text">
+        Jumlah ini hanya bisa diubah oleh admin — bertambah otomatis saat
+        pendaftaranmu disetujui, dan berkurang tiap kali satu pertemuan selesai.
+      </p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">Total Pertemuan Dibeli</div>
+        <div class="value">{{ user.total_pertemuan_dibeli or 0 }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Jenjang</div>
+        <div class="value" style="font-size:1.3rem;">{{ user.jenjang }} · {{ user.kelas }}</div>
+      </div>
+    </div>
+
+    <div class="section-title-row" style="margin-top:30px;">
+      <h3 style="margin:0;">Pendaftaran Terbaru</h3>
+      <a href="{{ url_for('student.riwayat') }}" class="muted" style="font-size:0.88rem;">Lihat semua →</a>
+    </div>
+
+    {% if riwayat %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tanggal</th><th>Jenjang / Mapel</th><th>Paket</th><th>Status</th></tr></thead>
+        <tbody>
+          {% import "macros.html" as m2 %}
+          {% for r in riwayat %}
+          <tr>
+            <td class="mono">{{ r.created_at.strftime('%d %b %Y') if r.created_at else '-' }}</td>
+            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
+            <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
+            <td>{{ m2.badge_status(r.status) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="glyph">📭</div>
+      <p>Belum ada pendaftaran. <a href="{{ url_for('student.daftar_les') }}">Beli paket pertama kamu</a>.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

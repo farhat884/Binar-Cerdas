@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Beli Paket Pertemuan — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ user.name }}</div>
+    <div class="role-tag">Siswa</div>
+    <nav>
+      <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('student.jadwal') }}">Jadwal Kelas</a>
+      <a href="{{ url_for('student.daftar_les') }}" class="active">Beli Paket</a>
+      <a href="{{ url_for('student.riwayat') }}">Riwayat Pendaftaran</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Daftar Les / Beli Paket</h1>
+    <p class="muted">
+      1 paket = Rp{{ "{:,}".format(harga_per_paket).replace(",", ".") }} untuk {{ pertemuan_per_paket }}x pertemuan/minggu.
+      Bisa beli sampai {{ maks_paket }} paket sekaligus untuk langsung dapat jatah 1 bulan.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data" class="card-simple" style="max-width:560px; margin-top:20px;">
+      <div class="field-row">
+        <div class="field">
+          <label for="jenjang">Jenjang</label>
+          <select id="jenjang" name="jenjang" required>
+            <option value="SD" {% if user.jenjang == 'SD' %}selected{% endif %}>SD</option>
+            <option value="SMP" {% if user.jenjang == 'SMP' %}selected{% endif %}>SMP</option>
+            <option value="SMA" {% if user.jenjang == 'SMA' %}selected{% endif %}>SMA</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mapel">Mata Pelajaran</label>
+          <input type="text" id="mapel" name="mapel" placeholder="cth. Matematika & IPA" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="jumlah_paket">Jumlah Paket (1–{{ maks_paket }})</label>
+        <input type="number" id="jumlah_paket" name="jumlah_paket" min="1" max="{{ maks_paket }}" value="1"
+               data-harga="{{ harga_per_paket }}" data-pertemuan="{{ pertemuan_per_paket }}" required>
+        <p class="helper-text">Contoh: pilih 4 paket = 8x pertemuan, cukup sekali daftar untuk sebulan.</p>
+      </div>
+
+      <div class="stat-grid" style="grid-template-columns: 1fr 1fr; margin: 6px 0 20px;">
+        <div class="stat-card">
+          <div class="label">Total Tagihan</div>
+          <div class="value" id="preview-harga" style="font-size:1.4rem;">Rp30.000</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Pertemuan</div>
+          <div class="value" id="preview-pertemuan" style="font-size:1.4rem;">2x pertemuan</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="bukti">Bukti Transfer Pembayaran</label>
+        <input type="file" id="bukti" name="bukti" accept=".jpg,.jpeg,.png,.pdf,.webp" required>
+        <p class="helper-text">Transfer sesuai total tagihan di atas, lalu unggah bukti (JPG/PNG/PDF, maks 5MB). Admin akan memverifikasi sebelum sisa pertemuanmu bertambah.</p>
+      </div>
+
+      <button type="submit" class="btn btn-gold btn-block">Kirim Pendaftaran</button>
+    </form>
+  </main>
+</div>
+{% endblock %}

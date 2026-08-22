@@ -1,0 +1,21 @@
+{% macro star_meter(sisa) %}
+<div class="star-meter">
+  <div class="stars">
+    {% for i in range(8) %}
+      {% if i < sisa %}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+      {% else %}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="empty" d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <span class="count">{{ sisa }} pertemuan tersisa</span>
+</div>
+{% endmacro %}
+
+{% macro badge_status(status) %}
+  {% if status == 'pending' %}<span class="badge-status badge-pending">Menunggu</span>
+  {% elif status == 'approved' %}<span class="badge-status badge-approved">Disetujui</span>
+  {% else %}<span class="badge-status badge-ditolak">Ditolak</span>
+  {% endif %}
+{% endmacro %}

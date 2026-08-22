@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Jadwal Kelas — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ user.name }}</div>
+    <div class="role-tag">Siswa</div>
+    <nav>
+      <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('student.jadwal') }}" class="active">Jadwal Kelas</a>
+      <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
+      <a href="{{ url_for('student.riwayat') }}">Riwayat Pendaftaran</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Jadwal Kelas</h1>
+    <p class="muted">Semua kelas berlangsung online, 2x pertemuan per minggu.</p>
+
+    <div class="program-grid" style="margin-top:20px;">
+      {% set icons = {"SD": "🏫", "SMP": "🎓", "SMA": "🧪"} %}
+      {% for j in jadwal %}
+      <div class="program-card">
+        <span class="badge">{{ icons.get(j.jenjang, "📘") }} {{ j.jenjang }} · Kelas {{ j.kelas }}</span>
+        <h3>{{ j.mapel }}</h3>
+        <div class="kelas">{{ j.hari }} · {{ j.jam }} WIB</div>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+{% endblock %}

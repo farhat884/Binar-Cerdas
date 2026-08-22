@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Riwayat Pendaftaran — Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ user.name }}</div>
+    <div class="role-tag">Siswa</div>
+    <nav>
+      <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('student.jadwal') }}">Jadwal Kelas</a>
+      <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
+      <a href="{{ url_for('student.riwayat') }}" class="active">Riwayat Pendaftaran</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Riwayat Pendaftaran</h1>
+
+    {% if riwayat %}
+    <div class="table-wrap" style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr><th>Tanggal</th><th>Jenjang / Mapel</th><th>Paket</th><th>Total Bayar</th><th>Status</th><th>Catatan Admin</th></tr>
+        </thead>
+        <tbody>
+          {% for r in riwayat %}
+          <tr>
+            <td class="mono">{{ r.created_at.strftime('%d %b %Y, %H:%M') if r.created_at else '-' }}</td>
+            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
+            <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
+            <td class="mono">{{ format_rupiah(r.total_harga) }}</td>
+            <td>{{ m.badge_status(r.status) }}</td>
+            <td class="muted">{{ r.catatan_admin or "-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="glyph">📭</div>
+      <p>Belum ada pendaftaran. <a href="{{ url_for('student.daftar_les') }}">Beli paket pertama kamu</a>.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

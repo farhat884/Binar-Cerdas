@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Pendaftaran — Admin Binar Cerdas{% endblock %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-sidebar">
+    <div class="who">{{ session.get('name') }}</div>
+    <div class="role-tag">Admin</div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin.pendaftaran') }}" class="active">Pendaftaran</a>
+      <a href="{{ url_for('admin.siswa') }}">Kelola Siswa</a>
+      <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+    </nav>
+  </aside>
+  <main class="dash-content">
+    <h1>Pendaftaran & Pembelian Paket</h1>
+    <p class="muted">Cek bukti pembayaran sebelum menyetujui. Sisa pertemuan siswa hanya bertambah setelah kamu menyetujui.</p>
+
+    <div class="tabs">
+      <a href="{{ url_for('admin.pendaftaran', status='pending') }}" class="{{ 'active' if status_aktif == 'pending' }}">Menunggu</a>
+      <a href="{{ url_for('admin.pendaftaran', status='approved') }}" class="{{ 'active' if status_aktif == 'approved' }}">Disetujui</a>
+      <a href="{{ url_for('admin.pendaftaran', status='ditolak') }}" class="{{ 'active' if status_aktif == 'ditolak' }}">Ditolak</a>
+    </div>
+
+    {% if daftar %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Siswa</th><th>Jenjang / Mapel</th><th>Paket</th><th>Total Bayar</th><th>Bukti</th>
+            {% if status_aktif == 'pending' %}<th>Aksi</th>{% else %}<th>Status</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in daftar %}
+          <tr>
+            <td>{{ r.user_name }}</td>
+            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
+            <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
+            <td class="mono">{{ format_rupiah(r.total_harga) }}</td>
+            <td><a class="payment-proof-link" href="{{ r.bukti_pembayaran_url }}" target="_blank" rel="noopener">Lihat 🔗</a></td>
+            {% if status_aktif == 'pending' %}
+            <td style="display:flex; gap:8px;">
+              <form method="POST" action="{{ url_for('admin.setujui_pendaftaran', reg_id=r.id) }}"
+                    data-confirm="Setujui pendaftaran {{ r.user_name }}? Sisa pertemuan akan bertambah {{ r.total_pertemuan }}.">
+                <button type="submit" class="btn btn-teal btn-sm">✔ Setujui</button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.tolak_pendaftaran', reg_id=r.id) }}"
+                    data-confirm="Tolak pendaftaran {{ r.user_name }}?">
+                <button type="submit" class="btn btn-danger btn-sm">✕ Tolak</button>
+              </form>
+            </td>
+            {% else %}
+            <td>{{ m.badge_status(r.status) }}</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="glyph">📭</div>
+      <p>Tidak ada data di kategori ini.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

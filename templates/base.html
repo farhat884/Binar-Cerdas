@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Binar Cerdas{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="container">
+    <a class="brand" href="{{ url_for('index') }}"><span class="spark">✦</span> Binar Cerdas</a>
+    <nav>
+      {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
+        <a href="{{ url_for('admin.siswa') }}">Siswa</a>
+        <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+        <span class="pill-role">Admin</span>
+        <a href="{{ url_for('auth.logout') }}">Keluar</a>
+      {% elif session.get('role') == 'siswa' %}
+        <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('student.jadwal') }}">Jadwal</a>
+        <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
+        <a href="{{ url_for('student.riwayat') }}">Riwayat</a>
+        <span class="pill-role">Siswa</span>
+        <a href="{{ url_for('auth.logout') }}">Keluar</a>
+      {% else %}
+        <a href="{{ url_for('index') }}#program">Program</a>
+        <a href="{{ url_for('index') }}#kontak">Kontak</a>
+        <a href="{{ url_for('auth.login') }}">Masuk</a>
+        <a class="btn btn-gold btn-sm" href="{{ url_for('auth.register') }}">Daftar</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash">
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="container">
+    <span>© {{ 2026 }} Binar Cerdas — Bimbingan belajar online untuk SD, SMP, & SMA.</span>
+    <span>Dibuat dengan Flask + Firebase</span>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
