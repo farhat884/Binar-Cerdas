@@ -82,6 +82,58 @@ img { max-width: 100%; }
   border: 1px solid rgba(244, 183, 64, 0.35);
 }
 
+/* ---------- Hamburger (mobile nav) ---------- */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px; height: 40px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  align-items: center;
+}
+.nav-toggle span {
+  display: block;
+  width: 20px; height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+@media (max-width: 860px) {
+  .navbar .container { flex-wrap: wrap; }
+  .nav-toggle { display: flex; }
+  .navbar nav {
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height .25s ease, opacity .2s ease;
+  }
+  .navbar nav.is-open {
+    max-height: 600px;
+    opacity: 1;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .navbar nav a, .navbar nav .btn {
+    padding: 11px 4px;
+    width: 100%;
+  }
+  .navbar nav .pill-role { align-self: flex-start; margin: 4px 0; }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;
@@ -265,6 +317,10 @@ footer .container { display: flex; justify-content: space-between; flex-wrap: wr
   .dash { grid-template-columns: 1fr; }
   .dash-sidebar { padding: 16px; }
   .dash-sidebar nav { flex-direction: row; overflow-x: auto; }
+  .field-row { grid-template-columns: 1fr; }
+  .dash-content { padding: 22px 16px; }
+  .card-simple { padding: 20px 18px; }
+  .stat-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- Cards / stats ---------- */
@@ -288,8 +344,8 @@ footer .container { display: flex; justify-content: space-between; flex-wrap: wr
 }
 
 /* ---------- Tables ---------- */
-.table-wrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.table-wrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 560px; }
 thead { background: var(--color-navy); color: #fff; }
 th, td { text-align: left; padding: 12px 16px; }
 tbody tr { border-top: 1px solid var(--color-border); }

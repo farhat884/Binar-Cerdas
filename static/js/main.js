@@ -47,7 +47,30 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Chat tanya-jawab lanjutan untuk "Penjelasan AI" (latihan & ujian)
+// Hamburger menu untuk navbar di layar mobile
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("navToggle");
+  const nav = document.getElementById("mainNav");
+  if (!toggle || !nav) return;
+
+  function tutupMenu() {
+    nav.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+  }
+
+  toggle.addEventListener("click", () => {
+    const terbuka = nav.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", terbuka ? "true" : "false");
+  });
+
+  // Tutup menu otomatis kalau salah satu link diklik
+  nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", tutupMenu));
+
+  // Tutup menu kalau layar dibesarkan lagi (misal rotasi HP ke landscape/desktop)
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 860) tutupMenu();
+  });
+});
 function initAIChat(box) {
   const questionId = box.dataset.questionId;
   const selected = box.dataset.selected || "";

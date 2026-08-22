@@ -13,7 +13,10 @@
 <header class="navbar">
   <div class="container">
     <a class="brand" href="{{ url_for('index') }}"><span class="spark">✦</span> Binar Cerdas</a>
-    <nav>
+    <button type="button" class="nav-toggle" id="navToggle" aria-label="Buka menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="mainNav">
       {% if session.get('role') == 'admin' %}
         <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
         <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
