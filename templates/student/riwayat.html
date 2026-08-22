@@ -1,47 +1,150 @@
 {% extends "base.html" %}
-{% import "macros.html" as m %}
-{% block title %}Riwayat Pendaftaran — Binar Cerdas{% endblock %}
+
+{% block title %}
+Riwayat Pembelian — Binar Cerdas
+{% endblock %}
+
+
 {% block content %}
+
 <div class="dash">
+
   <aside class="dash-sidebar">
-    <div class="who">{{ user.name }}</div>
-    <div class="role-tag">Siswa</div>
+
+    <div class="who">
+      {{ user.name }}
+    </div>
+
+    <div class="role-tag">
+      Siswa
+    </div>
+
     <nav>
-      <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
-      <a href="{{ url_for('student.jadwal') }}">Jadwal Kelas</a>
-      <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
-      <a href="{{ url_for('student.riwayat') }}" class="active">Riwayat Pendaftaran</a>
+
+      <a href="{{ url_for('student.dashboard') }}">
+        Dashboard
+      </a>
+
+      <a href="{{ url_for('student.jadwal') }}">
+        Jadwal Kelas
+      </a>
+
+      <a href="{{ url_for('student.daftar_les') }}">
+        Beli Paket
+      </a>
+
+      <a
+        href="{{ url_for('student.riwayat') }}"
+        class="active"
+      >
+        Riwayat Pembelian
+      </a>
+
     </nav>
+
   </aside>
+
+
   <main class="dash-content">
-    <h1>Riwayat Pendaftaran</h1>
+
+    <h1>
+      Riwayat Pembelian
+    </h1>
+
 
     {% if riwayat %}
-    <div class="table-wrap" style="margin-top:20px;">
+
+    <div
+      class="table-wrap"
+      style="margin-top:20px;"
+    >
+
       <table>
+
         <thead>
-          <tr><th>Tanggal</th><th>Jenjang / Mapel</th><th>Paket</th><th>Total Bayar</th><th>Status</th><th>Catatan Admin</th></tr>
-        </thead>
-        <tbody>
-          {% for r in riwayat %}
+
           <tr>
-            <td class="mono">{{ r.created_at.strftime('%d %b %Y, %H:%M') if r.created_at else '-' }}</td>
-            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
-            <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
-            <td class="mono">{{ format_rupiah(r.total_harga) }}</td>
-            <td>{{ m.badge_status(r.status) }}</td>
-            <td class="muted">{{ r.catatan_admin or "-" }}</td>
+
+            <th>Paket</th>
+
+            <th>Total</th>
+
+            <th>Pertemuan</th>
+
+            <th>Metode Pembayaran</th>
+
+            <th>Tanggal Transfer</th>
+
+            <th>Referensi</th>
+
+            <th>Status</th>
+
           </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {% for r in riwayat %}
+
+          <tr>
+
+            <td>
+              {{ r.jumlah_paket }}
+              Paket
+            </td>
+
+            <td>
+              {{ format_rupiah(r.total_harga) }}
+            </td>
+
+            <td>
+              {{ r.total_pertemuan }}
+              Pertemuan
+            </td>
+
+            <td>
+              {{ r.metode_pembayaran }}
+            </td>
+
+            <td>
+              {{ r.tanggal_transfer }}
+            </td>
+
+            <td>
+              {{ r.referensi_transfer }}
+            </td>
+
+            <td>
+              {{ r.status }}
+            </td>
+
+          </tr>
+
           {% endfor %}
+
         </tbody>
+
       </table>
+
     </div>
+
+
     {% else %}
+
     <div class="empty-state">
-      <div class="glyph">📭</div>
-      <p>Belum ada pendaftaran. <a href="{{ url_for('student.daftar_les') }}">Beli paket pertama kamu</a>.</p>
+
+      <p>
+        Belum ada riwayat pembelian paket.
+      </p>
+
     </div>
+
     {% endif %}
+
   </main>
+
 </div>
+
 {% endblock %}
