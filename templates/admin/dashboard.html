@@ -1,61 +1,23 @@
-{% extends "base.html" %}
-{% import "macros.html" as m %}
-{% block title %}Dashboard Admin — Binar Cerdas{% endblock %}
-{% block content %}
-<div class="dash">
-  <aside class="dash-sidebar">
-    <div class="who">{{ session.get('name') }}</div>
-    <div class="role-tag">Admin</div>
-    <nav>
-      <a href="{{ url_for('admin.dashboard') }}" class="active">Dashboard</a>
-      <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
-      <a href="{{ url_for('admin.siswa') }}">Kelola Siswa</a>
-      <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
-    </nav>
-  </aside>
-  <main class="dash-content">
-    <h1>Dashboard Admin</h1>
-    <p class="muted">Ringkasan aktivitas Binar Cerdas.</p>
+<td>
+    {{ r.user_name }}
+</td>
 
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="label">Pendaftaran Menunggu</div>
-        <div class="value">{{ jumlah_pending }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Total Siswa Aktif</div>
-        <div class="value">{{ jumlah_siswa }}</div>
-      </div>
-    </div>
+<td>
+    {{ r.jumlah_paket }} Paket
+</td>
 
-    <div class="section-title-row" style="margin-top:20px;">
-      <h3 style="margin:0;">Pendaftaran Terbaru yang Perlu Disetujui</h3>
-      <a href="{{ url_for('admin.pendaftaran') }}" class="muted" style="font-size:0.88rem;">Lihat semua →</a>
-    </div>
+<td>
+    {{ format_rupiah(r.total_harga) }}
+</td>
 
-    {% if pending_terbaru %}
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Siswa</th><th>Jenjang / Mapel</th><th>Paket</th><th>Bukti</th><th></th></tr></thead>
-        <tbody>
-          {% for r in pending_terbaru %}
-          <tr>
-            <td>{{ r.user_name }}</td>
-            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
-            <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
-            <td><a class="payment-proof-link" href="{{ r.bukti_pembayaran_url }}" target="_blank" rel="noopener">Lihat 🔗</a></td>
-            <td><a href="{{ url_for('admin.pendaftaran') }}" class="btn btn-ghost btn-sm">Proses</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <div class="glyph">✅</div>
-      <p>Tidak ada pendaftaran yang menunggu persetujuan saat ini.</p>
-    </div>
-    {% endif %}
-  </main>
-</div>
-{% endblock %}
+<td>
+    {{ r.total_pertemuan }} Pertemuan
+</td>
+
+<td>
+    {{ r.metode_pembayaran }}
+</td>
+
+<td>
+    {{ r.nama_pengirim }}
+</td>
