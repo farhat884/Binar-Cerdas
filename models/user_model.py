@@ -9,7 +9,6 @@ from werkzeug.security import (
     check_password_hash,
 )
 
-from firebase_admin import firestore
 from firebase_config import db
 
 
@@ -210,14 +209,8 @@ def tambah_pertemuan(user_id, jumlah):
 
 
 def kurangi_pertemuan(user_id):
-    """
-    Dipanggil admin setiap kali
-    1 sesi les selesai.
-    """
 
-    user = get_user_by_id(
-        user_id
-    )
+    user = get_user_by_id(user_id)
 
     if not user:
         return (
@@ -225,22 +218,25 @@ def kurangi_pertemuan(user_id):
             "Siswa tidak ditemukan."
         )
 
-    if user.get(
-        "sisa_pertemuan",
-        0
-    ) <= 0:
+    sisa_sekarang = int(
+        user.get(
+            "sisa_pertemuan",
+            0
+        )
+    )
 
+    if sisa_sekarang <= 0:
         return (
             False,
             "Sisa pertemuan siswa ini sudah 0."
         )
 
+    sisa_baru = sisa_sekarang - 1
+
     db.collection(COLLECTION).document(
         user_id
     ).update({
-        "sisa_pertemuan": (
-            firestore.Increment(-1)
-        )
+        "sisa_pertemuan": sisa_baru
     })
 
     return (

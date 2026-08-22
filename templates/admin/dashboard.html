@@ -1,23 +1,238 @@
-<td>
-    {{ r.user_name }}
-</td>
+{% extends "base.html" %}
+{% import "macros.html" as m %}
 
-<td>
-    {{ r.jumlah_paket }} Paket
-</td>
+{% block title %}
+Dashboard Admin — Binar Cerdas
+{% endblock %}
 
-<td>
-    {{ format_rupiah(r.total_harga) }}
-</td>
 
-<td>
-    {{ r.total_pertemuan }} Pertemuan
-</td>
+{% block content %}
 
-<td>
-    {{ r.metode_pembayaran }}
-</td>
+<div class="dash">
 
-<td>
-    {{ r.nama_pengirim }}
-</td>
+  <aside class="dash-sidebar">
+
+    <div class="who">
+      {{ session.get('name') }}
+    </div>
+
+    <div class="role-tag">
+      Admin
+    </div>
+
+    <nav>
+
+      <a
+        href="{{ url_for('admin.dashboard') }}"
+        class="active"
+      >
+        Dashboard
+      </a>
+
+      <a href="{{ url_for('admin.pendaftaran') }}">
+        Pendaftaran
+      </a>
+
+      <a href="{{ url_for('admin.siswa') }}">
+        Kelola Siswa
+      </a>
+
+      <a href="{{ url_for('admin.jadwal') }}">
+        Jadwal
+      </a>
+
+    </nav>
+
+  </aside>
+
+
+  <main class="dash-content">
+
+    <h1>
+      Dashboard Admin
+    </h1>
+
+    <p class="muted">
+      Ringkasan aktivitas Binar Cerdas.
+    </p>
+
+
+    <!-- STATISTIK -->
+
+    <div class="stat-grid">
+
+      <div class="stat-card">
+
+        <div class="label">
+          Pendaftaran Menunggu
+        </div>
+
+        <div class="value">
+          {{ jumlah_pending }}
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="label">
+          Total Siswa Aktif
+        </div>
+
+        <div class="value">
+          {{ jumlah_siswa }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- JUDUL TABEL -->
+
+    <div
+      class="section-title-row"
+      style="margin-top:20px;"
+    >
+
+      <h3 style="margin:0;">
+        Pendaftaran Terbaru yang Perlu Disetujui
+      </h3>
+
+      <a
+        href="{{ url_for('admin.pendaftaran') }}"
+        class="muted"
+        style="font-size:0.88rem;"
+      >
+        Lihat semua →
+      </a>
+
+    </div>
+
+
+    <!-- TABEL PENDAFTARAN -->
+
+    {% if pending_terbaru %}
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Siswa
+            </th>
+
+            <th>
+              Paket
+            </th>
+
+            <th>
+              Total Pertemuan
+            </th>
+
+            <th>
+              Total Harga
+            </th>
+
+            <th>
+              Metode Pembayaran
+            </th>
+
+            <th>
+              Nama Pengirim
+            </th>
+
+            <th>
+              Aksi
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {% for r in pending_terbaru %}
+
+          <tr>
+
+            <td>
+              {{ r.user_name }}
+            </td>
+
+
+            <td>
+              {{ r.jumlah_paket }} Paket
+            </td>
+
+
+            <td>
+              {{ r.total_pertemuan }} Pertemuan
+            </td>
+
+
+            <td>
+              Rp{{ "{:,.0f}".format(r.total_harga or 0).replace(",", ".") }}
+            </td>
+
+
+            <td>
+              {{ r.metode_pembayaran }}
+            </td>
+
+
+            <td>
+              {{ r.nama_pengirim }}
+            </td>
+
+
+            <td>
+
+              <a
+                href="{{ url_for('admin.pendaftaran') }}"
+                class="btn btn-ghost btn-sm"
+              >
+                Proses
+              </a>
+
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    {% else %}
+
+    <div class="empty-state">
+
+      <div class="glyph">
+        ✅
+      </div>
+
+      <p>
+        Tidak ada pendaftaran yang menunggu persetujuan saat ini.
+      </p>
+
+    </div>
+
+    {% endif %}
+
+
+  </main>
+
+</div>
+
+{% endblock %}
