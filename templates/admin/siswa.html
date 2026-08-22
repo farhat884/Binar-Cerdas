@@ -42,6 +42,8 @@ Kelola Siswa — Admin Binar Cerdas
         Jadwal
       </a>
 
+    <a href="{{ url_for('admin.materi') }}">Materi</a>
+      <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
     </nav>
 
   </aside>
@@ -92,6 +94,10 @@ Kelola Siswa — Admin Binar Cerdas
 
             <th>
               Tambah Pertemuan
+            </th>
+
+            <th>
+              Akses Materi Gratis
             </th>
 
             <th>
@@ -189,6 +195,12 @@ Kelola Siswa — Admin Binar Cerdas
 
             </td>
 
+
+            <td>
+              <a href="{{ url_for('admin.akses_materi_siswa', user_id=s.id) }}" class="btn btn-ghost btn-sm">
+                Kelola Akses Materi
+              </a>
+            </td>
 
             <td>
 

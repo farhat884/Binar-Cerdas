@@ -15,30 +15,14 @@
     </p>
     <div class="cta-row">
       <a href="{{ url_for('auth.register') }}" class="btn btn-gold">Daftar Sekarang</a>
-      <a href="#program" class="btn btn-outline">Lihat Program & Jadwal</a>
+      <a href="#program" class="btn btn-outline">Lihat Program</a>
     </div>
   </div>
 </section>
 
 <section class="section" id="program">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Program</span>
-      <h2>Pilih jenjang, langsung dapat jadwalnya</h2>
-      <p>Semua kelas dua kali pertemuan seminggu, dibimbing sampai konsepnya benar-benar nempel.</p>
-    </div>
-    <div class="program-grid">
-      {% set icons = {"SD": "🏫", "SMP": "🎓", "SMA": "🧪"} %}
-      {% for j in jadwal %}
-      <div class="program-card">
-        <span class="badge">{{ icons.get(j.jenjang, "📘") }} {{ j.jenjang }} · Kelas {{ j.kelas }}</span>
-        <h3>{{ j.mapel }}</h3>
-        <div class="kelas">{{ j.hari }} · {{ j.jam }} WIB</div>
-        <p class="mapel muted">Online, kelas kecil, interaktif dengan pengajar Binar Cerdas.</p>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
+  <div class="container"><div class="section-head"><span class="eyebrow">Program</span><h2>Pilih jenjang sesuai kelasmu</h2><p>Informasi program disesuaikan dengan jenjang, kelas, dan mata pelajaran yang tersedia.</p></div>
+  <div class="program-grid">{% set icons={"SD":"🏫","SMP":"🎓","SMA":"🧪"} %}{% for p in programs %}<div class="program-card"><span class="badge">{{ icons.get(p.jenjang,"📘") }} {{ p.jenjang }} · Kelas {{ p.kelas }}</span><h3>{{ p.mapel|join(" & ") }}</h3><p class="mapel muted">{{ p.deskripsi }}</p><div class="kelas"><strong>Mata pelajaran:</strong> {{ p.mapel|join(", ") }}</div></div>{% endfor %}</div></div>
 </section>
 
 <section class="section section-alt">

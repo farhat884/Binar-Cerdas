@@ -1,0 +1,43 @@
+PERUBAHAN BINAR CERDAS
+=======================
+1. Pembayaran:
+   - Transfer BCA: 1801890372 a/n Charisa Martha Deana Putri Soegiarto
+   - QRIS ditampilkan langsung saat metode QRIS dipilih.
+   - Upload bukti tetap tidak digunakan.
+
+2. Program:
+   - SD kelas 5-6: Matematika, IPA
+   - SMP kelas 7-9: Matematika, IPA
+   - SMA kelas 10-11: Matematika, Fisika, Kimia
+   - Landing page tidak lagi menampilkan jadwal pada bagian Program.
+   - Fitur jadwal lama tetap dipertahankan untuk admin/siswa.
+
+3. Materi:
+   - Admin tambah/edit/hapus materi.
+   - Siswa hanya melihat materi sesuai jenjang dan kelas.
+   - Admin dapat mengaktifkan akses materi gratis per siswa.
+   - Jika tidak gratis, membuka materi pertama kali memakai 1 kuota pertemuan.
+   - Akses materi yang sudah dibuka tidak memotong kuota lagi.
+
+4. Soal:
+   - Admin menambah/hapus soal latihan, UTS, UAS.
+   - Latihan materi memberi benar/salah langsung.
+   - Jawaban salah dapat penjelasan AI melalui GROQ_API_KEY.
+   - Jika AI key belum diset/gagal, penjelasan manual/fallback tetap tampil.
+   - UTS/UAS memberi nilai akhir setelah semua soal dikirim.
+   - Progress materi dan riwayat nilai ditampilkan ke siswa.
+
+5. Environment:
+   Tambahkan GROQ_API_KEY pada environment lokal/Vercel.
+   Jangan tulis API key langsung di source code.
+
+
+UPDATE MATERI PDF
+- Admin tidak lagi mengetik isi materi panjang di website.
+- Materi dibuat dari PPT lalu di-export menjadi PDF dan di-upload oleh admin.
+- PDF disimpan di Firebase Storage, metadata materi tetap di Firestore.
+- Siswa dapat membaca PDF langsung di halaman materi atau membukanya di tab baru.
+- Edit materi dapat mengganti PDF tanpa menghapus metadata lainnya.
+- Hapus materi juga mencoba menghapus PDF dari Firebase Storage.
+- Maksimal upload aplikasi dinaikkan menjadi 20 MB.
+- Wajib mengatur SUPABASE_URL + SUPABASE_SECRET_KEY di environment lokal/Vercel.

@@ -2,7 +2,7 @@
 Model 'registrations' = pendaftaran / pembelian paket pertemuan.
 
 Alur:
-  1. Siswa isi form (jenjang, mapel, jumlah paket 1-4) + upload bukti bayar
+  1. Siswa pilih paket dan metode pembayaran lalu mengirim detail pembayaran
      -> status "pending"
   2. Admin buka daftar pending, lihat bukti bayar, klik Setujui/Tolak
      -> status "approved" -> sisa_pertemuan siswa bertambah

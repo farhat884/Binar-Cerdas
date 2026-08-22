@@ -46,3 +46,68 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000 + i * 300);
   });
 });
+
+// Chat tanya-jawab lanjutan untuk "Penjelasan AI" (latihan & ujian)
+function initAIChat(box) {
+  const questionId = box.dataset.questionId;
+  const selected = box.dataset.selected || "";
+  const url = box.dataset.url;
+  const messagesEl = box.querySelector(".ai-chat-messages");
+  const input = box.querySelector(".ai-chat-input");
+  const sendBtn = box.querySelector(".ai-chat-send");
+  let riwayat = [];
+
+  function tambahBubble(role, text) {
+    const div = document.createElement("div");
+    div.className = "ai-chat-msg " + (role === "user" ? "user" : "ai");
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  async function kirim() {
+    const pesan = input.value.trim();
+    if (!pesan) return;
+    input.value = "";
+    sendBtn.disabled = true;
+    tambahBubble("user", pesan);
+    riwayat.push({ role: "user", content: pesan });
+    const pendingEl = tambahBubble("ai", "Mengetik...");
+    pendingEl.classList.add("pending");
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pesan: pesan,
+          selected: selected,
+          riwayat: riwayat.slice(0, -1),
+        }),
+      });
+      const data = await res.json();
+      pendingEl.classList.remove("pending");
+      if (!res.ok) {
+        pendingEl.textContent = data.error || "Gagal mengirim pertanyaan.";
+      } else {
+        pendingEl.textContent = data.balasan;
+        riwayat.push({ role: "assistant", content: data.balasan });
+      }
+    } catch (err) {
+      pendingEl.classList.remove("pending");
+      pendingEl.textContent = "Gagal menghubungi AI, coba lagi ya.";
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  sendBtn.addEventListener("click", kirim);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); kirim(); }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".ai-chat").forEach(initAIChat);
+});

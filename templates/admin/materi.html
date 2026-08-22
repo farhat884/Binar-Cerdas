@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kelola Materi — Binar Cerdas
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dash">
+
+  <aside class="dash-sidebar">
+
+    <div class="who">
+      {{ session.get('name') }}
+    </div>
+
+    <div class="role-tag">
+      Admin
+    </div>
+
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}">
+        Dashboard
+      </a>
+
+      <a
+        class="active"
+        href="{{ url_for('admin.materi') }}"
+      >
+        Materi
+      </a>
+
+      <a href="{{ url_for('admin.soal') }}">
+        Bank Soal
+      </a>
+
+      <a href="{{ url_for('admin.siswa') }}">
+        Siswa
+      </a>
+    </nav>
+
+  </aside>
+
+
+  <main class="dash-content">
+
+    <h1>Materi Pembelajaran</h1>
+
+    <p class="muted">
+      Upload materi yang sudah kamu buat dari PowerPoint
+      dalam format PDF.
+    </p>
+
+
+    <form
+      method="POST"
+      class="card-simple"
+      style="max-width:800px;margin:20px 0"
+    >
+
+      <div class="field-row">
+
+        <div class="field">
+
+          <label>Jenjang</label>
+
+          <select name="jenjang" required>
+            <option value="SD">SD</option>
+            <option value="SMP">SMP</option>
+            <option value="SMA">SMA</option>
+          </select>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>Kelas</label>
+
+          <select name="kelas" required>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+          </select>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>Mapel</label>
+
+          <input
+            name="mapel"
+            required
+            placeholder="Contoh: Matematika"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Judul Materi</label>
+
+        <input
+          name="judul"
+          required
+          placeholder="Contoh: Persamaan Kuadrat"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Ringkasan singkat
+          <span class="muted">(opsional)</span>
+        </label>
+
+        <input
+          name="ringkasan"
+          placeholder="Deskripsi singkat materi"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>File Materi PDF</label>
+
+        <input
+          type="file"
+          id="file_pdf"
+          accept="application/pdf,.pdf"
+          required
+        >
+
+        <small class="muted">
+          Upload PDF hasil export dari PPT.
+          Hanya file PDF yang diterima.
+        </small>
+
+      </div>
+
+
+      <input
+        type="hidden"
+        name="pdf_url"
+        id="pdf_url"
+      >
+
+      <input
+        type="hidden"
+        name="pdf_path"
+        id="pdf_path"
+      >
+
+      <input
+        type="hidden"
+        name="pdf_filename"
+        id="pdf_filename"
+      >
+
+
+      <button
+        type="submit"
+        id="submit_materi"
+        class="btn btn-gold"
+      >
+        📄 Upload Materi PDF
+      </button>
+
+    </form>
+
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Materi</th>
+            <th>Jenjang</th>
+            <th>Mapel</th>
+            <th>File</th>
+            <th></th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {% for m in materials %}
+
+          <tr>
+
+            <td>
+              {{ m.judul }}
+            </td>
+
+            <td>
+              {{ m.jenjang }}
+              {{ m.kelas }}
+            </td>
+
+            <td>
+              {{ m.mapel }}
+            </td>
+
+
+            <td>
+
+              {% if m.pdf_url %}
+
+              <a
+                href="{{ m.pdf_url }}"
+                target="_blank"
+                class="payment-proof-link"
+              >
+                Buka PDF 📄
+              </a>
+
+              {% else %}
+
+              <span class="muted">
+                Belum ada PDF
+              </span>
+
+              {% endif %}
+
+            </td>
+
+
+            <td>
+
+              <a
+                class="btn btn-ghost btn-sm"
+                href="{{ url_for(
+                  'admin.edit_materi',
+                  material_id=m.id
+                ) }}"
+              >
+                Edit
+              </a>
+
+
+              <form
+                style="display:inline"
+                method="POST"
+                action="{{ url_for(
+                  'admin.hapus_materi',
+                  material_id=m.id
+                ) }}"
+              >
+
+                <button
+                  type="submit"
+                  class="btn btn-danger btn-sm"
+                >
+                  Hapus
+                </button>
+
+              </form>
+
+            </td>
+
+          </tr>
+
+
+          {% else %}
+
+          <tr>
+
+            <td
+              colspan="5"
+              class="muted"
+            >
+              Belum ada materi.
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+<script>
+
+(async () => {
+
+  const form = document.querySelector(
+    "form.card-simple"
+  );
+
+  const fileInput = document.getElementById(
+    "file_pdf"
+  );
+
+  const pdfUrlInput = document.getElementById(
+    "pdf_url"
+  );
+
+  const pdfPathInput = document.getElementById(
+    "pdf_path"
+  );
+
+  const pdfFilenameInput = document.getElementById(
+    "pdf_filename"
+  );
+
+  const submitButton = document.getElementById(
+    "submit_materi"
+  );
+
+
+  if (!form || !fileInput) {
+    return;
+  }
+
+
+  form.addEventListener(
+    "submit",
+
+    async function (event) {
+
+      /*
+       * Kalau PDF sudah berhasil diupload,
+       * biarkan form dikirim ke Flask.
+       */
+      if (pdfUrlInput.value) {
+        return;
+      }
+
+
+      if (!fileInput.files.length) {
+
+        event.preventDefault();
+
+        alert(
+          "Pilih file PDF terlebih dahulu."
+        );
+
+        return;
+      }
+
+
+      const file = fileInput.files[0];
+
+
+      if (
+        !file.name
+          .toLowerCase()
+          .endsWith(".pdf")
+      ) {
+
+        event.preventDefault();
+
+        alert(
+          "Materi harus berupa file PDF."
+        );
+
+        return;
+      }
+
+
+      event.preventDefault();
+
+
+      submitButton.disabled = true;
+
+      submitButton.textContent =
+        "Mengunggah PDF...";
+
+
+      try {
+
+        /*
+         * Minta signed upload URL
+         * dari backend Flask.
+         */
+
+        const response = await fetch(
+
+          "{{ url_for('admin.materi_upload_url') }}",
+
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              filename: file.name
+            })
+
+          }
+
+        );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+
+            data.error ||
+            "Gagal menyiapkan upload."
+
+          );
+
+        }
+
+
+        /*
+         * Upload file PDF langsung
+         * ke Supabase Storage.
+         */
+
+        const uploadResponse = await fetch(
+            data.upload_url,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type":
+                        file.type || "application/pdf",
+
+                    "x-signature":
+                        data.token
+                },
+
+                body: file
+            }
+        );
+
+
+        if (!uploadResponse.ok) {
+
+          const errorText =
+            await uploadResponse.text();
+
+
+          console.error(
+
+            "Supabase upload gagal:",
+
+            uploadResponse.status,
+
+            errorText
+
+          );
+
+
+          throw new Error(
+
+            "Upload PDF gagal: " +
+
+            uploadResponse.status +
+
+            " - " +
+
+            errorText
+
+          );
+
+        }
+
+
+        /*
+         * Simpan informasi PDF
+         * ke hidden input.
+         */
+
+        pdfUrlInput.value =
+          data.public_url;
+
+        pdfPathInput.value =
+          data.path;
+
+        pdfFilenameInput.value =
+          file.name;
+
+
+        /*
+         * Setelah upload berhasil,
+         * submit form ke Flask.
+         */
+
+        form.submit();
+
+
+      }
+      catch (error) {
+
+        console.error(
+          "Error upload:",
+          error
+        );
+
+
+        alert(
+          error.message ||
+          "Upload PDF gagal."
+        );
+
+
+        submitButton.disabled = false;
+
+        submitButton.textContent =
+          "📄 Upload Materi PDF";
+
+      }
+
+    }
+
+  );
+
+})();
+
+</script>
+
+{% endblock %}

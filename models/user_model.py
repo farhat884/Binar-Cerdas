@@ -243,3 +243,10 @@ def kurangi_pertemuan(user_id):
         True,
         None
     )
+
+def gunakan_pertemuan_untuk_materi(user_id):
+    ok, error = kurangi_pertemuan(user_id)
+    if not ok:
+        raise ValueError(error)
+    user = get_user_by_id(user_id)
+    return int(user.get("sisa_pertemuan", 0))

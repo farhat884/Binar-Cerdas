@@ -19,6 +19,8 @@
         <a href="{{ url_for('admin.pendaftaran') }}">Pendaftaran</a>
         <a href="{{ url_for('admin.siswa') }}">Siswa</a>
         <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
+        <a href="{{ url_for('admin.materi') }}">Materi</a>
+        <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
         <span class="pill-role">Admin</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% elif session.get('role') == 'siswa' %}
@@ -26,6 +28,8 @@
         <a href="{{ url_for('student.jadwal') }}">Jadwal</a>
         <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
         <a href="{{ url_for('student.riwayat') }}">Riwayat</a>
+        <a href="{{ url_for('student.materi') }}">Materi</a>
+        <a href="{{ url_for('student.progress') }}">Progress</a>
         <span class="pill-role">Siswa</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% else %}

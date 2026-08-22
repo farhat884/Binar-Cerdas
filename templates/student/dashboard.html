@@ -8,6 +8,8 @@
     <div class="role-tag">Siswa · {{ user.jenjang }} kelas {{ user.kelas }}</div>
     <nav>
       <a href="{{ url_for('student.dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('student.materi') }}">Materi</a>
+      <a href="{{ url_for('student.progress') }}">Progress</a>
       <a href="{{ url_for('student.jadwal') }}">Jadwal Kelas</a>
       <a href="{{ url_for('student.daftar_les') }}">Beli Paket</a>
       <a href="{{ url_for('student.riwayat') }}">Riwayat Pendaftaran</a>
@@ -30,7 +32,7 @@
       </p>
     </div>
 
-    <div class="stat-grid">
+    <div class="stat-grid"><div class="stat-card"><div class="label">Progress Materi</div><div class="value">{{ material_completed }}/{{ material_count }}</div><a href="{{ url_for('student.progress') }}" class="muted">Lihat progress →</a></div>
       <div class="stat-card">
         <div class="label">Total Pertemuan Dibeli</div>
         <div class="value">{{ user.total_pertemuan_dibeli or 0 }}</div>
@@ -49,13 +51,13 @@
     {% if riwayat %}
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Tanggal</th><th>Jenjang / Mapel</th><th>Paket</th><th>Status</th></tr></thead>
+        <thead><tr><th>Tanggal</th><th>Pembelian</th><th>Paket</th><th>Status</th></tr></thead>
         <tbody>
           {% import "macros.html" as m2 %}
           {% for r in riwayat %}
           <tr>
             <td class="mono">{{ r.created_at.strftime('%d %b %Y') if r.created_at else '-' }}</td>
-            <td>{{ r.jenjang }} — {{ r.mapel }}</td>
+            <td>{{ r.metode_pembayaran }}</td>
             <td>{{ r.jumlah_paket }} paket ({{ r.total_pertemuan }}x)</td>
             <td>{{ m2.badge_status(r.status) }}</td>
           </tr>

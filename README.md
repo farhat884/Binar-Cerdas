@@ -89,7 +89,7 @@ python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env            # lalu isi SECRET_KEY & FIREBASE_STORAGE_BUCKET
+cp .env.example .env            # lalu isi SECRET_KEY & SUPABASE_URL + SUPABASE_SECRET_KEY
 # pastikan serviceAccountKey.json sudah ada di root folder
 
 python scripts/seed_firestore.py   # isi jadwal default (sekali saja)
@@ -118,7 +118,7 @@ ada di `.gitignore` — ini memang harus begitu, isinya rahasia.
 1. Import repo GitHub ini di [vercel.com/new](https://vercel.com/new).
 2. Di **Environment Variables**, isi:
    - `SECRET_KEY` → string acak
-   - `FIREBASE_STORAGE_BUCKET` → nama bucket Firebase-mu
+   - `SUPABASE_URL + SUPABASE_SECRET_KEY` → nama bucket Firebase-mu
    - `FIREBASE_CREDENTIALS_JSON` → **isi seluruh isi file** `serviceAccountKey.json`
      (paste sebagai satu blok JSON, karena Vercel tidak menyimpan file biasa).
 3. Deploy. `vercel.json` sudah diatur supaya Vercel menjalankan `app.py`

@@ -20,6 +20,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print("SUPABASE URL:", os.getenv("SUPABASE_URL"))
+print(
+    "SUPABASE SECRET ADA:",
+    bool(os.getenv("SUPABASE_SECRET_KEY"))
+)
+
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.student_routes import student_bp
@@ -28,7 +34,6 @@ from routes.student_routes import student_bp
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-ganti-ini")
-    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5MB, untuk upload bukti bayar
 
     # Setiap blueprint = satu "wilayah" role. Prefix URL juga sudah
     # mencerminkan role supaya jelas dari alamatnya siapa yang mengakses.
@@ -39,18 +44,17 @@ def create_app():
     @app.route("/")
     def index():
         """Landing page publik: info promosi Binar Cerdas + jadwal umum."""
-        from models.program_model import get_all_schedules, DEFAULT_SCHEDULES
+        from models.program_model import get_programs
         try:
-            jadwal = get_all_schedules() or DEFAULT_SCHEDULES
+            programs = get_programs()
         except Exception:
-            # Firebase belum dikonfigurasi saat pertama kali dijalankan -> tetap tampilkan landing page
-            jadwal = DEFAULT_SCHEDULES
+            programs = []
 
         kontak = [
             {"nama": "Ka Farhat", "nomor_tampil": "0895-3461-61387", "wa": "https://wa.me/62895346161387"},
             {"nama": "Ka Caca", "nomor_tampil": "0812-1212-0218", "wa": "https://wa.me/6281212120218"},
         ]
-        return render_template("index.html", jadwal=jadwal, kontak=kontak)
+        return render_template("index.html", programs=programs, kontak=kontak)
 
     @app.errorhandler(404)
     def not_found(e):

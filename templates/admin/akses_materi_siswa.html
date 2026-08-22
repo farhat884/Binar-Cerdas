@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}
+Akses Materi — {{ siswa.name }} — Admin Binar Cerdas
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dash">
+
+  <aside class="dash-sidebar">
+
+    <div class="who">
+      {{ session.get('name') }}
+    </div>
+
+    <div class="role-tag">
+      Admin
+    </div>
+
+    <nav>
+
+      <a href="{{ url_for('admin.dashboard') }}">
+        Dashboard
+      </a>
+
+      <a href="{{ url_for('admin.pendaftaran') }}">
+        Pembelian
+      </a>
+
+      <a
+        href="{{ url_for('admin.siswa') }}"
+        class="active"
+      >
+        Kelola Siswa
+      </a>
+
+      <a href="{{ url_for('admin.jadwal') }}">
+        Jadwal
+      </a>
+
+    <a href="{{ url_for('admin.materi') }}">Materi</a>
+      <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+    </nav>
+
+  </aside>
+
+
+  <main class="dash-content">
+
+    <h1>
+      Akses Materi Gratis — {{ siswa.name }}
+    </h1>
+
+    <p class="muted">
+      Centang materi yang ingin digratiskan khusus untuk <strong>{{ siswa.name }}</strong>
+      ({{ siswa.jenjang }} · Kelas {{ siswa.kelas }}). Materi yang tidak dicentang tetap
+      butuh 1 kuota pertemuan seperti biasa. Ini tidak memengaruhi akses siswa lain.
+    </p>
+
+    <a href="{{ url_for('admin.siswa') }}" class="btn btn-ghost btn-sm" style="margin-bottom:16px;display:inline-block;">
+      ← Kembali ke Kelola Siswa
+    </a>
+
+    {% if materi_siswa %}
+
+    <div class="table-wrap" style="margin-top:16px;">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Mapel</th>
+            <th>Judul Materi</th>
+            <th>Status</th>
+            <th>Gratis untuk {{ siswa.name }}?</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% for m in materi_siswa %}
+          <tr>
+            <td>{{ m.mapel }}</td>
+            <td>{{ m.judul }}</td>
+            <td>
+              {% if m.akses_gratis %}
+              <span class="status-open">Gratis (manual admin)</span>
+              {% else %}
+              <span class="status-lock">Pakai kuota pertemuan</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.toggle_akses_materi_siswa', user_id=siswa.id, material_id=m.id) }}">
+                <label style="display:flex;gap:8px;align-items:center;">
+                  <input
+                    type="checkbox"
+                    name="aktif"
+                    onchange="this.form.requestSubmit()"
+                    {% if m.akses_gratis %}checked{% endif %}
+                  >
+                  Gratis
+                </label>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+      <div class="glyph">📚</div>
+      <p>Belum ada materi untuk jenjang/kelas siswa ini.</p>
+    </div>
+
+    {% endif %}
+
+  </main>
+
+</div>
+
+{% endblock %}
