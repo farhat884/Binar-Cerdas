@@ -180,7 +180,7 @@ Dashboard Admin — Binar Cerdas
 
 
             <td>
-              Rp{{ "{:,.0f}".format(r.total_harga or 0).replace(",", ".") }}
+              Rp{{ "{:,.0f}".format((r.total_harga or 0)|float).replace(",", ".") }}
             </td>
 
 

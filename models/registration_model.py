@@ -1,97 +1,45 @@
-"""
-Model 'registrations' = pendaftaran / pembelian paket pertemuan.
-
-Alur:
-  1. Siswa pilih paket dan metode pembayaran lalu mengirim detail pembayaran
-     -> status "pending"
-  2. Admin buka daftar pending, lihat bukti bayar, klik Setujui/Tolak
-     -> status "approved" -> sisa_pertemuan siswa bertambah
-     -> status "ditolak"  -> tidak ada perubahan sisa_pertemuan
-
-1 paket  = Rp30.000 = 2x pertemuan/minggu
-4 paket sekaligus = Rp120.000 = 8x pertemuan (kira-kira 1 bulan)
-"""
-import datetime
-from firebase_admin import firestore
-from firebase_config import db
+"""Model registrations / pembelian paket, backed by Turso."""
+from database import fetch_all, fetch_one, execute, new_id, utcnow_iso
 
 COLLECTION = "registrations"
-
 HARGA_PER_PAKET = 30000
 PERTEMUAN_PER_PAKET = 2
 MAKS_PAKET_SEKALIGUS = 4
 
 
-def buat_pendaftaran(
-    user_id,
-    user_name,
-    jumlah_paket,
-    metode_pembayaran,
-    nama_pengirim,
-    tanggal_transfer,
-    referensi_transfer,
-):
+def buat_pendaftaran(user_id, user_name, jumlah_paket, metode_pembayaran, nama_pengirim, tanggal_transfer, referensi_transfer):
     jumlah_paket = max(1, min(int(jumlah_paket), MAKS_PAKET_SEKALIGUS))
     total_pertemuan = jumlah_paket * PERTEMUAN_PER_PAKET
     total_harga = jumlah_paket * HARGA_PER_PAKET
-
-    ref = db.collection(COLLECTION).document()
     data = {
-        "user_id": user_id,
-        "user_name": user_name,
-
-        "jumlah_paket": jumlah_paket,
-
-        "total_pertemuan": (
-            jumlah_paket * PERTEMUAN_PER_PAKET
-        ),
-
-        "total_harga": (
-            jumlah_paket * HARGA_PER_PAKET
-        ),
-
-        "metode_pembayaran": metode_pembayaran,
-        "nama_pengirim": nama_pengirim,
-        "tanggal_transfer": tanggal_transfer,
-        "referensi_transfer": referensi_transfer,
-
-        "status": "pending",
-
-        "catatan_admin": "",
-
-        "created_at": firestore.SERVER_TIMESTAMP,
+        "id": new_id(), "user_id": user_id, "user_name": user_name,
+        "jumlah_paket": jumlah_paket, "total_pertemuan": total_pertemuan,
+        "total_harga": total_harga, "metode_pembayaran": metode_pembayaran,
+        "nama_pengirim": nama_pengirim, "tanggal_transfer": tanggal_transfer,
+        "referensi_transfer": referensi_transfer, "status": "pending",
+        "catatan_admin": "", "created_at": utcnow_iso(),
     }
-    ref.set(data)
-    data["id"] = ref.id
+    execute("""INSERT INTO registrations
+      (id,user_id,user_name,jumlah_paket,total_pertemuan,total_harga,metode_pembayaran,nama_pengirim,tanggal_transfer,referensi_transfer,status,catatan_admin,created_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", tuple(data[k] for k in ["id","user_id","user_name","jumlah_paket","total_pertemuan","total_harga","metode_pembayaran","nama_pengirim","tanggal_transfer","referensi_transfer","status","catatan_admin","created_at"]))
     return data
 
 
 def get_pendaftaran(reg_id):
-    doc = db.collection(COLLECTION).document(reg_id).get()
-    if doc.exists:
-        return {**doc.to_dict(), "id": doc.id}
-    return None
+    return fetch_one("SELECT * FROM registrations WHERE id=? LIMIT 1", (reg_id,))
+
+
+def _sort_desc(rows):
+    return sorted(rows, key=lambda r: str(r.get("created_at") or ""), reverse=True)
 
 
 def get_pendaftaran_by_status(status="pending"):
-    q = db.collection(COLLECTION).where("status", "==", status).stream()
-    hasil = [{**doc.to_dict(), "id": doc.id} for doc in q]
-    hasil.sort(key=lambda r: r.get("created_at") or datetime.datetime.min, reverse=True)
-    return hasil
+    return _sort_desc(fetch_all("SELECT * FROM registrations WHERE status=?", (status,)))
 
 
 def get_pendaftaran_by_user(user_id):
-    q = db.collection(COLLECTION).where("user_id", "==", user_id).stream()
-    hasil = [{**doc.to_dict(), "id": doc.id} for doc in q]
-    hasil.sort(key=lambda r: r.get("created_at") or datetime.datetime.min, reverse=True)
-    return hasil
+    return _sort_desc(fetch_all("SELECT * FROM registrations WHERE user_id=?", (user_id,)))
 
 
 def proses_pendaftaran(reg_id, status, admin_id, catatan=""):
-    """status: 'approved' atau 'ditolak'. Hanya dipanggil dari admin_routes.py."""
-    db.collection(COLLECTION).document(reg_id).update({
-        "status": status,
-        "processed_at": datetime.datetime.utcnow(),
-        "processed_by": admin_id,
-        "catatan_admin": catatan,
-    })
+    execute("UPDATE registrations SET status=?, processed_at=?, processed_by=?, catatan_admin=? WHERE id=?", (status, utcnow_iso(), admin_id, catatan, reg_id))
