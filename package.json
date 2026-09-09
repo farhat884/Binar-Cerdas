@@ -1,0 +1,24 @@
+{
+  "name": "binar-cerdas",
+  "version": "1.0.0",
+  "description": "Aplikasi bimbingan belajar online (SD, SMP, SMA) dengan Flask + Firebase. Ada 2 role: **siswa** (lihat jadwal, beli paket, lihat sisa pertemuan) dan **admin** (verifikasi bukti bayar, approve pendaftaran, kelola sisa pertemuan tiap siswa, kelola jadwal).",
+  "main": "db.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farhat884/Binar-Cerdas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/farhat884/Binar-Cerdas/issues"
+  },
+  "homepage": "https://github.com/farhat884/Binar-Cerdas#readme",
+  "dependencies": {
+    "firebase-admin": "^14.3.0"
+  }
+}

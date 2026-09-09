@@ -1,187 +1,75 @@
-{% extends "base.html" %}{% block title %}{{ sesi.judul }} — Live Kuis{% endblock %}{% block content %}
-<div class="dash">
-<aside class="dash-sidebar">
-  <div class="who">{{ session.get('name') }}</div>
-  <div class="role-tag">Siswa</div>
-  <nav>
-    <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('student.materi') }}">Materi</a>
-    <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
-    <a href="{{ url_for('student.progress') }}">Progress</a>
-    <a class="active" href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
-  </nav>
-</aside>
-<main class="dash-content">
-  <h1>{{ sesi.judul }}</h1>
-
-  <div id="live_root" data-status-url="{{ url_for('live_student.status', session_id=sesi.id) }}" data-jawab-url="{{ url_for('live_student.jawab', session_id=sesi.id) }}" data-durasi="{{ sesi.durasi_detik }}">
-
-    <div id="layar_lobi" class="card-simple" style="text-align:center;max-width:480px">
-      <p style="font-size:1.1rem">⏳ Menunggu pengajar memulai kuis...</p>
-      <p class="muted">Skor kamu sekarang: <strong id="skor_lobi">0</strong></p>
-    </div>
-
-    <div id="layar_soal" style="display:none;max-width:640px">
-      <div class="live-timer-bar"><div class="live-timer-fill" id="siswa_timer_fill" style="width:100%"></div></div>
-      <p class="muted" id="siswa_progress_text" style="margin:8px 0"></p>
-      <div class="card-simple">
-        <h2 id="siswa_pertanyaan" style="margin-bottom:6px"></h2>
+{% extends "base.html" %}
+{% block title %}{{ sesi.judul }} — Kelas Live{% endblock %}
+{% block content %}
+<div class="live-student-shell">
+  <div id="live_root" data-status-url="{{ url_for('live_student.status', session_id=sesi.id) }}" data-jawab-url="{{ url_for('live_student.jawab', session_id=sesi.id) }}" data-drawing-url="{{ url_for('live_student.student_drawing', session_id=sesi.id) }}" data-durasi="{{ sesi.durasi_detik }}">
+    <header class="live-student-top">
+      <strong>✦ Binar Cerdas</strong><span>{{ sesi.judul }}</span><span id="student_mode">Menunggu pengajar…</span>
+    </header>
+    <main class="live-stage">
+      <div class="live-material" id="material_panel">
+        <div id="material_empty" class="material-placeholder">Pengajar sedang menyiapkan materi…</div>
+        <iframe id="material_pdf" class="material-frame" hidden></iframe>
+        <img id="material_img" class="material-img" hidden>
+        <div id="material_text" class="material-text" hidden></div>
+        <span id="material_page_badge" class="material-page-badge" hidden></span>
+        <canvas id="live_board"></canvas>
       </div>
-      <div class="live-choice-grid" id="siswa_pilihan_grid"></div>
-      <p class="muted" id="siswa_menunggu_text" style="display:none">Jawaban terkirim, menunggu soal ditutup...</p>
-    </div>
-
-    <div id="layar_jeda" style="display:none;max-width:640px">
-      <div class="card-simple">
-        <p id="jeda_pertanyaan" style="font-weight:700;margin-bottom:10px"></p>
-        <p>Jawaban benar: <strong id="jeda_jawaban_benar"></strong></p>
-        <p id="jeda_hasil_saya" class="muted" style="margin-top:6px"></p>
-        <p id="jeda_penjelasan" class="muted" style="margin-top:10px"></p>
-      </div>
-      <h3 style="margin:18px 0 10px">Papan Skor Sementara</h3>
-      <div id="jeda_leaderboard"></div>
-    </div>
-
-    <div id="layar_selesai" style="display:none;max-width:640px">
-      <div class="card-simple" style="text-align:center">
-        <h2>🎉 Kuis Selesai!</h2>
-        <p>Skor akhir kamu: <strong id="selesai_skor">0</strong></p>
-        <p class="muted" id="selesai_peringkat"></p>
-      </div>
-      <h3 style="margin:18px 0 10px">Papan Skor Akhir</h3>
-      <div id="selesai_leaderboard"></div>
-    </div>
-
+      <aside class="live-student-side">
+        <div class="student-tools"><button id="student_draw_btn" class="btn btn-ghost btn-sm" disabled>✎ Coret</button><span id="draw_state" class="muted">Papan tulis</span></div>
+        <section id="quiz_panel" class="quiz-panel" hidden>
+          <div class="quiz-top"><span id="siswa_progress_text"></span><span id="timer_text"></span></div>
+          <div class="live-timer-bar"><div class="live-timer-fill" id="siswa_timer_fill" style="width:100%"></div></div>
+          <h2 id="siswa_pertanyaan"></h2><div class="live-choice-grid" id="siswa_pilihan_grid"></div>
+          <p class="muted" id="siswa_menunggu_text" hidden>Jawaban terkirim. Tunggu pembahasan…</p>
+        </section>
+        <section id="waiting_panel" class="student-info"><h2>👀 Perhatikan penjelasan</h2><p>Materi tampil di layar. Pengajar akan menyalakan kuis saat diperlukan.</p><strong>Skor: <span id="skor_lobi">0</span></strong></section>
+        <section id="result_panel" class="student-info" hidden>
+          <h2 id="result_title">Pembahasan</h2>
+          <p id="result_text"></p>
+          <p class="muted" id="result_rank" style="margin-top:6px"></p>
+          <h3 style="margin-top:14px">Papan Skor</h3>
+          <div id="siswa_leaderboard"></div>
+        </section>
+      </aside>
+    </main>
   </div>
-</main>
 </div>
-
 <script>
 (() => {
-  const root = document.getElementById('live_root');
-  const statusUrl = root.dataset.statusUrl;
-  const jawabUrl = root.dataset.jawabUrl;
-  const durasi = parseInt(root.dataset.durasi, 10) || 20;
-
-  const layarLobi = document.getElementById('layar_lobi');
-  const layarSoal = document.getElementById('layar_soal');
-  const layarJeda = document.getElementById('layar_jeda');
-  const layarSelesai = document.getElementById('layar_selesai');
-  const skorLobi = document.getElementById('skor_lobi');
-
-  const timerFill = document.getElementById('siswa_timer_fill');
-  const progressText = document.getElementById('siswa_progress_text');
-  const pertanyaanEl = document.getElementById('siswa_pertanyaan');
-  const pilihanGrid = document.getElementById('siswa_pilihan_grid');
-  const menungguText = document.getElementById('siswa_menunggu_text');
-
-  const warnaKelas = ['live-choice-a', 'live-choice-b', 'live-choice-c', 'live-choice-d'];
-  const labelHuruf = ['A', 'B', 'C', 'D'];
-
-  let questionIdTerlihat = null;
-  let questionSeenAt = null;
-  let sudahKirimUntukSoalIni = false;
-
-  function tampilkanLayar(nama) {
-    layarLobi.style.display = nama === 'lobi' ? 'block' : 'none';
-    layarSoal.style.display = nama === 'soal' ? 'block' : 'none';
-    layarJeda.style.display = nama === 'jeda' ? 'block' : 'none';
-    layarSelesai.style.display = nama === 'selesai' ? 'block' : 'none';
-  }
-
-  function renderLeaderboard(container, list) {
-    if (!list.length) { container.innerHTML = '<p class="muted">Belum ada skor.</p>'; return; }
-    container.innerHTML = list.map((p, i) => `
-      <div class="live-leaderboard-row">
-        <span><span class="peringkat">#${i + 1}</span> ${p.nama}</span>
-        <span class="skor">${p.skor}</span>
-      </div>`).join('');
-  }
-
-  async function kirimJawaban(questionId, huruf) {
-    if (sudahKirimUntukSoalIni) return;
-    sudahKirimUntukSoalIni = true;
-    Array.from(pilihanGrid.children).forEach(btn => btn.disabled = true);
-    const waktuMs = questionSeenAt ? (Date.now() - questionSeenAt) : 0;
-    try {
-      await fetch(jawabUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_id: questionId, selected: huruf, waktu_ms: waktuMs }),
-      });
-    } catch (e) { /* biarin, status berikutnya akan tetap sinkron dari server */ }
-    menungguText.style.display = 'block';
-  }
-
-  function renderSoal(soal) {
-    if (soal.id !== questionIdTerlihat) {
-      questionIdTerlihat = soal.id;
-      questionSeenAt = Date.now();
-      sudahKirimUntukSoalIni = false;
-      menungguText.style.display = 'none';
-      pertanyaanEl.textContent = soal.pertanyaan;
-      pilihanGrid.innerHTML = '';
-      soal.pilihan.forEach((teks, i) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'live-choice-btn ' + warnaKelas[i];
-        btn.textContent = labelHuruf[i] + '. ' + teks;
-        btn.addEventListener('click', () => kirimJawaban(soal.id, labelHuruf[i]));
-        pilihanGrid.appendChild(btn);
-      });
-    }
-  }
-
-  async function poll() {
-    try {
-      const res = await fetch(statusUrl);
-      if (!res.ok) return;
-      const data = await res.json();
-
-      if (data.status === 'lobi') {
-        tampilkanLayar('lobi');
-        skorLobi.textContent = data.skor_saya;
-      } else if (data.status === 'soal' && data.soal_aktif) {
-        tampilkanLayar('soal');
-        renderSoal(data.soal_aktif);
-        progressText.textContent = `Soal ${data.current_index + 1} dari ${data.total_soal}`;
-        if (data.sisa_detik !== null) {
-          timerFill.style.width = Math.max(0, Math.min(100, (data.sisa_detik / durasi) * 100)) + '%';
-        }
-        if (data.sudah_jawab) {
-          sudahKirimUntukSoalIni = true;
-          Array.from(pilihanGrid.children).forEach(btn => btn.disabled = true);
-          menungguText.style.display = 'block';
-        }
-      } else if (data.status === 'jeda') {
-        tampilkanLayar('jeda');
-        questionIdTerlihat = null;
-        if (data.hasil_soal_ini) {
-          document.getElementById('jeda_pertanyaan').textContent = data.hasil_soal_ini.pertanyaan;
-          document.getElementById('jeda_jawaban_benar').textContent = data.hasil_soal_ini.jawaban_benar;
-          const jawabanSaya = data.hasil_soal_ini.jawaban_saya;
-          const hasilEl = document.getElementById('jeda_hasil_saya');
-          if (jawabanSaya) {
-            hasilEl.textContent = jawabanSaya.benar
-              ? `Jawaban kamu benar! +${jawabanSaya.skor} poin`
-              : `Jawaban kamu (${jawabanSaya.selected}) kurang tepat.`;
-          } else {
-            hasilEl.textContent = 'Kamu belum sempat jawab soal ini.';
-          }
-          document.getElementById('jeda_penjelasan').textContent = data.hasil_soal_ini.penjelasan || '';
-        }
-        renderLeaderboard(document.getElementById('jeda_leaderboard'), data.leaderboard || []);
-      } else if (data.status === 'selesai') {
-        tampilkanLayar('selesai');
-        document.getElementById('selesai_skor').textContent = data.skor_saya;
-        document.getElementById('selesai_peringkat').textContent = data.peringkat_saya ? `Peringkat kamu: #${data.peringkat_saya}` : '';
-        renderLeaderboard(document.getElementById('selesai_leaderboard'), data.leaderboard || []);
-      }
-    } catch (e) { /* diam-diam retry di poll berikutnya */ }
-  }
-
-  poll();
-  setInterval(poll, 1500);
+ const root=document.getElementById('live_root'), board=document.getElementById('live_board'),ctx=board.getContext('2d');
+ const statusUrl=root.dataset.statusUrl,jawabUrl=root.dataset.jawabUrl,drawingUrl=root.dataset.drawingUrl,durasi=+root.dataset.durasi||20;
+ const qPanel=document.getElementById('quiz_panel'),wait=document.getElementById('waiting_panel'),resPanel=document.getElementById('result_panel');
+ let drawing=[],qid=null,seen=0,answered=false,drawAllowed=false,drawOn=false,drawingActive=false,last={x:0,y:0};
+ let lastMaterialId=null,lastPage=null;
+ function resize(){const r=board.parentElement.getBoundingClientRect();board.width=r.width*devicePixelRatio;board.height=r.height*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);render();}
+ function render(){ctx.clearRect(0,0,board.clientWidth,board.clientHeight);ctx.lineCap='round';ctx.lineJoin='round';for(const s of drawing){ctx.beginPath();ctx.lineWidth=s.w||3;ctx.moveTo(s.x1*board.clientWidth,s.y1*board.clientHeight);ctx.lineTo(s.x2*board.clientWidth,s.y2*board.clientHeight);ctx.stroke();}}
+ board.addEventListener('pointerdown',e=>{if(!drawAllowed||!drawOn)return;drawingActive=true;last={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};board.setPointerCapture(e.pointerId)});
+ board.addEventListener('pointermove',e=>{if(!drawingActive)return;const now={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};const st={x1:last.x,y1:last.y,x2:now.x,y2:now.y,w:3};drawing.push(st);render();fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stroke:st})});last=now});
+ board.addEventListener('pointerup',()=>drawingActive=false);board.addEventListener('pointercancel',()=>drawingActive=false);
+ document.getElementById('student_draw_btn').onclick=()=>{drawOn=!drawOn;document.getElementById('student_draw_btn').textContent=drawOn?'✓ Mencoret':'✎ Coret';document.getElementById('draw_state').textContent=drawOn?'Mode coret aktif':'Papan tulis'};
+ function material(m,page){const empty=document.getElementById('material_empty'),pdf=document.getElementById('material_pdf'),img=document.getElementById('material_img'),txt=document.getElementById('material_text'),badge=document.getElementById('material_page_badge');empty.hidden=!!m;pdf.hidden=true;img.hidden=true;txt.hidden=true;badge.hidden=true;if(!m)return;
+  const materialChanged=lastMaterialId!==m.id;
+  if(m.pdf_url){
+    pdf.hidden=false;
+    // Halaman disinkron dari admin lewat fragment #page=N (dipahami oleh viewer PDF bawaan browser).
+    // Iframe cuma di-reload kalau materi ATAU halamannya beneran berubah, biar gak ke-refresh tiap polling.
+    if(materialChanged||lastPage!==page){pdf.src=m.pdf_url+'#page='+(page||1);lastPage=page}
+    badge.hidden=false;badge.textContent='📄 Halaman '+(page||1);
+  }else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false}
+  else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false}
+  lastMaterialId=m.id;
+ }
+ const labels=['A','B','C','D'];
+ function renderQ(q){if(qid===q.id)return;qid=q.id;seen=Date.now();answered=false;document.getElementById('siswa_menunggu_text').hidden=true;document.getElementById('siswa_pertanyaan').textContent=q.pertanyaan;const g=document.getElementById('siswa_pilihan_grid');g.innerHTML='';(q.pilihan||[]).forEach((x,i)=>{const b=document.createElement('button');b.className='live-choice-btn live-choice-'+labels[i].toLowerCase();b.textContent=labels[i]+'. '+x;b.onclick=async()=>{if(answered)return;answered=true;[...g.children].forEach(x=>x.disabled=true);await fetch(jawabUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id,selected:labels[i],waktu_ms:Date.now()-seen})});document.getElementById('siswa_menunggu_text').hidden=false};g.appendChild(b)})}
+ function renderLB(a,peringkat){document.getElementById('siswa_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>';document.getElementById('result_rank').textContent=peringkat?`Peringkat kamu saat ini: #${peringkat}`:''}
+ async function poll(){try{const d=await(await fetch(statusUrl)).json();document.getElementById('student_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';material(d.material,d.current_page);drawing=d.drawing||[];render();drawAllowed=!!d.student_draw_enabled;board.style.pointerEvents=drawAllowed?'auto':'none';const db=document.getElementById('student_draw_btn');db.disabled=!drawAllowed;if(!drawAllowed)drawOn=false;
+ const quizAllowed=d.quiz_allowed!==false;
+ if(d.status==='soal'&&d.soal_aktif&&quizAllowed){qPanel.hidden=false;wait.hidden=true;resPanel.hidden=true;renderQ(d.soal_aktif);document.getElementById('siswa_progress_text').textContent=`Soal ${d.current_index+1} dari ${d.total_soal}`;document.getElementById('timer_text').textContent=(d.sisa_detik??0)+' detik';document.getElementById('siswa_timer_fill').style.width=Math.max(0,Math.min(100,(d.sisa_detik/durasi)*100))+'%';if(d.sudah_jawab){answered=true;[...document.getElementById('siswa_pilihan_grid').children].forEach(x=>x.disabled=true);document.getElementById('siswa_menunggu_text').hidden=false}}
+ else if(d.status==='jeda'){qPanel.hidden=true;wait.hidden=false;resPanel.hidden=false;document.getElementById('result_text').textContent=d.hasil_soal_ini?(d.hasil_soal_ini.jawaban_saya?.benar?'Benar! +'+d.hasil_soal_ini.jawaban_saya.skor+' poin.':'Jawaban belum tepat.'):'Menunggu soal berikutnya.';renderLB(d.leaderboard||[],d.peringkat_saya)}
+ else {qPanel.hidden=true;wait.hidden=false;resPanel.hidden=true;document.getElementById('skor_lobi').textContent=d.skor_saya||0}
+ }catch(e){}}
+ window.addEventListener('resize',resize);resize();poll();setInterval(poll,1000);
 })();
 </script>
 {% endblock %}

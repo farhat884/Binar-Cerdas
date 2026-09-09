@@ -1,0 +1,214 @@
+[
+  {
+    "id": "HVFTv67SyRgmpipE4GKW__latihan__H5sy15klG2vsYrU5UjR4",
+    "scope_key": "H5sy15klG2vsYrU5UjR4",
+    "created_at": {
+      "_seconds": 1788186460,
+      "_nanoseconds": 378392000
+    },
+    "scope_type": "latihan",
+    "user_id": "HVFTv67SyRgmpipE4GKW",
+    "updated_at": {
+      "_seconds": 1788186460,
+      "_nanoseconds": 378392000
+    },
+    "answers": {}
+  },
+  {
+    "id": "HVFTv67SyRgmpipE4GKW__latihan__ecYs7GtDs1fM3JUZyPpq",
+    "scope_key": "ecYs7GtDs1fM3JUZyPpq",
+    "created_at": {
+      "_seconds": 1788186493,
+      "_nanoseconds": 41860000
+    },
+    "scope_type": "latihan",
+    "user_id": "HVFTv67SyRgmpipE4GKW",
+    "updated_at": {
+      "_seconds": 1788186493,
+      "_nanoseconds": 41860000
+    },
+    "answers": {}
+  },
+  {
+    "id": "Hbaa0Gxsmx1J1ho3HD0f__ujian__UAS_Matematika",
+    "scope_type": "ujian",
+    "scope_key": "UAS_Matematika",
+    "updated_at": {
+      "_seconds": 1788441369,
+      "_nanoseconds": 39153000
+    },
+    "answers": {},
+    "user_id": "Hbaa0Gxsmx1J1ho3HD0f",
+    "created_at": {
+      "_seconds": 1788441369,
+      "_nanoseconds": 39153000
+    }
+  },
+  {
+    "id": "Hbaa0Gxsmx1J1ho3HD0f__ujian__UTS_Matematika",
+    "created_at": {
+      "_seconds": 1788426052,
+      "_nanoseconds": 365726000
+    },
+    "scope_key": "UTS_Matematika",
+    "updated_at": {
+      "_seconds": 1788426052,
+      "_nanoseconds": 365726000
+    },
+    "scope_type": "ujian",
+    "user_id": "Hbaa0Gxsmx1J1ho3HD0f",
+    "answers": {}
+  },
+  {
+    "id": "S2IGhxBCfeQ40qgtQPro__latihan__9maIAzJHiZFMzQIbq7DW",
+    "created_at": {
+      "_seconds": 1788096792,
+      "_nanoseconds": 205175000
+    },
+    "answers": {},
+    "user_id": "S2IGhxBCfeQ40qgtQPro",
+    "updated_at": {
+      "_seconds": 1788096792,
+      "_nanoseconds": 205175000
+    },
+    "scope_type": "latihan",
+    "scope_key": "9maIAzJHiZFMzQIbq7DW"
+  },
+  {
+    "id": "S2IGhxBCfeQ40qgtQPro__ujian__UH__Kimia__Stoikiometri",
+    "user_id": "S2IGhxBCfeQ40qgtQPro",
+    "created_at": {
+      "_seconds": 1788101520,
+      "_nanoseconds": 705173000
+    },
+    "answers": {
+      "dAAjyxY78hyJyFH2P8XV": {
+        "jawaban_benar": "C",
+        "penjelasan_ai": "Jawaban kamu benar, C) 50 g! \n\n1) Hitung massa molar CaCO₃ \n Ca = 40 g/mol \n C = 12 g/mol \n O = 16 g/mol × 3 = 48 g/mol \n Jadi 40 + 12 + 48 = 100 g/mol \n\n2) Kalikan dengan jumlah mol yang ada \n 0,5 mol × 100 g/mol = 50 g \n\nMaka massa 0,5 mol CaCO₃ adalah 50 g, jadi pilihan C tepat. \n\nPenjelasan singkat: - Kita dulu cari massa satu molekul (massa molar) karena satu mol selalu punya massa yang sama. - Setelah punya massa molar, tinggal kalikan dengan jumlah mol yang diminta. - Karena 0,5 mol setengah dari satu mol, hasilnya setengah dari 100 g, yaitu 50 g. \n\nSemoga jelas, yuk terus latihan!",
+        "selected": "C",
+        "benar": true,
+        "answered_at": {
+          "_seconds": 1788101528,
+          "_nanoseconds": 881533000
+        }
+      },
+      "lSAEOxgxyd4E3XsRSLKX": {
+        "jawaban_benar": "A",
+        "penjelasan_ai": "Jawaban kamu benar! \nA) 1,505 × 10²³ molekul\n\nBerikut langkahnya supaya kamu paham kenapa hasilnya begitu:\n\n1) Mulai dari jumlah mol: 0,25 mol H₂O. \n2) Setiap mol berisi Avogadro‑number molekul, yaitu 6,02 × 10²³ molekul/mol. \n3) Kalikan 0,25 dengan 6,02 × 10²³: \n 0,25 × 6,02 × 10²³ = (0,25 × 6,02) × 10²³ \n 0,25 × 6,02 = 1,505. \n4) Jadi, 1,505 × 10²³ molekul. \n5) Pilihan A cocok dengan hasil ini, sehingga jawabannya tepat.\n\nSemoga langkah - langkah ini membantu kamu mengingat cara menghitung jumlah partikel dari jumlah mol. Selamat belajar!",
+        "selected": "A",
+        "benar": true,
+        "answered_at": {
+          "_seconds": 1788101552,
+          "_nanoseconds": 66348000
+        }
+      },
+      "4u7R61uGSfqgvILqiQCu": {
+        "jawaban_benar": "A",
+        "penjelasan_ai": "Halo! \nJawaban kamu benar nih, A) 0,25 mol. \nBerikut langkah‑langkahnya supaya kamu bisa ingat cara hitung mol dengan gampang:\n\n1) Hitung massa molar CO₂. \n C = 12 g/mol, O = 16 g/mol. \n CO₂ = 12 + 2 × 16 = 12 + 32 = 44 g/mol.\n\n2) Bagi massa yang kamu punya dengan massa molar. \n 11 g ÷ 44 g/mol = 0,25 mol.\n\nJadi, 11 gram CO₂ setara dengan 0,25 mol. \nSemoga penjelasan ini membantu, dan kalau ada yang masih bingung, tanya aja!",
+        "selected": "A",
+        "benar": true,
+        "answered_at": {
+          "_seconds": 1788101541,
+          "_nanoseconds": 266305000
+        }
+      }
+    },
+    "scope_key": "UH__Kimia__Stoikiometri",
+    "updated_at": {
+      "_seconds": 1788101552,
+      "_nanoseconds": 312944000
+    },
+    "scope_type": "ujian"
+  },
+  {
+    "id": "gVA7Y1Bgh0mmaxWsMzGW__latihan__DYjAoTLFD5Ux9R6iWoQM",
+    "scope_type": "latihan",
+    "created_at": {
+      "_seconds": 1788186434,
+      "_nanoseconds": 599280000
+    },
+    "answers": {},
+    "user_id": "gVA7Y1Bgh0mmaxWsMzGW",
+    "scope_key": "DYjAoTLFD5Ux9R6iWoQM",
+    "updated_at": {
+      "_seconds": 1788186434,
+      "_nanoseconds": 599280000
+    }
+  },
+  {
+    "id": "gVA7Y1Bgh0mmaxWsMzGW__latihan__lPA7xRbCja3U605LoVJz",
+    "scope_key": "lPA7xRbCja3U605LoVJz",
+    "answers": {
+      "fia19nYGLSj6hRcErngz": {
+        "selected": "C",
+        "jawaban_benar": "C",
+        "penjelasan_ai": "Jawaban kamu benar nih, C) 7! Yuk, kita cek langkahnya supaya kamu paham kenapa hasilnya 7.\n\n1) Tulis determinan matriks koefisien: \n| 1 1 1 | \n| 2 –1 1 | \n| 1 2 –1 |\n\n2) Hitung dengan rumus kofaktor (atau baris pertama). \nDet = 1 × | –1 1 | \n             | 2 –1 | \n     – 1 × | 2 1 | \n             | 1 –1 | + 1 × | 2 –1 | \n             | 1 2 |\n\n3) Hitung setiap 2 × 2: \n| –1 1 | = (–1)(–1) – (1)(2) = 1 – 2 = –1 \n| 2 –1 |\n\n| 2 1 | = (2)(–1) – (1)(1) = –2 – 1 = –3 \n| 1 –1 |\n\n| 2 –1 | = (2)(2) – (–1)(1) = 4 + 1 = 5 \n| 1 2 |\n\n4) Substitusi: \nDet = 1 × (–1) – 1 × (–3) + 1 × 5 \n    = –1 + 3 + 5 \n    = 7\n\nJadi determinan matriks koefisien adalah 7, yang sesuai pilihan C. Selamat, kamu udah paham!",
+        "benar": true
+      },
+      "hWz4RAtVF15GwmXaWYRx": {
+        "selected": "D",
+        "jawaban_benar": "D",
+        "penjelasan_ai": "Jawaban kamu benar nih, D! Yuk, kita cek langkah‑langkahnya supaya kamu paham kenapa 2x‑y = 7.\n\n1) Hitung hasil perkalian matriks di kanan:\n [6 2; - 4 8] × [0 3; - 1 1]\n = [6 × 0 + 2 × ( - 1)  6 × 3 + 2 × 1; - 4 × 0 + 8 × ( - 1) - 4 × 3 + 8 × 1]\n = [ - 2  20; - 8 - 4].\n\n2) Hitung selisih matriks di kiri:\n [5 3x; y - 1 2] – [7 1 - 2y; 2x 6]\n = [5 - 7  3x - (1 - 2y);\n (y - 1) - 2x  2 - 6]\n = [ - 2  3x - 1 + 2y;\n y - 1 - 2x - 4].\n\n3) Karena dua sisi sama, bandingkan setiap elemen:\n a) 3x - 1 + 2y = 20 → 3x + 2y = 21.\n b) y - 1 - 2x = - 8 → y - 2x = - 7.\n\n4) Dari (b) dapatkan y = 2x - 7. Masukkan ke (a):\n 3x + 2(2x - 7) = 21\n → 3x + 4x - 14 = 21\n → 7x = 35\n → x = 5.\n\n5) Hitung y:\n y = 2 × 5 - 7 = 10 - 7 = 3.\n\n6) Akhirnya, hitung 2x - y:\n 2 × 5 - 3 = 10 - 3 = 7.\n\nJadi nilai 2x - y memang 7, pilihan D. Selamat, kamu udah ngelakuin semua langkah dengan tepat!",
+        "benar": true
+      },
+      "6QTt1V5Kv1C54f5W4UIc": {
+        "selected": "D",
+        "jawaban_benar": "D",
+        "penjelasan_ai": "Jawaban kamu benar, D) –1! Yuk, kita bahas kenapa hasilnya begitu.\n\n1) Pertama, cari transpose dari C. \n C = [5 –4; 2 –3] \n Jadi Cᵀ = [5 2; –4 –3].\n\n2) Kita punya persamaan A + B = Cᵀ. \n A = [3 –1; 2m –3] \n B = [n + 1 3; m–n 0].\n\n3) Tambahkan A dan B baris‑baris, lalu bandingkan dengan Cᵀ.\n\n Baris 1 kolom 1: 3 + (n + 1) = 5 \n → n + 4 = 5 → n = 1.\n\n Baris 1 kolom 2: –1 + 3 = 2 \n → 2 = 2 (benar, jadi tidak memberi informasi baru).\n\n Baris 2 kolom 1: 2m + (m–n) = –4 \n → 3m – n = –4. \n Karena n = 1, maka 3m – 1 = –4 → 3m = –3 → m = –1.\n\n Baris 2 kolom 2: –3 + 0 = –3 \n → –3 = –3 (benar, tidak memberi informasi baru).\n\n4) Sekarang hitung 3m + 2n. \n 3m + 2n = 3(–1) + 2(1) = –3 + 2 = –1.\n\n5) Jadi nilai 3m + 2n adalah –1, yang sesuai dengan pilihan D.\n\nSemoga langkah‑langkah ini bikin konsepnya lebih jelas!",
+        "benar": true
+      },
+      "Qrl95NLDJ6KBSNswx2vS": {
+        "selected": "D",
+        "jawaban_benar": "D",
+        "penjelasan_ai": "Kamu udah jawab D, bener banget! Yuk, kita lihat kenapa k = - 3.\n\n1) Hitung invers C. \n C = [[5,11],[ - 1, - 2]]. \n Determinan = 5 × ( - 2) – 11 × ( - 1) = - 10 + 11 = 1. \n Jadi C⁻¹ = 1/1 × [[ - 2, - 11],[1,5]] = [[ - 2, - 11],[1,5]].\n\n2) Jumlahkan A dan B. \n A = [[2k + 3, - 12],[6,7]] \n B = [[1,1],[ - 5, - 2]] \n A + B = [[2k + 3 + 1, - 12 + 1], [6 - 5, 7 - 2]] = [[2k + 4, - 11], [1,5]].\n\n3) Karena A + B harus sama dengan C⁻¹, bandingkan elemen‑elemen. \n a) 2k + 4 = - 2 → 2k = - 6 → k = - 3. \n b) Elemen lain (‑11, 1, 5) sudah cocok, jadi tidak ada konflik.\n\n4) Jadi nilai k yang memenuhi persamaan adalah - 3, pilihan D. \n\nSemua langkahnya jelas: hitung invers, jumlahkan matriks, lalu bandingkan. Selamat, kamu paham!",
+        "benar": true
+      },
+      "isTqKG8VPkLveZJek5EU": {
+        "selected": "C",
+        "jawaban_benar": "C",
+        "penjelasan_ai": "Jawaban kamu masih kurang tepat nih, tapi gapapa yuk kita bahas. \nTernyata nilai x·y·z memang 6, jadi pilihan C benar. \nBerikut cara penyelesaiannya supaya kamu lebih paham.\n\n1) Tulis ketiga persamaan:\n x + y + z = 6 \n x + 2y + 3z = 14 \n x + 4y + 9z = 36\n\n2) Kurangi persamaan ke‑dua dengan persamaan pertama:\n (x + 2y + 3z) – (x + y + z) = 14 – 6 \n y + 2z = 8 …(A)\n\n3) Kurangi persamaan ketiga dengan persamaan kedua:\n (x + 4y + 9z) – (x + 2y + 3z) = 36 – 14 \n 2y + 6z = 22 \n Bagi 2: y + 3z = 11 …(B)\n\n4) Kurangi persamaan (B) dengan (A):\n (y + 3z) – (y + 2z) = 11 – 8 \n z = 3\n\n5) Masukkan z = 3 ke persamaan (A):\n y + 2 × 3 = 8 \n y + 6 = 8 \n y = 2\n\n6) Masukkan y = 2 dan z = 3 ke persamaan pertama:\n x + 2 + 3 = 6 \n x + 5 = 6 \n x = 1\n\n7) Hitung produk:\n x × y × z = 1 × 2 × 3 = 6\n\nJadi nilai x·y·z = 6, dan pilihan C adalah jawaban yang tepat. Selamat!",
+        "benar": true
+      },
+      "G2pjPf7nGqBSWZlMPDue": {
+        "selected": "D",
+        "jawaban_benar": "D",
+        "penjelasan_ai": "Jawaban kamu benar! D (2) memang jawabannya. Yuk, kita lihat langkahnya supaya kamu paham kenapa.\n\n1) Hitung hasil perkalian matriks. \n Baris pertama × kolom pertama: 3·a + 5·(a + b) = 8a + 5b. \n Baris pertama × kolom kedua: 3·0 + 5·(c + 2) = 5c + 10. \n Baris kedua × kolom pertama: 1·a + 2·(a + b) = 3a + 2b. \n Baris kedua × kolom kedua: 1·0 + 2·(c + 2) = 2c + 4.\n\n2) Samaikan dengan matriks hasil yang diketahui. \n 8a + 5b = 1  (1) \n 5c + 10 = –5  (2) \n 3a + 2b = 0  (3) \n 2c + 4 = –2  (4)\n\n3) Dari (2) dan (4) kita dapat c. \n 5c + 10 = –5 → 5c = –15 → c = –3. \n 2c + 4 = –2 → 2c = –6 → c = –3 (konsisten).\n\n4) Sekarang selesaikan sistem (1) dan (3). \n Kalikan (3) dengan 5: 15a + 10b = 0. \n Kalikan (1) dengan 2: 16a + 10b = 2. \n Kurang satu sama lain: (16a – 15a) + (10b – 10b) = 2 – 0 → a = 2.\n\n5) Substitusi a ke (3) untuk temukan b. \n 3·2 + 2b = 0 → 6 + 2b = 0 → 2b = –6 → b = –3.\n\n6) Hitung a + b – c. \n a + b – c = 2 + (–3) – (–3) = 2 – 3 + 3 = 2.\n\nJadi nilai a + b – c adalah 2, yang sesuai dengan pilihan D. Selamat!",
+        "benar": true
+      },
+      "SmyKGurFJZQ13VN0fNpn": {
+        "selected": "A",
+        "jawaban_benar": "A",
+        "penjelasan_ai": "Halo! Kamu udah jawab A, dan itu memang benar. Yuk, kita lihat kenapa hasilnya 14 dan kenapa x·y = 14.\n\n1) Tuliskan sistem dalam bentuk matriks: \n A = \\[2, 1, 3, - 2\\] \n X = \\[x, y\\] \n B = \\[12, 25\\]\n\n2) Cari invers A. \n Determinan det(A) = 2 × (‑2) – 3 × 1 = ‑4 – 3 = ‑7. \n Karena det(A) ≠ 0, invers ada. \n A⁻¹ = 1/det(A) × \\[ - 2, - 1, - 3, 2\\] \n Jadi A⁻¹ = \\[2/7, 1/7, 3/7, ‑2/7\\].\n\n3) Hitung X = A⁻¹ × B. \n x = (2/7) × 12 + (1/7) × 25 = 24/7 + 25/7 = 49/7 = 7. \n y = (3/7) × 12 + (‑2/7) × 25 = 36/7 – 50/7 = ‑14/7 = ‑2.\n\n4) Sekarang hitung x·y: \n 7 × (‑2) = ‑14. \n Tapi soal meminta nilai x·y, bukan nilai negatifnya? \n Sebenarnya 7 × (‑2) = ‑14, jadi jawaban A) ‑14 memang benar.\n\n5) Jadi, x = 7, y = ‑2, dan x·y = ‑14. \n Itu mengapa pilihan A) ‑14 adalah jawaban yang tepat.\n\nSemoga langkah - langkahnya jelas! Kalau ada bagian yang masih bingung, tanya aja, ya. Happy learning!",
+        "benar": true
+      },
+      "o5oAejWq5FXVOoaR2qUD": {
+        "selected": "D",
+        "jawaban_benar": "C",
+        "penjelasan_ai": "Jawaban kamu masih kurang tepat nih, tapi gapapa yuk kita bahas. \nMasalahnya terletak di cara menghitung perkalian matriks kanan dan menyamakan elemen‑elemen yang tepat.\n\n1) Hitung sisi kiri: \n 2 × \\[x, 6, 1, 12\\] = \\[2x, 12, 2, 24\\] \n Tambah \\[1, 1, 0, 3\\] → \\[2x + 1, 13, 2, 27\\].\n\n2) Hitung sisi kanan: \n \\[1, 2, 4, 3\\] × \\[ - 1, 3, 2, y\\] \n Baris pertama: - Elemen (1,1): 1 × ( - 1) + 2 × 2 = - 1 + 4 = 3 - Elemen (1,2): 1 × 3 + 2 × y = 3 + 2y \n Baris kedua: - Elemen (2,1): 4 × ( - 1) + 3 × 2 = - 4 + 6 = 2 - Elemen (2,2): 4 × 3 + 3 × y = 12 + 3y.\n\n3) Satukan persamaan: \n 2x + 1 = 3 → 2x = 2 → x = 1 \n 13 = 3 + 2y → 2y = 10 → y = 5 \n 2 = 2 (selalu benar) \n 27 = 12 + 3y → 3y = 15 → y = 5 (sesuai).\n\n4) Hitung 2x − 3y: \n 2 × 1 − 3 × 5 = 2 − 15 = - 13.\n\nJadi nilai 2x − 3y adalah - 13, pilihan C. Selamat, kamu sudah menemukan jawaban yang benar!",
+        "benar": false
+      },
+      "TLj2hm4ZzXjj3rtcybPG": {
+        "selected": "A",
+        "jawaban_benar": "A",
+        "penjelasan_ai": "Jawaban kamu benar nih, A! \nBerikut cara singkatnya supaya kamu paham kenapa hasilnya 13.\n\n1) Cari invers matriks kanan: \n M = [[3,2],[7,5]] \n det(M) = 3 × 5 – 2 × 7 = 15 – 14 = 1 \n Karena det = 1, inversnya cuma dibalik tanda: \n M⁻¹ = [[5,‑2],[ - 7,3]]\n\n2) Kalikan N dengan M⁻¹ untuk dapetin X: \n N = [[5,1],[2,3]] \n X = N × M⁻¹ \n Hitung satu persatu: - Baris‑1: 5 × 5 + 1 × (‑7) = 25 – 7 = 18 - Baris‑1 kolom‑2: 5 × (‑2) + 1 × 3 = ‑10 + 3 = ‑7 - Baris‑2: 2 × 5 + 3 × (‑7) = 10 – 21 = ‑11 - Baris‑2 kolom‑2: 2 × (‑2) + 3 × 3 = ‑4 + 9 = 5 \n Jadi X = [[18,‑7],[ - 11,5]]\n\n3) Hitung determinan X: \n det(X) = 18 × 5 – (‑7) × (‑11) = 90 – 77 = 13\n\nDeterminant X = 13, jadi pilihan A memang tepat. Selamat!",
+        "benar": true
+      },
+      "NUK8dY4lmLOJI0pDNYM8": {
+        "selected": "B",
+        "jawaban_benar": "B",
+        "penjelasan_ai": "Jawaban kamu B benar! Yuk, kita lihat langkahnya supaya kamu paham kenapa determinan X = –1.\n\n1) Hitung transpose A. \n A = [[3,2],[0,5]] → Aᵀ = [[3,0],[2,5]].\n\n2) Hitung B + Aᵀ. \n B = [[ - 3, - 1],[ - 17,0]] \n B + Aᵀ = [[ - 3 + 3, - 1 + 0], [ - 17 + 2, 0 + 5]] = [[0, - 1],[ - 15,5]].\n\n3) Cari invers A. \n det(A) = 3 × 5 – 0 × 2 = 15. \n A⁻¹ = 1/15 [[5, - 2],[0,3]] (swap diagonal, ubah tanda off‑diagonal).\n\n4) Hitung X = A⁻¹ (B + Aᵀ). \n A⁻¹ × (B + Aᵀ) = 1/15 × [[5, - 2],[0,3]] × [[0, - 1],[ - 15,5]] \n = 1/15 × [[30, - 15],[ - 45,15]] \n = [[2, - 1],[ - 3,1]].\n\n5) Determinan X. \n det(X) = 2 × 1 – ( - 1) × ( - 3) = 2 – 3 = –1.\n\nJadi determinan X memang –1, pilihan B. Selamat, kamu udah paham!",
+        "benar": true
+      }
+    },
+    "updated_at": {
+      "_seconds": 1787754594,
+      "_nanoseconds": 203603000
+    },
+    "scope_type": "latihan",
+    "user_id": "gVA7Y1Bgh0mmaxWsMzGW",
+    "created_at": {
+      "_seconds": 1787751025,
+      "_nanoseconds": 38284000
+    }
+  }
+]

@@ -1,208 +1,280 @@
-{% extends "base.html" %}{% block title %}Kelola {{ sesi.judul }} — Live Kuis{% endblock %}{% block content %}
-<div class="dash">
+{% extends "base.html" %}
+{% block title %}{{ sesi.judul }} — Kelas Live{% endblock %}
+{% block content %}
+<div class="dash live-class-admin">
 <aside class="dash-sidebar">
-  <div class="who">{{ session.get('name') }}</div>
-  <div class="role-tag">Admin</div>
-  <nav>
-    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('admin.materi') }}">Materi</a>
-    <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
-    <a class="active" href="{{ url_for('live_admin.daftar') }}">Live Kuis</a>
-  </nav>
+  <div class="who">{{ session.get('name') }}</div><div class="role-tag">Admin</div>
+  <nav><a href="{{ url_for('admin.dashboard') }}">Dashboard</a><a href="{{ url_for('admin.materi') }}">Materi</a><a href="{{ url_for('admin.soal') }}">Bank Soal</a><a class="active" href="{{ url_for('live_admin.daftar') }}">Kelas Hari Ini</a></nav>
 </aside>
 <main class="dash-content">
-  <p class="muted"><a href="{{ url_for('live_admin.daftar') }}">&larr; Kembali ke daftar sesi</a></p>
-  <h1>{{ sesi.judul }}</h1>
+  <p class="muted"><a href="{{ url_for('live_admin.daftar') }}">&larr; Kembali</a></p>
+  <div class="live-head"><div><span class="live-kicker">KELAS HARI INI{% if sesi.target_kelas %} · UNTUK KELAS {{ sesi.target_kelas }}{% endif %}</span><h1>{{ sesi.judul }}</h1><p class="muted">Kode: <strong>{{ sesi.kode }}</strong> · Siswa masuk dengan kode ini, atau lewat daftar "Kelas Hari Ini" di halaman mereka.</p></div></div>
 
-  <div class="live-kode-box" style="margin:16px 0">
-    <div class="label">Kode Gabung — bagikan ke siswa</div>
-    <div class="live-kode-huruf">{{ sesi.kode }}</div>
-    <div class="muted" style="color:#C9CDE4">Siswa buka menu <strong>Live Kuis</strong> lalu masukkan kode ini.</div>
+  {% if sesi.status == 'lobi' %}
+  <div class="live-config-grid">
+    <section class="card-simple">
+      <h2>1. Materi pengajaran</h2>
+      <p class="muted">Pilih kelas, mapel, lalu bab yang akan tampil full-screen di layar siswa.</p>
+      <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
+        <div class="field-row">
+          <div class="field"><label>Kelas</label>
+            <select id="sel_kelas"><option value="">— Pilih kelas —</option></select>
+          </div>
+          <div class="field"><label>Mapel</label>
+            <select id="sel_mapel" disabled><option value="">— Pilih mapel —</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Bab</label>
+          <select id="sel_bab" disabled><option value="">— Pilih bab —</option></select>
+        </div>
+        <input type="hidden" name="material_id" id="input_material_id">
+        <p class="muted" id="materi_pilihan_info" style="font-size:.82rem"></p>
+        <button class="btn btn-gold" type="submit">Simpan pengaturan kelas</button>
+      </form>
+      <p class="muted" style="margin-top:10px">Tenang, materi ini bisa kamu ganti lagi (pindah tahapan/halaman) kapan pun selagi kelas sedang berjalan nanti — gak harus pas ke sini lagi. Izin mencoret di papan tulis juga diatur belakangan pas kelas sudah berjalan, bukan di sini.</p>
+      <script id="materials_data" type="application/json">{{ materials|tojson }}</script>
+      <script>
+      (() => {
+        const materials = JSON.parse(document.getElementById('materials_data').textContent);
+        const currentMaterialId = {{ (sesi.material_id or "")|tojson }};
+        const selKelas = document.getElementById('sel_kelas'), selMapel = document.getElementById('sel_mapel'),
+              selBab = document.getElementById('sel_bab'), hidden = document.getElementById('input_material_id'),
+              info = document.getElementById('materi_pilihan_info');
+        function unik(arr){ return [...new Set(arr)].sort(); }
+        function fill(select, values, placeholder){
+          select.innerHTML = `<option value="">${placeholder}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join('');
+        }
+        function pilihBab(){
+          const kelas = selKelas.value, mapel = selMapel.value, bab = selBab.value;
+          if(!kelas || !mapel || !bab){ hidden.value=''; info.textContent=''; return; }
+          // Kalau bab punya beberapa subbab/tahapan, mulai dari yang paling awal --
+          // sisanya tinggal digeser lewat "Ganti materi" pas kelas sudah jalan.
+          const anggota = materials.filter(m=>String(m.kelas)===kelas && m.mapel===mapel && m.bab===bab)
+                                    .sort((a,b)=>(a.urutan_subbab||1)-(b.urutan_subbab||1));
+          if(!anggota.length){ hidden.value=''; info.textContent=''; return; }
+          hidden.value = anggota[0].id;
+          info.textContent = anggota.length>1
+            ? `Dimulai dari "${anggota[0].judul}" (${anggota.length} bagian dalam bab ini, bisa lanjut ke bagian berikutnya lewat "Ganti materi" saat kelas berjalan).`
+            : `Materi: ${anggota[0].judul}`;
+        }
+        function onKelasChange(){
+          const kelas = selKelas.value;
+          selMapel.disabled = !kelas; selBab.disabled = true; hidden.value=''; info.textContent='';
+          fill(selBab, [], '— Pilih bab —');
+          if(!kelas){ fill(selMapel, [], '— Pilih mapel —'); return; }
+          fill(selMapel, unik(materials.filter(m=>String(m.kelas)===kelas).map(m=>m.mapel)), '— Pilih mapel —');
+        }
+        function onMapelChange(){
+          const kelas = selKelas.value, mapel = selMapel.value;
+          selBab.disabled = !mapel; hidden.value=''; info.textContent='';
+          if(!mapel){ fill(selBab, [], '— Pilih bab —'); return; }
+          const babs = materials.filter(m=>String(m.kelas)===kelas && m.mapel===mapel)
+                                 .sort((a,b)=>(a.urutan_bab||1)-(b.urutan_bab||1)).map(m=>m.bab);
+          fill(selBab, unik(babs), '— Pilih bab —');
+        }
+        selKelas.onchange = onKelasChange; selMapel.onchange = onMapelChange; selBab.onchange = pilihBab;
+        fill(selKelas, unik(materials.map(m=>String(m.kelas))), '— Pilih kelas —');
+        // Kalau kelas ini sudah punya materi tersimpan sebelumnya, pre-select cascade-nya.
+        const existing = materials.find(m=>m.id===currentMaterialId);
+        if(existing){
+          selKelas.value = String(existing.kelas); onKelasChange();
+          selMapel.value = existing.mapel; onMapelChange();
+          selBab.value = existing.bab; hidden.value = currentMaterialId;
+          info.textContent = `Materi: ${existing.judul}`;
+        }
+      })();
+      </script>
+    </section>
+
+    <section class="card-simple">
+      <h2>2. Atur kuis</h2>
+      <p class="muted">Semua soal pada bab ini tersedia di bawah, dikelompokkan per tahapan/bagian — pilih tahapan mana saja yang mau dipakai buat kuis.</p>
+      {% if grouped_questions %}
+      <form method="POST" action="{{ url_for('live_admin.atur_kuis', session_id=sesi.id) }}">
+        {% for grup in grouped_questions %}
+        <div class="live-question-group" style="margin-bottom:14px">
+          <label class="live-check" style="font-weight:700"><input type="checkbox" class="cp-select-all" data-group="{{ loop.index0 }}"> {{ grup.nama }} <span class="muted" style="font-weight:400">({{ grup.soal|length }} soal)</span></label>
+          <div class="live-question-list" data-group="{{ loop.index0 }}" style="margin-top:6px">
+          {% for q in grup.soal %}
+            <label class="live-question-pick"><input type="checkbox" name="question_ids" value="{{ q.id }}" data-group="{{ loop.index0 }}" {% if q.id in sesi.quiz_question_ids %}checked{% endif %}><span>{{ q.pertanyaan }}</span></label>
+          {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <label class="live-check"><input type="checkbox" name="acak_soal" checked> Acak urutan soal</label>
+        <label class="live-check"><input type="checkbox" name="acak_per_siswa"> Acak urutan berbeda untuk tiap siswa</label>
+        <h3 style="margin-top:16px">Siapa yang mengerjakan?</h3>
+        <label class="live-check"><input type="checkbox" name="target_user_ids" value="__all__" checked> Semua siswa yang join</label>
+        {% if peserta %}
+          {% for p in peserta %}
+          <label class="live-check"><input type="checkbox" name="target_user_ids" value="{{ p.user_id }}"> {{ p.nama }}</label>
+          {% endfor %}
+        {% else %}<p class="muted">Belum ada siswa yang join.</p>{% endif %}
+        <button class="btn btn-gold" type="submit">Simpan soal & peserta</button>
+      </form>
+      <script>
+      document.querySelectorAll('.cp-select-all').forEach(cb=>{
+        cb.onchange = () => document.querySelectorAll(`.live-question-list[data-group="${cb.dataset.group}"] input[type=checkbox]`).forEach(x=>x.checked=cb.checked);
+      });
+      </script>
+      {% else %}
+        {% if materi_terpilih %}
+        <div class="live-empty">Materi/bab "<b>{{ materi_terpilih.mapel }} · {{ materi_terpilih.bab }}</b>" sudah dipilih, tapi belum ada soal untuk bab ini di Bank Soal. Tambahkan dulu lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> (pastikan Mapel &amp; Bab-nya sama persis: "{{ materi_terpilih.mapel }}" / "{{ materi_terpilih.bab }}").</div>
+        {% else %}
+        <div class="live-empty">Pilih materi dulu (lengkap sampai bab) agar soal pada bab tersebut muncul di sini.</div>
+        {% endif %}
+      {% endif %}
+    </section>
   </div>
 
-  <div id="live_admin_root" data-session-id="{{ sesi.id }}" data-status-url="{{ url_for('live_admin.status', session_id=sesi.id) }}" data-durasi="{{ sesi.durasi_detik }}">
-
-    {% if sesi.status == 'lobi' %}
-    <div class="card-simple" style="margin-bottom:18px">
-      <strong id="jumlah_peserta_lobi">{{ peserta|length }}</strong> siswa sudah join.
-      <form method="POST" action="{{ url_for('live_admin.mulai', session_id=sesi.id) }}" style="display:inline;margin-left:12px">
-        <button type="submit" class="btn btn-gold" {% if not sesi.questions %}disabled{% endif %}>▶ Mulai Sesi</button>
-      </form>
-      {% if not sesi.questions %}<p class="muted" style="margin-top:8px">Tambahkan minimal 1 soal dulu di bawah sebelum bisa mulai.</p>{% endif %}
-    </div>
-
-    <form method="POST" action="{{ url_for('live_admin.tambah_soal', session_id=sesi.id) }}" class="card-simple" style="max-width:850px;margin-bottom:20px">
-      <h3 style="margin-bottom:14px">Tambah Soal</h3>
-      <div class="field">
-        <label>Pertanyaan</label>
-        <textarea name="pertanyaan" required placeholder="Tulis soal pilihan gandanya di sini"></textarea>
-      </div>
-      <div class="field-row">
-        {% for l in ['a','b'] %}
-        <div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>
-        {% endfor %}
-      </div>
-      <div class="field-row">
-        {% for l in ['c','d'] %}
-        <div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>
-        {% endfor %}
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Jawaban Benar</label>
-          <select name="jawaban_benar"><option>A</option><option>B</option><option>C</option><option>D</option></select>
-        </div>
-        <div class="field">
-          <label>Penjelasan <span class="muted">(opsional, ditampilkan pas jeda antar soal)</span></label>
-          <input name="penjelasan">
-        </div>
-      </div>
-      <button type="submit" class="btn btn-gold">+ Tambah Soal ke Sesi</button>
+  <section class="card-simple live-lobby-actions">
+    <div><strong>{{ peserta|length }}</strong> siswa sudah bergabung.</div>
+    <form method="POST" action="{{ url_for('live_admin.mulai', session_id=sesi.id) }}">
+      <button class="btn btn-gold" type="submit">▶ Mulai kelas</button>
     </form>
+    {% if sesi.quiz_question_ids %}<span class="live-ready">✓ {{ sesi.quiz_question_ids|length }} soal siap</span>{% endif %}
+  </section>
 
-    <details class="card-simple" style="max-width:850px;margin-bottom:20px">
-      <summary style="cursor:pointer;font-weight:700;color:var(--color-navy)">📋 Impor Banyak Soal Sekaligus (dari Word)</summary>
-      <p class="muted" style="margin:10px 0">Tempel teks soal LENGKAP (pertanyaan + pilihan A-D + baris jawaban) yang sudah dinomori. Semua soal yang kebaca akan langsung ditambahkan ke sesi ini.</p>
-      <form method="POST" action="{{ url_for('live_admin.impor_soal', session_id=sesi.id) }}" style="margin-top:12px">
-        <div class="field">
-          <label>Teks Soal</label>
-          <textarea name="teks_soal" rows="12" required placeholder="1. Ibukota Indonesia adalah?&#10;A. Bandung&#10;B. Jakarta&#10;C. Surabaya&#10;D. Medan&#10;JAWABAN: B&#10;&#10;2. Berapa hasil dari 5 + 3?&#10;A. 7&#10;B. 8&#10;C. 9&#10;D. 10&#10;JAWABAN: B"></textarea>
-          <small class="muted">Tiap soal diawali angka + titik ("1. "), diikuti pilihan "A. " s/d "D. ", lalu baris "JAWABAN: <em>huruf</em>". Boleh langsung copy-paste dari file Word.</small>
-        </div>
-        <button type="submit" class="btn btn-gold">Impor Semua Soal</button>
-      </form>
-    </details>
+  <details class="card-simple" style="margin-top:16px">
+    <summary><b>Tambah soal manual / impor dari Word</b></summary>
+    <form method="POST" action="{{ url_for('live_admin.tambah_soal', session_id=sesi.id) }}" style="margin-top:16px">
+      <div class="field"><label>Pertanyaan</label><textarea name="pertanyaan" required></textarea></div>
+      <div class="field-row">{% for l in ['a','b','c','d'] %}<div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>{% endfor %}</div>
+      <div class="field-row"><div class="field"><label>Jawaban benar</label><select name="jawaban_benar">{% for l in ['A','B','C','D'] %}<option>{{ l }}</option>{% endfor %}</select></div><div class="field"><label>Penjelasan</label><input name="penjelasan"></div></div>
+      <button class="btn btn-gold">+ Tambah soal manual</button>
+    </form>
+    <form method="POST" action="{{ url_for('live_admin.impor_soal', session_id=sesi.id) }}" style="margin-top:16px">
+      <div class="field"><label>Impor banyak soal</label><textarea name="teks_soal" rows="8" placeholder="1. Pertanyaan...&#10;A. ...&#10;B. ...&#10;C. ...&#10;D. ...&#10;JAWABAN: B"></textarea></div>
+      <button class="btn btn-ghost">Impor soal</button>
+    </form>
+  </details>
 
-    <div class="table-wrap" style="margin-bottom:24px">
-      <table>
-        <thead><tr><th>#</th><th>Pertanyaan</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Jawaban</th><th></th></tr></thead>
-        <tbody>
-        {% for q in sesi.questions %}
-        <tr>
-          <td>{{ loop.index }}</td>
-          <td style="min-width:200px">{{ q.pertanyaan }}</td>
-          <td>{{ q.pilihan[0] }}</td><td>{{ q.pilihan[1] }}</td><td>{{ q.pilihan[2] }}</td><td>{{ q.pilihan[3] }}</td>
-          <td><strong>{{ q.jawaban_benar }}</strong></td>
-          <td>
-            <form method="POST" action="{{ url_for('live_admin.hapus_soal', session_id=sesi.id, question_id=q.id) }}" onsubmit="return confirm('Hapus soal ini?')">
-              <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% if not sesi.questions %}<p class="muted">Belum ada soal ditambahkan.</p>{% endif %}
-
-    {% else %}
-    <!-- Sesi sudah berjalan / jeda / selesai: kontrol + leaderboard live via polling -->
-    <div class="card-simple" style="margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div>
-          <span id="live_status_pill" class="live-status-pill">-</span>
-          <span class="muted" id="live_progress_text" style="margin-left:10px"></span>
-        </div>
-        <div id="live_timer_text" class="muted" style="font-family:var(--font-mono)"></div>
-      </div>
-      <div class="live-timer-bar"><div class="live-timer-fill" id="live_timer_fill" style="width:100%"></div></div>
-
-      <p style="margin-top:14px"><strong id="live_soal_text"></strong></p>
-      <p class="muted"><span id="live_sudah_jawab">0</span> / <span id="live_jumlah_peserta">0</span> siswa sudah jawab</p>
-
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-        <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none">
-          <button type="submit" class="btn btn-gold" id="btn_lanjut">Lanjut</button>
-        </form>
-        <form method="POST" action="{{ url_for('live_admin.akhiri', session_id=sesi.id) }}" id="form_akhiri" onsubmit="return confirm('Akhiri sesi sekarang?')" style="display:none">
-          <button type="submit" class="btn btn-ghost">Akhiri Sesi</button>
-        </form>
-        <form method="POST" action="{{ url_for('live_admin.ulang', session_id=sesi.id) }}" id="form_ulang" onsubmit="return confirm('Kembali ke lobi? Skor & jawaban peserta akan direset.')" style="display:none">
-          <button type="submit" class="btn btn-ghost">🔁 Ulang dari Lobi</button>
-        </form>
+  {% else %}
+  <div id="live_admin_root" class="live-teacher-panel"
+       data-status-url="{{ url_for('live_admin.status', session_id=sesi.id) }}"
+       data-drawing-url="{{ url_for('live_admin.drawing', session_id=sesi.id) }}"
+       data-halaman-url="{{ url_for('live_admin.halaman', session_id=sesi.id) }}"
+       data-ganti-materi-url="{{ url_for('live_admin.ganti_materi', session_id=sesi.id) }}"
+       data-checkpoint-url="{{ url_for('live_admin.aktifkan_checkpoint', session_id=sesi.id) }}"
+       data-durasi="{{ sesi.durasi_detik }}">
+    <div class="teacher-toolbar">
+      <div><span id="admin_mode" class="live-status-pill">Mengajar</span><span id="admin_progress" class="muted"></span></div>
+      <div class="toolbar-actions">
+        {% if sesi.quiz_question_ids %}<button id="btn_quiz_prebuilt" class="btn btn-gold">▶ Nyalakan kuis siap-pakai ({{ sesi.quiz_question_ids|length }} soal)</button>{% endif %}
+        <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none"><button class="btn btn-gold" id="btn_lanjut">Tutup soal</button></form>
+        <form method="POST" action="{{ url_for('live_admin.akhiri', session_id=sesi.id) }}" onsubmit="return confirm('Akhiri kelas?')"><button class="btn btn-ghost">Akhiri</button></form>
       </div>
     </div>
-
-    <h3 style="margin:18px 0 10px">Papan Skor</h3>
-    <div id="live_leaderboard"></div>
-    {% endif %}
+    <div class="teacher-layout">
+      <section class="teacher-board-wrap">
+        <div class="page-nav">
+          <select id="materi_switch">
+            <option value="">— Tanpa materi —</option>
+            {% for m in materials %}
+            <option value="{{ m.id }}" data-mapel="{{ m.mapel }}" data-bab="{{ m.bab }}" {% if sesi.material_id == m.id %}selected{% endif %}>{{ m.mapel }} · {{ m.bab }} · {{ m.judul }}</option>
+            {% endfor %}
+          </select>
+          <button id="btn_prev_page" class="btn btn-ghost btn-sm">◀ Halaman</button>
+          <span id="page_indicator" class="muted">Hal. 1</span>
+          <button id="btn_next_page" class="btn btn-gold btn-sm">Halaman ▶</button>
+        </div>
+        <div class="teacher-material-wrap" id="teacher_material_wrap">
+          <div id="tm_empty" class="material-placeholder">Belum ada materi dipilih.</div>
+          <iframe id="tm_pdf" class="material-frame" hidden></iframe>
+          <img id="tm_img" class="material-img" hidden>
+          <div id="tm_text" class="material-text" hidden></div>
+        </div>
+        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><span class="muted">Papan tulis bersama (tampil di layar siswa, di atas materi)</span></div>
+        <canvas id="live_board"></canvas>
+      </section>
+      <aside class="teacher-side card-simple">
+        <h3>Kontrol kelas</h3>
+        <p><b id="admin_students">0</b> siswa online · <b id="admin_answered">0</b> sudah jawab</p>
+        <div id="admin_question" class="live-current-question"></div>
+        <hr>
+        <h3>🖊️ Izin papan tulis</h3>
+        <p class="muted" style="margin:0 0 8px">Pilih siswa yang boleh ikut mencoret di papan tulis sekarang. Bisa diubah kapan saja.</p>
+        {% if peserta %}
+        <form method="POST" action="{{ url_for('live_admin.izin_coret', session_id=sesi.id) }}">
+          {% for p in peserta %}
+          <label class="live-check"><input type="checkbox" name="draw_user_ids" value="{{ p.user_id }}" {% if p.user_id in sesi.draw_allowed_ids %}checked{% endif %}> {{ p.nama }}</label>
+          {% endfor %}
+          <button class="btn btn-gold btn-sm" type="submit" style="margin-top:8px">Terapkan izin</button>
+        </form>
+        <p class="muted" style="font-size:.75rem;margin-top:6px">Siswa yang baru join belum muncul di sini sampai halaman ini di-refresh.</p>
+        {% else %}<p class="muted">Belum ada siswa yang join.</p>{% endif %}
+        {% if checkpoints %}
+        <hr>
+        <h3>🎯 Kuis Cepat per Bagian</h3>
+        <p class="muted" style="margin:0 0 8px">Baru selesai jelasin satu bagian? Langsung tembak kuis singkatnya di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
+        <div class="checkpoint-quiz-list">
+          {% for c in checkpoints %}
+          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.nama }}">
+            <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
+              <button class="btn btn-gold btn-sm cp-fire-btn">▶ Nyalakan</button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% elif sesi.material_id %}
+        <hr><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab materi ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tombol Kuis Cepat muncul di sini.</p>
+        {% endif %}
+        <hr>
+        <h3>Peserta kuis</h3><div id="admin_leaderboard"></div>
+      </aside>
+    </div>
   </div>
-</main>
-</div>
+  {% endif %}
+</main></div>
 
+{% if sesi.status != 'lobi' %}
 <script>
 (() => {
-  const root = document.getElementById('live_admin_root');
-  if (!root) return;
-  const statusUrl = root.dataset.statusUrl;
-  const durasi = parseInt(root.dataset.durasi, 10) || 20;
-  const jumlahLobi = document.getElementById('jumlah_peserta_lobi');
-
-  const pill = document.getElementById('live_status_pill');
-  const progressText = document.getElementById('live_progress_text');
-  const timerText = document.getElementById('live_timer_text');
-  const timerFill = document.getElementById('live_timer_fill');
-  const soalText = document.getElementById('live_soal_text');
-  const sudahJawabEl = document.getElementById('live_sudah_jawab');
-  const jumlahPesertaEl = document.getElementById('live_jumlah_peserta');
-  const formLanjut = document.getElementById('form_lanjut');
-  const btnLanjut = document.getElementById('btn_lanjut');
-  const formAkhiri = document.getElementById('form_akhiri');
-  const formUlang = document.getElementById('form_ulang');
-  const leaderboardEl = document.getElementById('live_leaderboard');
-
-  function renderLeaderboard(list) {
-    if (!leaderboardEl) return;
-    if (!list.length) { leaderboardEl.innerHTML = '<p class="muted">Belum ada peserta yang dapat skor.</p>'; return; }
-    leaderboardEl.innerHTML = list.map((p, i) => `
-      <div class="live-leaderboard-row">
-        <span><span class="peringkat">#${i + 1}</span> ${p.nama}</span>
-        <span class="skor">${p.skor}</span>
-      </div>`).join('');
-  }
-
-  async function poll() {
-    try {
-      const res = await fetch(statusUrl);
-      if (!res.ok) return;
-      const data = await res.json();
-
-      if (jumlahLobi) jumlahLobi.textContent = data.jumlah_peserta;
-      if (!pill) return; // masih di layar lobi, gak ada elemen live lain
-
-      const labelStatus = { soal: 'Soal Berjalan', jeda: 'Jeda / Pembahasan', selesai: 'Selesai' }[data.status] || data.status;
-      pill.textContent = labelStatus;
-      pill.className = 'live-status-pill' + (data.status === 'soal' ? ' aktif' : data.status === 'jeda' ? ' jeda' : '');
-      progressText.textContent = data.total_soal ? `Soal ${data.current_index + 1} dari ${data.total_soal}` : '';
-      jumlahPesertaEl.textContent = data.jumlah_peserta;
-      sudahJawabEl.textContent = data.sudah_jawab;
-
-      if (data.status === 'soal' && data.sisa_detik !== null) {
-        timerText.textContent = data.sisa_detik + ' detik';
-        const pct = Math.max(0, Math.min(100, (data.sisa_detik / durasi) * 100));
-        timerFill.style.width = pct + '%';
-      } else {
-        timerText.textContent = '';
-        timerFill.style.width = '100%';
-      }
-
-      if (data.soal_aktif) {
-        soalText.textContent = data.soal_aktif.pertanyaan;
-      } else {
-        soalText.textContent = '';
-      }
-
-      formLanjut.style.display = (data.status === 'soal' || data.status === 'jeda') ? 'inline' : 'none';
-      if (btnLanjut) btnLanjut.textContent = data.status === 'soal' ? 'Tutup Soal & Tampilkan Jawaban' : 'Soal Berikutnya';
-      formAkhiri.style.display = (data.status === 'soal' || data.status === 'jeda') ? 'inline' : 'none';
-      formUlang.style.display = (data.status === 'selesai') ? 'inline' : 'none';
-
-      renderLeaderboard(data.leaderboard || []);
-    } catch (e) { /* diam-diam retry di poll berikutnya */ }
-  }
-
-  poll();
-  setInterval(poll, 2000);
+ const root=document.getElementById('live_admin_root'), board=document.getElementById('live_board'), ctx=board.getContext('2d');
+ const statusUrl=root.dataset.statusUrl, drawingUrl=root.dataset.drawingUrl;
+ const halamanUrl=root.dataset.halamanUrl, gantiMateriUrl=root.dataset.gantiMateriUrl, checkpointUrl=root.dataset.checkpointUrl;
+ let drawing=[], lastHash='', drawingActive=false, last={x:0,y:0};
+ let lastMaterialId=null, lastPage=null;
+ function tmMaterial(m, page){
+   const empty=document.getElementById('tm_empty'),pdf=document.getElementById('tm_pdf'),img=document.getElementById('tm_img'),txt=document.getElementById('tm_text');
+   empty.hidden=!!m; pdf.hidden=true; img.hidden=true; txt.hidden=true;
+   document.getElementById('page_indicator').textContent='Hal. '+(page||1);
+   if(!m) return;
+   const changed=lastMaterialId!==m.id;
+   if(m.pdf_url){pdf.hidden=false; if(changed||lastPage!==page){pdf.src=m.pdf_url+'#page='+(page||1); lastPage=page}}
+   else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false}
+   else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false}
+   lastMaterialId=m.id;
+ }
+ document.getElementById('btn_prev_page').onclick=async()=>{await fetch(halamanUrl,{method:'POST',body:new URLSearchParams({delta:-1})});poll()};
+ document.getElementById('btn_next_page').onclick=async()=>{await fetch(halamanUrl,{method:'POST',body:new URLSearchParams({delta:1})});poll()};
+ document.getElementById('materi_switch').onchange=async(e)=>{await fetch(gantiMateriUrl,{method:'POST',body:new URLSearchParams({material_id:e.target.value})});lastMaterialId=null;poll()};
+ document.querySelectorAll('.cp-fire-btn').forEach(btn=>{
+   btn.onclick=async()=>{
+     const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const jumlah=item.querySelector('.cp-jumlah').value||3;
+     btn.disabled=true; btn.textContent='Menyalakan…';
+     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah,acak_per_siswa:'on'})});
+     const data=await res.json().catch(()=>({}));
+     if(!res.ok){alert(data.error||'Gagal menyalakan kuis cepat.')}
+     btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
+   };
+ });
+ const prebuiltBtn=document.getElementById('btn_quiz_prebuilt');
+ if(prebuiltBtn){prebuiltBtn.onclick=async()=>{const f=new URLSearchParams({enabled:'on'});await fetch(location.pathname+'/quiz-toggle',{method:'POST',body:f});poll()}}
+ function resize(){const r=board.getBoundingClientRect(); board.width=Math.floor(r.width*devicePixelRatio); board.height=Math.floor(r.height*devicePixelRatio); ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); render();}
+ function render(){ctx.clearRect(0,0,board.clientWidth,board.clientHeight);ctx.lineCap='round';ctx.lineJoin='round'; for(const st of drawing){ctx.beginPath();ctx.lineWidth=st.w||3;ctx.moveTo(st.x1*board.clientWidth,st.y1*board.clientHeight);ctx.lineTo(st.x2*board.clientWidth,st.y2*board.clientHeight);ctx.stroke();}}
+ async function send(st){try{await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stroke:st})})}catch(e){}}
+ board.addEventListener('pointerdown',e=>{drawingActive=true;last={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};board.setPointerCapture(e.pointerId)});
+ board.addEventListener('pointermove',e=>{if(!drawingActive)return;const now={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};const st={x1:last.x,y1:last.y,x2:now.x,y2:now.y,w:3};drawing.push(st);render();send(st);last=now});
+ board.addEventListener('pointerup',()=>drawingActive=false); board.addEventListener('pointercancel',()=>drawingActive=false);
+ document.getElementById('clear_board').onclick=async()=>{drawing=[];render();await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clear:true})})};
+ window.addEventListener('resize',resize); resize();
+ async function poll(){try{const d=await (await fetch(statusUrl)).json();drawing=d.drawing||[];render();tmMaterial(d.material,d.current_page);document.getElementById('admin_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';document.getElementById('admin_students').textContent=d.jumlah_peserta;document.getElementById('admin_answered').textContent=d.sudah_jawab;document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Jelaskan materi di papan/materi. Kuis cepat bisa dinyalakan kapan saja dari panel kanan.';document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';renderLB(d.leaderboard||[])}catch(e){}}
+ function renderLB(a){document.getElementById('admin_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>'}
+ poll();setInterval(poll,1000);
 })();
 </script>
+{% endif %}
 {% endblock %}

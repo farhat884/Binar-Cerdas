@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}
+Pembelian Paket — Admin Binar Cerdas
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dash">
+
+  <aside class="dash-sidebar">
+
+    <div class="who">
+      {{ session.get('name') }}
+    </div>
+
+    <div class="role-tag">
+      Admin
+    </div>
+
+    <nav>
+
+      <a href="{{ url_for('admin.dashboard') }}">
+        Dashboard
+      </a>
+
+      <a
+        href="{{ url_for('admin.pendaftaran') }}"
+        class="active"
+      >
+        Pembelian
+      </a>
+
+      <a href="{{ url_for('admin.siswa') }}">
+        Kelola Siswa
+      </a>
+
+      <a href="{{ url_for('admin.jadwal') }}">
+        Jadwal
+      </a>
+
+    <a href="{{ url_for('admin.materi') }}">Materi</a>
+      <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
+    </nav>
+
+  </aside>
+
+
+  <main class="dash-content">
+
+    <h1>
+      Pembelian Paket
+    </h1>
+
+    <p class="muted">
+
+      Periksa informasi pembayaran
+      sebelum menyetujui pembelian.
+
+    </p>
+
+
+    <div style="margin:20px 0;">
+
+      <a
+        href="{{ url_for(
+          'admin.pendaftaran',
+          status='pending'
+        ) }}"
+        class="btn btn-ghost btn-sm"
+      >
+        Pending
+      </a>
+
+      <a
+        href="{{ url_for(
+          'admin.pendaftaran',
+          status='approved'
+        ) }}"
+        class="btn btn-ghost btn-sm"
+      >
+        Disetujui
+      </a>
+
+      <a
+        href="{{ url_for(
+          'admin.pendaftaran',
+          status='ditolak'
+        ) }}"
+        class="btn btn-ghost btn-sm"
+      >
+        Ditolak
+      </a>
+
+    </div>
+
+
+    {% if daftar %}
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Siswa</th>
+
+            <th>Paket</th>
+
+            <th>Total</th>
+
+            <th>Pertemuan</th>
+
+            <th>Metode</th>
+
+            <th>Nama Pengirim</th>
+
+            <th>Tanggal Transfer</th>
+
+            <th>Referensi</th>
+
+            <th>Status</th>
+
+            <th>Aksi</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {% for r in daftar %}
+
+          <tr>
+
+            <td>
+              {{ r.user_name }}
+            </td>
+
+            <td>
+              {{ r.jumlah_paket }}
+              Paket
+            </td>
+
+            <td>
+              {{ format_rupiah(r.total_harga) }}
+            </td>
+
+            <td>
+              {{ r.total_pertemuan }}
+            </td>
+
+            <td>
+              {{ r.metode_pembayaran }}
+            </td>
+
+            <td>
+              {{ r.nama_pengirim }}
+            </td>
+
+            <td>
+              {{ r.tanggal_transfer }}
+            </td>
+
+            <td>
+              {{ r.referensi_transfer }}
+            </td>
+
+            <td>
+              {{ r.status }}
+            </td>
+
+            <td>
+
+              {% if r.status == "pending" %}
+
+              <form
+                method="POST"
+                action="{{ url_for(
+                  'admin.setujui_pendaftaran',
+                  reg_id=r.id
+                ) }}"
+                style="margin-bottom:8px;"
+              >
+
+                <button
+                  type="submit"
+                  class="btn btn-gold btn-sm"
+                >
+                  Setujui
+                </button>
+
+              </form>
+
+
+              <form
+                method="POST"
+                action="{{ url_for(
+                  'admin.tolak_pendaftaran',
+                  reg_id=r.id
+                ) }}"
+              >
+
+                <input
+                  type="text"
+                  name="catatan"
+                  placeholder="Catatan penolakan"
+                >
+
+                <button
+                  type="submit"
+                  class="btn btn-ghost btn-sm"
+                >
+                  Tolak
+                </button>
+
+              </form>
+
+              {% else %}
+
+              -
+
+              {% endif %}
+
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    {% else %}
+
+    <div class="empty-state">
+
+      <p>
+        Belum ada data pembelian.
+      </p>
+
+    </div>
+
+    {% endif %}
+
+  </main>
+
+</div>
+
+{% endblock %}

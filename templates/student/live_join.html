@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block title %}Live Kuis — Binar Cerdas{% endblock %}{% block content %}
+{% extends "base.html" %}{% block title %}Kelas Hari Ini — Binar Cerdas{% endblock %}{% block content %}
 <div class="dash">
 <aside class="dash-sidebar">
   <div class="who">{{ session.get('name') }}</div>
@@ -8,20 +8,44 @@
     <a href="{{ url_for('student.materi') }}">Materi</a>
     <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
     <a href="{{ url_for('student.progress') }}">Progress</a>
-    <a class="active" href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
+    <a class="active" href="{{ url_for('live_student.gabung') }}">Kelas Hari Ini</a>
   </nav>
 </aside>
 <main class="dash-content">
-  <h1>Gabung Live Kuis</h1>
-  <p class="muted" style="max-width:520px">Minta kode gabung ke pengajar kamu, terus masukkan di bawah ini. Begitu masuk, tunggu pengajar mulai kuisnya.</p>
+  <h1>Kelas Hari Ini</h1>
+  <p class="muted" style="max-width:560px">Ini daftar kelas yang lagi/akan berlangsung hari ini. Kelas untuk kelasmu ({{ kelas_saya or '—' }}) ditaruh di atas, tapi kamu tetap bisa ikut nebeng dengar penjelasan kelas lain kalau mau.</p>
 
-  <form method="POST" class="card-simple" style="max-width:420px;margin:20px 0;text-align:center">
-    <div class="field" style="text-align:left">
-      <label>Kode Sesi</label>
-      <input name="kode" required maxlength="6" placeholder="Misal: AB3K9Q" style="text-transform:uppercase;font-family:var(--font-mono);font-size:1.3rem;letter-spacing:.15em;text-align:center">
+  <div class="live-class-list" style="margin:20px 0">
+    {% for s in kelas_list %}
+    <div class="card-simple" style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px">
+      <div>
+        <strong>{{ s.judul }}</strong>
+        {% if s.status == 'lobi' %}<span class="badge-status badge-pending" style="margin-left:8px">Belum mulai</span>
+        {% else %}<span class="badge-status badge-live" style="margin-left:8px">Sedang berlangsung</span>{% endif %}
+        <div class="muted" style="font-size:.82rem;margin-top:4px">
+          {% if s.mapel %}{{ s.mapel }} · {% endif %}
+          {% if s.target_kelas %}Untuk Kelas {{ s.target_kelas }}{% else %}Semua kelas{% endif %}
+        </div>
+      </div>
+      <form method="POST" action="{{ url_for('live_student.masuk_langsung', session_id=s.id) }}">
+        <button type="submit" class="btn btn-gold btn-sm">Gabung</button>
+      </form>
     </div>
-    <button type="submit" class="btn btn-gold btn-block">Gabung</button>
-  </form>
+    {% else %}
+    <p class="muted">Belum ada kelas yang dibuka hari ini. Coba lagi nanti, atau masukkan kode kalau pengajarmu sudah kasih kode.</p>
+    {% endfor %}
+  </div>
+
+  <details class="card-simple" style="max-width:420px">
+    <summary><b>Punya kode kelas?</b> Masukkan di sini</summary>
+    <form method="POST" style="margin-top:16px;text-align:center">
+      <div class="field" style="text-align:left">
+        <label>Kode Kelas</label>
+        <input name="kode" required maxlength="6" placeholder="Misal: AB3K9Q" style="text-transform:uppercase;font-family:var(--font-mono);font-size:1.3rem;letter-spacing:.15em;text-align:center">
+      </div>
+      <button type="submit" class="btn btn-gold btn-block">Gabung</button>
+    </form>
+  </details>
 </main>
 </div>
 {% endblock %}

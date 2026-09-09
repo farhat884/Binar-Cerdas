@@ -1,0 +1,98 @@
+{% extends "base.html" %}{% block title %}Bank Soal — Binar Cerdas{% endblock %}{% block content %}<div class="dash"><aside class="dash-sidebar"><div class="who">{{ session.get('name') }}</div><div class="role-tag">Admin</div><nav><a href="{{ url_for('admin.dashboard') }}">Dashboard</a><a href="{{ url_for('admin.materi') }}">Materi</a><a class="active" href="{{ url_for('admin.soal') }}">Bank Soal</a></nav></aside><main class="dash-content"><h1>Bank Soal</h1><form method="POST" class="card-simple" style="max-width:850px;margin:20px 0"><div class="field-row"><div class="field"><label>Jenjang</label><select name="jenjang"><option>SD</option><option>SMP</option><option>SMA</option></select></div><div class="field"><label>Kelas</label><input name="kelas" required></div><div class="field"><label>Mapel</label><input name="mapel" required></div><div class="field"><label>Tipe</label><select name="tipe"><option value="latihan">Latihan Materi</option><option value="UTS">UTS</option><option value="UAS">UAS</option></select></div></div><div class="field"><label>Hubungkan ke Materi (untuk latihan)</label><select name="material_id"><option value="">-- Tidak terkait materi --</option>{% for m in materials %}<option value="{{ m.id }}">{{ m.jenjang }} {{ m.kelas }} · {{ m.mapel }} · {{ m.judul }}</option>{% endfor %}</select></div><div class="field"><label>Pertanyaan</label><textarea name="pertanyaan" required data-latex-source="preview_pertanyaan"></textarea><small class="muted">Buat matriks/pecahan/dll, tinggal ketik LaTeX-nya langsung, contoh: <code>$\begin{bmatrix}1&amp;2\\3&amp;4\end{bmatrix}$</code>. Preview otomatis muncul di bawah.</small><div class="latex-preview" id="preview_pertanyaan"></div></div><div class="field"><label>Gambar Soal <span class="muted">(opsional — buat soal matriks, grafik, tabel, dll biar gak ribet diketik)</span></label><input type="file" id="file_gambar_soal" accept="image/png,image/jpeg,image/webp,image/gif"><small class="muted">Format JPG/PNG/WEBP/GIF.</small><div id="preview_gambar_soal" style="margin-top:8px"></div></div><div class="field"><label>Konteks Tambahan buat AI <span class="muted">(gak muncul ke siswa, cuma dibaca AI)</span></label><textarea name="konteks_ai" placeholder="Misal: isi angka-angka di tabel/matriks/grafik pada gambar di atas, biar AI ngerti isinya walau cuma baca teks."></textarea><small class="muted">AI penjelas gak bisa baca gambar sama sekali — baik gambar soal DI ATAS maupun gambar di tiap pilihan jawaban A/B/C/D di bawah. Kalau ada yang pakai gambar (tabel, grafik, matriks, opsi gambar, dll), tulis isi pentingnya di sini (boleh sebutin per-pilihan, misal "Pilihan A gambarnya segitiga siku-siku sisi 3,4,5") biar AI tetap ngerti. Kolom ini gak akan ditampilkan ke siswa, murni buat AI aja.</small></div><input type="hidden" name="gambar_url" id="gambar_url"><input type="hidden" name="gambar_path" id="gambar_path"><div class="field-row">{% for l in ['a','b','c','d'] %}<div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" placeholder="Teks pilihan (opsional kalau pakai gambar, boleh LaTeX)" data-latex-source="preview_pilihan_{{ l }}"><div class="latex-preview" id="preview_pilihan_{{ l }}"></div><input type="file" class="pilihan-gambar-input" data-slot="{{ l }}" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:6px;font-size:.8rem"><input type="hidden" name="pilihan_{{ l }}_gambar_url" id="pilihan_{{ l }}_gambar_url"><input type="hidden" name="pilihan_{{ l }}_gambar_path" id="pilihan_{{ l }}_gambar_path"><div id="preview_pilihan_{{ l }}_gambar" style="margin-top:6px"></div><small class="muted">Isi teks, gambar, atau dua-duanya.</small><textarea name="konteks_ai_{{ l }}" placeholder="Konteks AI khusus pilihan {{ l|upper }} (opsional)" style="margin-top:6px;font-size:.8rem"></textarea><small class="muted">Gak muncul ke siswa. Isi kalau pilihan ini butuh penjelasan tambahan spesifik (misal isi gambar pilihan ini).</small></div>{% endfor %}</div><div class="field"><label>Jawaban Benar</label><select name="jawaban_benar"><option>A</option><option>B</option><option>C</option><option>D</option></select></div><div class="field"><label>Penjelasan Manual / fallback AI</label><textarea name="penjelasan"></textarea></div><button type="submit" id="submit_soal" class="btn btn-gold">+ Tambah Soal</button></form><details class="card-simple" style="max-width:850px;margin:0 0 20px"><summary style="cursor:pointer;font-weight:700;color:var(--color-navy)">📋 Impor Banyak Soal Sekaligus (dari Word)</summary><p class="muted" style="margin:10px 0">Tempel teks soal yang sudah dinomori (1. 2. 3. dst) dari Word/dokumen lain. Cukup pertanyaannya aja — pilihan jawaban &amp; jawaban benarnya bisa kamu isi belakangan lewat tombol <b>Edit</b> di tiap soal.</p><form method="POST" action="{{ url_for('admin.impor_soal') }}" class="card-simple" style="margin:14px 0;padding:18px"><div class="field-row"><div class="field"><label>Jenjang</label><select name="jenjang"><option>SD</option><option>SMP</option><option>SMA</option></select></div><div class="field"><label>Kelas</label><input name="kelas" required></div></div><div class="field-row"><div class="field"><label>Mapel</label><input name="mapel" required></div><div class="field"><label>Tipe</label><select name="tipe"><option value="latihan">Latihan Materi</option><option value="UTS">UTS</option><option value="UAS">UAS</option></select></div></div><div class="field"><label>Hubungkan ke Materi (untuk latihan)</label><select name="material_id"><option value="">-- Tidak terkait materi --</option>{% for m in materials %}<option value="{{ m.id }}">{{ m.jenjang }} {{ m.kelas }} · {{ m.mapel }} · {{ m.judul }}</option>{% endfor %}</select></div><div class="field"><label>Teks Soal (bernomor)</label><textarea name="teks_soal" rows="10" required placeholder="1. Ibukota Indonesia adalah?&#10;2. Berapa hasil dari 5 + 3?&#10;3. Sebutkan planet terdekat dari matahari."></textarea><small class="muted">Tiap soal harus diawali angka + titik, contoh: "1. ", "2. ", dst. Boleh langsung copy-paste dari file Word.</small></div><button type="submit" class="btn btn-gold">Impor Semua Soal</button></form></details><div class="table-wrap"><table><thead><tr><th>Gambar</th><th>Pertanyaan</th><th>Status</th><th>Tipe</th><th>Mapel</th><th></th></tr></thead><tbody>{% for q in questions %}<tr><td>{% if q.gambar_url %}<img src="{{ q.gambar_url }}" alt="Gambar soal" class="soal-thumb">{% else %}<span class="muted">-</span>{% endif %}</td><td>{{ q.pertanyaan }}{% if q.pilihan_gambar and q.pilihan_gambar|select|list %} <span class="muted" style="font-size:.75rem">🖼️ pilihan bergambar</span>{% endif %}</td><td>{% if q.lengkap %}<span class="badge-status badge-approved">Lengkap</span>{% else %}<span class="badge-status badge-pending">Draft</span>{% endif %}</td><td>{{ q.tipe }}</td><td>{{ q.mapel }}</td><td style="white-space:nowrap"><a href="{{ url_for('admin.edit_soal',question_id=q.id) }}" class="btn btn-sm">Edit</a> <form method="POST" action="{{ url_for('admin.hapus_soal',question_id=q.id) }}" style="display:inline"><button class="btn btn-danger btn-sm">Hapus</button></form></td></tr>{% endfor %}</tbody></table></div></main></div>
+<script>
+(async () => {
+  const form = document.querySelector("form.card-simple");
+  const submitButton = document.getElementById("submit_soal");
+  if (!form) return;
+
+  // Satu fungsi upload dipakai ulang buat gambar soal maupun tiap gambar pilihan jawaban.
+  async function uploadGambar(file) {
+    const response = await fetch("{{ url_for('admin.soal_upload_url') }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: file.name }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Gagal menyiapkan upload.");
+
+    const uploadResponse = await fetch(data.upload_url, {
+      method: "PUT",
+      headers: { "Content-Type": file.type || "application/octet-stream", "x-signature": data.token },
+      body: file,
+    });
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error("Upload gambar gagal: " + uploadResponse.status + " - " + errorText);
+    }
+    return data;
+  }
+
+  // --- Gambar soal utama ---
+  const fileInput = document.getElementById("file_gambar_soal");
+  const gambarUrlInput = document.getElementById("gambar_url");
+  const gambarPathInput = document.getElementById("gambar_path");
+  const preview = document.getElementById("preview_gambar_soal");
+  if (fileInput) {
+    fileInput.addEventListener("change", () => {
+      gambarUrlInput.value = "";
+      gambarPathInput.value = "";
+      preview.innerHTML = "";
+    });
+  }
+
+  // --- Gambar tiap pilihan jawaban (A/B/C/D) ---
+  const pilihanInputs = Array.from(document.querySelectorAll(".pilihan-gambar-input"));
+  pilihanInputs.forEach((input) => {
+    const slot = input.dataset.slot;
+    const urlInput = document.getElementById("pilihan_" + slot + "_gambar_url");
+    const pathInput = document.getElementById("pilihan_" + slot + "_gambar_path");
+    const slotPreview = document.getElementById("preview_pilihan_" + slot + "_gambar");
+    input.addEventListener("change", () => {
+      urlInput.value = "";
+      pathInput.value = "";
+      slotPreview.innerHTML = "";
+    });
+  });
+
+  form.addEventListener("submit", async function (event) {
+    const perluUploadSoal = fileInput && fileInput.files.length && !gambarUrlInput.value;
+    const perluUploadPilihan = pilihanInputs.filter((input) => {
+      const slot = input.dataset.slot;
+      const urlInput = document.getElementById("pilihan_" + slot + "_gambar_url");
+      return input.files.length && !urlInput.value;
+    });
+
+    // Gak ada gambar baru yang perlu diupload -> lanjut submit form biasa
+    if (!perluUploadSoal && perluUploadPilihan.length === 0) return;
+
+    event.preventDefault();
+    submitButton.disabled = true;
+    submitButton.textContent = "Mengunggah gambar...";
+    try {
+      if (perluUploadSoal) {
+        const data = await uploadGambar(fileInput.files[0]);
+        gambarUrlInput.value = data.public_url;
+        gambarPathInput.value = data.path;
+        preview.innerHTML = '<img src="' + data.public_url + '" alt="Preview gambar soal" class="soal-thumb-preview">';
+      }
+      for (const input of perluUploadPilihan) {
+        const slot = input.dataset.slot;
+        const urlInput = document.getElementById("pilihan_" + slot + "_gambar_url");
+        const pathInput = document.getElementById("pilihan_" + slot + "_gambar_path");
+        const slotPreview = document.getElementById("preview_pilihan_" + slot + "_gambar");
+        const data = await uploadGambar(input.files[0]);
+        urlInput.value = data.public_url;
+        pathInput.value = data.path;
+        slotPreview.innerHTML = '<img src="' + data.public_url + '" alt="Preview pilihan ' + slot.toUpperCase() + '" class="soal-thumb-preview">';
+      }
+      form.submit();
+    } catch (error) {
+      console.error("Error upload gambar soal:", error);
+      alert(error.message || "Upload gambar gagal.");
+      submitButton.disabled = false;
+      submitButton.textContent = "+ Tambah Soal";
+    }
+  });
+})();
+</script>
+{% endblock %}

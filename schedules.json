@@ -1,0 +1,14 @@
+[
+  {
+    "id": "8JOYhrjCeeC5AashpHpZ",
+    "hari": "Senin, 28 Oktober 2027",
+    "jam": "19.45-21.00",
+    "mapel": "Matematika",
+    "kelas": "12",
+    "created_at": {
+      "_seconds": 1787389815,
+      "_nanoseconds": 107282000
+    },
+    "jenjang": "SMA"
+  }
+]

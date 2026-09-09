@@ -29,7 +29,7 @@
         <a href="{{ url_for('admin.jadwal') }}">Jadwal</a>
         <a href="{{ url_for('admin.materi') }}">Materi</a>
         <a href="{{ url_for('admin.soal') }}">Bank Soal</a>
-        <a href="{{ url_for('live_admin.daftar') }}">Live Kuis</a>
+        <a href="{{ url_for('live_admin.daftar') }}">Kelas Hari Ini</a>
         <span class="pill-role">Admin</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% elif session.get('role') == 'siswa' %}
@@ -40,7 +40,7 @@
         <a href="{{ url_for('student.materi') }}">Materi</a>
         <a href="{{ url_for('student.latihan') }}">Latihan & Ujian</a>
         <a href="{{ url_for('student.progress') }}">Progress</a>
-        <a href="{{ url_for('live_student.gabung') }}">Live Kuis</a>
+        <a href="{{ url_for('live_student.gabung') }}">Kelas Hari Ini</a>
         <span class="pill-role">Siswa</span>
         <a href="{{ url_for('auth.logout') }}">Keluar</a>
       {% else %}

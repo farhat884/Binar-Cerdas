@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Halaman Tidak Ditemukan{% endblock %}
+{% block content %}
+<div class="empty-state">
+  <div class="glyph">✦</div>
+  <h2>Halaman tidak ditemukan</h2>
+  <p class="muted">Alamat yang kamu tuju tidak ada. <a href="{{ url_for('index') }}">Kembali ke beranda</a>.</p>
+</div>
+{% endblock %}

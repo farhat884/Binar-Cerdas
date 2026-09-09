@@ -1,0 +1,790 @@
+[
+  {
+    "id": "S1hiXaXHKsdOPqt3V2Bp",
+    "mapel": "Kimia",
+    "kode": "BQQ5P2",
+    "durasi_detik": 90,
+    "judul": "Stoikiometri",
+    "admin_id": "loYyLXkg7qta0czE0WnM",
+    "created_at": {
+      "_seconds": 1788120160,
+      "_nanoseconds": 685069000
+    },
+    "questions": [
+      {
+        "jawaban_benar": "A",
+        "pilihan": [
+          "Mengukur",
+          "Menghitung",
+          "Mereaksikan",
+          "Menimbang"
+        ],
+        "pertanyaan": "Stoikiometri berasal dari kata \"stoicheion\" dalam bahasa Yunani yang berarti?",
+        "id": "q1_1788120507_0",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "1 mol",
+          "1,5 mol",
+          "2 mol",
+          "2,5 mol"
+        ],
+        "pertanyaan": "Berapa jumlah mol dari 36 gram H2O? (Ar H = 1, O = 16)",
+        "id": "q2_1788120507_1",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "0,1 mol",
+          "0,25 mol",
+          "0,5 mol",
+          "1 mol"
+        ],
+        "pertanyaan": "Berapa jumlah mol dari 8 gram gas oksigen (O2)? (Ar O = 16)",
+        "id": "q3_1788120507_2",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "6,02 x 10^23 molekul",
+          "1,204 x 10^24 molekul",
+          "3,01 x 10^23 molekul",
+          "2,408 x 10^24 molekul"
+        ],
+        "pertanyaan": "Berapa jumlah molekul yang terdapat dalam 2 mol H2O? (bilangan Avogadro = 6,02 x 10^23)",
+        "id": "q4_1788120507_3",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "3,01 x 10^23 molekul",
+          "6,02 x 10^23 molekul",
+          "1,204 x 10^24 molekul",
+          "1,806 x 10^23 molekul"
+        ],
+        "pertanyaan": "Berapa jumlah molekul yang terdapat dalam 44 gram gas CO2? (Ar C = 12, O = 16)",
+        "id": "q5_1788120507_4",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "22,4 L",
+          "44,8 L",
+          "67,2 L",
+          "89,6 L"
+        ],
+        "pertanyaan": "Berapa volume 3 mol gas N2 pada keadaan STP? (1 mol gas = 22,4 L)",
+        "id": "q6_1788120507_5",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "5,6 L",
+          "11,2 L",
+          "22,4 L",
+          "44,8 L"
+        ],
+        "pertanyaan": "Sebanyak 8 gram gas metana (CH4) diukur pada keadaan STP. Berapa volumenya? (Ar C = 12, H = 1)",
+        "id": "q7_1788120507_6",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "0,05 mol",
+          "0,1 mol",
+          "0,2 mol",
+          "0,4 mol"
+        ],
+        "pertanyaan": "Sebanyak 250 mL larutan NaOH memiliki konsentrasi 0,4 M. Berapa mol NaOH yang terkandung di dalamnya?",
+        "id": "q8_1788120507_7",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "0,5 M",
+          "1 M",
+          "1,5 M",
+          "2 M"
+        ],
+        "pertanyaan": "Larutan HCl 3 M sebanyak 50 mL diencerkan hingga volumenya menjadi 150 mL. Berapa konsentrasi akhirnya?",
+        "id": "q9_1788120507_8",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "60%",
+          "70%",
+          "75%",
+          "80%"
+        ],
+        "pertanyaan": "Secara teori suatu reaksi menghasilkan 40 gram produk, namun hasil percobaan hanya menghasilkan 30 gram. Berapa persen rendemennya?",
+        "id": "q10_1788120507_9",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "36 gram",
+          "54 gram",
+          "72 gram",
+          "90 gram"
+        ],
+        "pertanyaan": "Perhatikan reaksi: 2H2(g) + O2(g) menjadi 2H2O(g). Jika 8 gram gas H2 bereaksi sempurna dengan O2 berlebih, berapa gram H2O yang terbentuk? (Ar H = 1, O = 16)",
+        "id": "q11_1788120507_10",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "5,6 L",
+          "11,2 L",
+          "22,4 L",
+          "44,8 L"
+        ],
+        "pertanyaan": "Perhatikan reaksi: CaCO3(s) menjadi CaO(s) + CO2(g). Jika 50 gram CaCO3 terurai sempurna, berapa volume gas CO2 yang dihasilkan pada keadaan STP? (Ar Ca = 40, C = 12, O = 16)",
+        "id": "q12_1788120507_11",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "5 mol",
+          "8 mol",
+          "10 mol",
+          "15 mol"
+        ],
+        "pertanyaan": "Diketahui reaksi pembakaran propana: C3H8(g) + 5O2(g) menjadi 3CO2(g) + 4H2O(g). Jika 2 mol gas propana dibakar sempurna, berapa mol gas O2 yang dibutuhkan?",
+        "id": "q13_1788120507_12",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "H2 adalah pereaksi pembatas",
+          "O2 adalah pereaksi pembatas",
+          "Keduanya habis bersamaan",
+          "Tidak ada pereaksi pembatas"
+        ],
+        "pertanyaan": "Perhatikan reaksi: 2H2(g) + O2(g) menjadi 2H2O(g). Jika tersedia 6 mol gas H2 dan 2 mol gas O2, tentukan pereaksi pembatasnya!",
+        "id": "q14_1788120507_13",
+        "penjelasan": ""
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "36 gram",
+          "54 gram",
+          "72 gram",
+          "108 gram"
+        ],
+        "pertanyaan": "Dari reaksi pada soal nomor 14 (6 mol H2 dan 2 mol O2), berapa gram H2O yang terbentuk? (Ar H = 1, O = 16)",
+        "id": "q15_1788120507_14",
+        "penjelasan": ""
+      }
+    ],
+    "current_started_at": {
+      "_seconds": 1788120545,
+      "_nanoseconds": 90493000
+    },
+    "current_index": 0,
+    "status": "soal"
+  },
+  {
+    "id": "XMKuxcKUHFWmX6XTZXki",
+    "mapel": "Kimia",
+    "kode": "R52JD5",
+    "durasi_detik": 90,
+    "judul": "Stoikiometri",
+    "admin_id": "loYyLXkg7qta0czE0WnM",
+    "created_at": {
+      "_seconds": 1788120726,
+      "_nanoseconds": 718216000
+    },
+    "questions": [
+      {
+        "pertanyaan": "Stoikiometri berasal dari kata \"stoicheion\" dalam bahasa Yunani yang berarti?",
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pilihan": [
+          "Mengukur",
+          "Menghitung",
+          "Mereaksikan",
+          "Menimbang"
+        ],
+        "id": "q1_1788120769_0"
+      },
+      {
+        "pertanyaan": "Berapa jumlah mol dari 36 gram H2O? (Ar H = 1, O = 16)",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "1 mol",
+          "1,5 mol",
+          "2 mol",
+          "2,5 mol"
+        ],
+        "id": "q2_1788120769_1"
+      },
+      {
+        "pertanyaan": "Berapa jumlah mol dari 8 gram gas oksigen (O2)? (Ar O = 16)",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "0,1 mol",
+          "0,25 mol",
+          "0,5 mol",
+          "1 mol"
+        ],
+        "id": "q3_1788120769_2"
+      },
+      {
+        "pertanyaan": "Berapa jumlah molekul yang terdapat dalam 2 mol H2O? (bilangan Avogadro = 6,02 x 10^23)",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "6,02 x 10^23 molekul",
+          "1,204 x 10^24 molekul",
+          "3,01 x 10^23 molekul",
+          "2,408 x 10^24 molekul"
+        ],
+        "id": "q4_1788120769_3"
+      },
+      {
+        "pertanyaan": "Berapa jumlah molekul yang terdapat dalam 44 gram gas CO2? (Ar C = 12, O = 16)",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "3,01 x 10^23 molekul",
+          "6,02 x 10^23 molekul",
+          "1,204 x 10^24 molekul",
+          "1,806 x 10^23 molekul"
+        ],
+        "id": "q5_1788120769_4"
+      },
+      {
+        "pertanyaan": "Berapa volume 3 mol gas N2 pada keadaan STP? (1 mol gas = 22,4 L)",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "22,4 L",
+          "44,8 L",
+          "67,2 L",
+          "89,6 L"
+        ],
+        "id": "q6_1788120769_5"
+      },
+      {
+        "pertanyaan": "Sebanyak 8 gram gas metana (CH4) diukur pada keadaan STP. Berapa volumenya? (Ar C = 12, H = 1)",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "5,6 L",
+          "11,2 L",
+          "22,4 L",
+          "44,8 L"
+        ],
+        "id": "q7_1788120769_6"
+      },
+      {
+        "pertanyaan": "Sebanyak 250 mL larutan NaOH memiliki konsentrasi 0,4 M. Berapa mol NaOH yang terkandung di dalamnya?",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "0,05 mol",
+          "0,1 mol",
+          "0,2 mol",
+          "0,4 mol"
+        ],
+        "id": "q8_1788120769_7"
+      },
+      {
+        "pertanyaan": "Larutan HCl 3 M sebanyak 50 mL diencerkan hingga volumenya menjadi 150 mL. Berapa konsentrasi akhirnya?",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "0,5 M",
+          "1 M",
+          "1,5 M",
+          "2 M"
+        ],
+        "id": "q9_1788120769_8"
+      },
+      {
+        "pertanyaan": "Secara teori suatu reaksi menghasilkan 40 gram produk, namun hasil percobaan hanya menghasilkan 30 gram. Berapa persen rendemennya?",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "60%",
+          "70%",
+          "75%",
+          "80%"
+        ],
+        "id": "q10_1788120769_9"
+      },
+      {
+        "pertanyaan": "Perhatikan reaksi: 2H2(g) + O2(g) menjadi 2H2O(g). Jika 8 gram gas H2 bereaksi sempurna dengan O2 berlebih, berapa gram H2O yang terbentuk? (Ar H = 1, O = 16)",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "36 gram",
+          "54 gram",
+          "72 gram",
+          "90 gram"
+        ],
+        "id": "q11_1788120769_10"
+      },
+      {
+        "pertanyaan": "Perhatikan reaksi: CaCO3(s) menjadi CaO(s) + CO2(g). Jika 50 gram CaCO3 terurai sempurna, berapa volume gas CO2 yang dihasilkan pada keadaan STP? (Ar Ca = 40, C = 12, O = 16)",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "5,6 L",
+          "11,2 L",
+          "22,4 L",
+          "44,8 L"
+        ],
+        "id": "q12_1788120769_11"
+      },
+      {
+        "pertanyaan": "Diketahui reaksi pembakaran propana: C3H8(g) + 5O2(g) menjadi 3CO2(g) + 4H2O(g). Jika 2 mol gas propana dibakar sempurna, berapa mol gas O2 yang dibutuhkan?",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "5 mol",
+          "8 mol",
+          "10 mol",
+          "15 mol"
+        ],
+        "id": "q13_1788120769_12"
+      },
+      {
+        "pertanyaan": "Perhatikan reaksi: 2H2(g) + O2(g) menjadi 2H2O(g). Jika tersedia 6 mol gas H2 dan 2 mol gas O2, tentukan pereaksi pembatasnya!",
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pilihan": [
+          "H2 adalah pereaksi pembatas",
+          "O2 adalah pereaksi pembatas",
+          "Keduanya habis bersamaan",
+          "Tidak ada pereaksi pembatas"
+        ],
+        "id": "q14_1788120769_13"
+      },
+      {
+        "pertanyaan": "Dari reaksi pada soal nomor 14 (6 mol H2 dan 2 mol O2), berapa gram H2O yang terbentuk? (Ar H = 1, O = 16)",
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pilihan": [
+          "36 gram",
+          "54 gram",
+          "72 gram",
+          "108 gram"
+        ],
+        "id": "q15_1788120769_14"
+      }
+    ],
+    "current_started_at": {
+      "_seconds": 1788185946,
+      "_nanoseconds": 903131000
+    },
+    "current_index": 14,
+    "status": "selesai"
+  },
+  {
+    "id": "dBBNK3JHSSno6qKtmgX9",
+    "admin_id": "loYyLXkg7qta0czE0WnM",
+    "mapel": "Matematika",
+    "durasi_detik": 120,
+    "judul": "Latihan SOAL Fungsi",
+    "created_at": {
+      "_seconds": 1788522836,
+      "_nanoseconds": 960810000
+    },
+    "kode": "97D3QV",
+    "questions": [
+      {
+        "id": "q1_1788522848_0",
+        "pilihan": [
+          "sembarang anggota B",
+          "lebih dari satu anggota B",
+          "tepat satu anggota B",
+          "tidak ada anggota B"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "Fungsi f : A → B disebut fungsi jika setiap anggota A dipasangkan dengan..."
+      },
+      {
+        "id": "q2_1788522848_1",
+        "pilihan": [
+          "Daerah kawan",
+          "Daerah asal",
+          "Daerah hasil",
+          "Daerah bebas"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Domain suatu fungsi disebut juga..."
+      },
+      {
+        "id": "q3_1788522848_2",
+        "pilihan": [
+          "Daerah asal",
+          "Daerah hasil",
+          "Daerah kawan",
+          "Daerah invers"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "Kodomain suatu fungsi disebut juga..."
+      },
+      {
+        "id": "q5_1788522848_4",
+        "pilihan": [
+          "3",
+          "5",
+          "6",
+          "2"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = x + 3. Nilai dari f(2) adalah..."
+      },
+      {
+        "id": "q6_1788522848_5",
+        "pilihan": [
+          "5",
+          "7",
+          "10",
+          "25"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = 2x. Nilai dari f(5) adalah..."
+      },
+      {
+        "id": "q7_1788522848_6",
+        "pilihan": [
+          "Linear",
+          "Konstan",
+          "Kuadrat",
+          "Identitas"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Fungsi f(x) = 7 untuk setiap nilai x disebut fungsi..."
+      },
+      {
+        "id": "q8_1788522848_7",
+        "pilihan": [
+          "D_f",
+          "K_f",
+          "R_f",
+          "I_f"
+        ],
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pertanyaan": "Lambang yang digunakan untuk menyatakan Domain dari fungsi f adalah..."
+      },
+      {
+        "id": "q9_1788522848_8",
+        "pilihan": [
+          "Konstan",
+          "Surjektif",
+          "Identitas",
+          "Linear"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Fungsi bijektif merupakan gabungan dari sifat injektif dan..."
+      },
+      {
+        "id": "q10_1788522848_9",
+        "pilihan": [
+          "y = 0",
+          "x = 0",
+          "y = x",
+          "y = -x"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "Grafik fungsi invers f⁻¹(x) merupakan hasil pencerminan grafik f(x) terhadap garis..."
+      },
+      {
+        "id": "q11_1788522848_10",
+        "pilihan": [
+          "f ditambah g",
+          "f komposisi g",
+          "f dibagi g",
+          "f invers g"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Notasi (f ∘ g)(x) dibaca sebagai..."
+      },
+      {
+        "id": "q12_1788522848_11",
+        "pilihan": [
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = x - 1. Nilai dari f(6) adalah..."
+      },
+      {
+        "id": "q13_1788522848_12",
+        "pilihan": [
+          "3x + 3",
+          "2x + 3",
+          "3x - 3",
+          "x + 5"
+        ],
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = x + 3 dan g(x) = 2x. Hasil dari (f + g)(x) adalah..."
+      },
+      {
+        "id": "q14_1788522848_13",
+        "pilihan": [
+          "x² + 3x + 2",
+          "x² - 3x + 2",
+          "x² - 3x - 2",
+          "x² + 3x - 2"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = x² + 2 dan g(x) = 3x. Hasil dari (f - g)(x) adalah..."
+      },
+      {
+        "id": "q15_1788522848_14",
+        "pilihan": [
+          "x² + 1",
+          "x² + x",
+          "(x + 1)²",
+          "x + 1²"
+        ],
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = x + 1 dan g(x) = x². Hasil dari (f ∘ g)(x) adalah..."
+      },
+      {
+        "id": "q16_1788522848_15",
+        "pilihan": [
+          "(x - 4)/2",
+          "(x + 4)/2",
+          "2x + 4",
+          "(4 - x)/2"
+        ],
+        "jawaban_benar": "B",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = 2x - 4. Invers dari fungsi tersebut, f⁻¹(x), adalah..."
+      },
+      {
+        "id": "q17_1788522848_16",
+        "pilihan": [
+          "4x + 2",
+          "4x + 8",
+          "x + 8",
+          "4(x + 2)"
+        ],
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = 4x dan g(x) = x + 2. Hasil dari (g ∘ f)(x) adalah..."
+      },
+      {
+        "id": "q18_1788522848_17",
+        "pilihan": [
+          "3x² - 5x - 2",
+          "3x² + 5x - 2",
+          "3x² - 5x + 2",
+          "3x² - x - 2"
+        ],
+        "jawaban_benar": "A",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui f(x) = 3x + 1 dan g(x) = x - 2. Hasil dari (f · g)(x) adalah..."
+      },
+      {
+        "id": "q19_1788522848_18",
+        "pilihan": [
+          "0",
+          "-5",
+          "5",
+          "1/5"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "Diketahui g(x) = x - 5. Fungsi (f/g)(x) terdefinisi untuk semua nilai x KECUALI x sama dengan..."
+      },
+      {
+        "id": "q20_1788522848_19",
+        "pilihan": [
+          "10",
+          "13",
+          "15",
+          "17"
+        ],
+        "jawaban_benar": "C",
+        "penjelasan": "",
+        "pertanyaan": "(HOTS) Diketahui f(x) = 2x - 1 dan g(x) = x + 3. Jika (f ∘ g)⁻¹(a) = 5, maka nilai a adalah..."
+      }
+    ],
+    "current_started_at": {
+      "_seconds": 1788531280,
+      "_nanoseconds": 429155000
+    },
+    "current_index": 18,
+    "status": "selesai"
+  },
+  {
+    "id": "xHTTFy345rjtRCkAXyb3",
+    "admin_id": "loYyLXkg7qta0czE0WnM",
+    "durasi_detik": 120,
+    "kode": "EV8SPE",
+    "created_at": {
+      "_seconds": 1788783929,
+      "_nanoseconds": 505076000
+    },
+    "mapel": "Fisika",
+    "judul": "Latihan SOAL materi Gaya",
+    "questions": [
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "2 m/s²",
+          "4 m/s²",
+          "6 m/s²",
+          "8 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q1_1788784337_0",
+        "pertanyaan": "Sebuah benda bermassa 6 kg didorong dengan gaya 24 N. Berapa percepatan yang dialami benda tersebut?"
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "4 kg",
+          "6 kg",
+          "8 kg",
+          "10 kg"
+        ],
+        "penjelasan": "",
+        "id": "q2_1788784337_1",
+        "pertanyaan": "Sebuah benda mengalami percepatan 5 m/s² akibat gaya sebesar 40 N. Berapa massa benda tersebut?"
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "3 N",
+          "13 N",
+          "30 N",
+          "300 N"
+        ],
+        "penjelasan": "",
+        "id": "q3_1788784337_2",
+        "pertanyaan": "Sebuah balok bermassa 3 kg berada di permukaan bumi (g = 10 m/s²). Berapa besar gaya berat balok tersebut?"
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "3 m/s²",
+          "4 m/s²",
+          "5 m/s²",
+          "6,25 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q4_1788784337_3",
+        "pertanyaan": "Sebuah kotak bermassa 8 kg ditarik dengan gaya 50 N ke kanan, namun terdapat gaya gesek 10 N yang melawan arah gerak. Berapa percepatan kotak tersebut?"
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "2 m/s²",
+          "4 m/s²",
+          "6 m/s²",
+          "8 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q5_1788784337_4",
+        "pertanyaan": "Dua gaya bekerja pada sebuah benda bermassa 10 kg: gaya pertama 60 N ke kanan dan gaya kedua 20 N ke kiri. Berapa percepatan benda tersebut?"
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "4 m/s²",
+          "5 m/s²",
+          "6 m/s²",
+          "7,5 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q6_1788784337_5",
+        "pertanyaan": "Sebuah mobil mainan bermassa 1,5 kg diberi gaya dorong sebesar 9 N. Berapa percepatan mobil mainan tersebut?"
+      },
+      {
+        "jawaban_benar": "C",
+        "pilihan": [
+          "24 N",
+          "36 N",
+          "48 N",
+          "72 N"
+        ],
+        "penjelasan": "",
+        "id": "q7_1788784337_6",
+        "pertanyaan": "Sebuah balok bermassa 4 kg bergerak melingkar dengan kecepatan 6 m/s pada lintasan berjari-jari 3 m. Berapa besar gaya sentripetal yang bekerja pada balok tersebut?"
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "2 N",
+          "4 N",
+          "8 N",
+          "16 N"
+        ],
+        "penjelasan": "",
+        "id": "q8_1788784337_7",
+        "pertanyaan": "Sebuah bola bermassa 0,5 kg berputar dengan kecepatan 4 m/s pada tali sepanjang 2 m (jari-jari lintasan). Berapa besar tegangan tali (gaya sentripetal) yang bekerja?"
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "1 m/s²",
+          "2 m/s²",
+          "4 m/s²",
+          "5 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q9_1788784337_8",
+        "pertanyaan": "Dua massa dihubungkan katrol licin: m1 = 6 kg dan m2 = 4 kg (g = 10 m/s²). Berapa percepatan sistem tersebut?"
+      },
+      {
+        "jawaban_benar": "B",
+        "pilihan": [
+          "3 m/s²",
+          "4 m/s²",
+          "5 m/s²",
+          "6 m/s²"
+        ],
+        "penjelasan": "",
+        "id": "q10_1788784337_9",
+        "pertanyaan": "Sebuah peti bermassa 12 kg didorong dengan gaya 60 N di atas lantai kasar dengan gaya gesek 12 N. Berapa percepatan peti tersebut?"
+      }
+    ],
+    "current_started_at": {
+      "_seconds": 1788789331,
+      "_nanoseconds": 356910000
+    },
+    "current_index": 9,
+    "status": "selesai"
+  }
+]

@@ -770,9 +770,11 @@ def soal():
         bab=request.form.get("bab","").strip()
         if material_id and not bab:
             linked=get_material(material_id); bab=(linked or {}).get("bab","")
-        create_question(jenjang,kelas,mapel,request.form.get("tipe","latihan"),request.form.get("pertanyaan",""),pilihan,request.form.get("jawaban_benar","A"),request.form.get("penjelasan",""),material_id,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,konteks_ai=request.form.get("konteks_ai","").strip(),konteks_ai_pilihan=konteks_ai_pilihan,bab=bab)
+        create_question(jenjang,kelas,mapel,request.form.get("tipe","latihan"),request.form.get("pertanyaan",""),pilihan,request.form.get("jawaban_benar","A"),request.form.get("penjelasan",""),material_id,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,konteks_ai=request.form.get("konteks_ai","").strip(),konteks_ai_pilihan=konteks_ai_pilihan,bab=bab,checkpoint=request.form.get("checkpoint","").strip())
         flash("Soal berhasil ditambahkan.","success"); return redirect(url_for("admin.soal"))
-    return render_template("admin/soal.html",questions=_tandai_kelengkapan(get_questions()),materials=get_all_materials(),program_map=get_program_map())
+    all_questions=_tandai_kelengkapan(get_questions())
+    checkpoint_list=sorted({q.get("checkpoint") for q in all_questions if q.get("checkpoint")})
+    return render_template("admin/soal.html",questions=all_questions,materials=get_all_materials(),program_map=get_program_map(),checkpoint_list=checkpoint_list)
 
 def _tandai_kelengkapan(questions):
     # Tandai tiap soal "lengkap" (semua 4 pilihan sudah ada teks/gambar) atau
@@ -822,6 +824,7 @@ def edit_soal(question_id):
             konteks_ai_pilihan=konteks_ai_pilihan,
             gambar_url=gambar_url,gambar_path=gambar_path,
             pilihan_gambar=pilihan_gambar,pilihan_gambar_path=pilihan_gambar_path,
+            checkpoint=request.form.get("checkpoint","").strip(),
         )
         flash("Soal berhasil diperbarui.","success"); return redirect(url_for("admin.soal"))
     return render_template("admin/edit_soal.html",question=question,materials=get_all_materials(),program_map=get_program_map())

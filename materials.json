@@ -1,0 +1,747 @@
+[
+  {
+    "id": "013TqbHxDhstXKROyc83",
+    "urutan_subbab": 3,
+    "mapel": "Kimia",
+    "pdf_filename": null,
+    "jenjang": "SMA",
+    "bab": "Stoikiometri",
+    "urutan_bab": 1,
+    "pdf_path": null,
+    "updated_at": {
+      "_seconds": 1788112713,
+      "_nanoseconds": 769696000
+    },
+    "kelas": "11",
+    "tipe": "rangkuman",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/eb3dc629a381424683e6bf99d99e49cc-ChatGPT-Image-31-Agu-2026-00.57.43.png",
+    "created_at": {
+      "_seconds": 1788112713,
+      "_nanoseconds": 769691000
+    },
+    "judul": "Peta Rumus & Hubungan Antar-Besaran",
+    "pdf_url": null,
+    "ringkasan": "",
+    "rangkuman_gambar_path": "soal-images/eb3dc629a381424683e6bf99d99e49cc-ChatGPT-Image-31-Agu-2026-00.57.43.png"
+  },
+  {
+    "id": "2WZ3OA6wmIyOxArnJHig",
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/fc7054f1711c48b1855dcf26fcda15fa-ChatGPT-Image-2-Sep-2026-18.15.17.png",
+    "updated_at": {
+      "_seconds": 1788347735,
+      "_nanoseconds": 586848000
+    },
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/fc7054f1711c48b1855dcf26fcda15fa-ChatGPT-Image-2-Sep-2026-18.15.17.png",
+    "created_at": {
+      "_seconds": 1788347735,
+      "_nanoseconds": 586845000
+    },
+    "urutan_bab": 2,
+    "judul": "Jenis-Jenis Fungsi",
+    "ringkasan": "",
+    "jenjang": "SMA",
+    "bab": "Fungsi",
+    "urutan_subbab": 4,
+    "pdf_url": null,
+    "pdf_filename": null,
+    "pdf_path": null,
+    "kelas": "11",
+    "mapel": "Matematika Wajib"
+  },
+  {
+    "id": "5dYg8PGxnPaeu8gagTjv",
+    "pdf_path": null,
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/705f9add37e9432882f65f6fb93ebea0-ChatGPT-Image-7-Sep-2026-03.58.35.png",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/705f9add37e9432882f65f6fb93ebea0-ChatGPT-Image-7-Sep-2026-03.58.35.png",
+    "urutan_subbab": 4,
+    "ringkasan": "",
+    "mapel": "Fisika",
+    "judul": "Sifat-Sifat Penting Gaya",
+    "pdf_filename": null,
+    "kelas": "11",
+    "created_at": {
+      "_seconds": 1788729081,
+      "_nanoseconds": 298061000
+    },
+    "pdf_url": null,
+    "updated_at": {
+      "_seconds": 1788729081,
+      "_nanoseconds": 298066000
+    },
+    "urutan_bab": 2,
+    "bab": "Gaya dan Hukum Newton",
+    "jenjang": "SMA"
+  },
+  {
+    "id": "7FRtkL66xaOaYdf0ghHd",
+    "pdf_path": null,
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/d7c6818933274b748d808be4b3e926cd-ChatGPT-Image-7-Sep-2026-04.01.58.png",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/d7c6818933274b748d808be4b3e926cd-ChatGPT-Image-7-Sep-2026-04.01.58.png",
+    "urutan_subbab": 6,
+    "ringkasan": "",
+    "mapel": "Fisika",
+    "judul": "Hukum I Newton: Hukum Inersia",
+    "pdf_filename": null,
+    "kelas": "11",
+    "created_at": {
+      "_seconds": 1788729168,
+      "_nanoseconds": 367998000
+    },
+    "pdf_url": null,
+    "updated_at": {
+      "_seconds": 1788729168,
+      "_nanoseconds": 368002000
+    },
+    "urutan_bab": 2,
+    "bab": "Gaya dan Hukum Newton",
+    "jenjang": "SMA"
+  },
+  {
+    "id": "9maIAzJHiZFMzQIbq7DW",
+    "created_at": {
+      "_seconds": 1787404161,
+      "_nanoseconds": 602099000
+    },
+    "kelas": "11",
+    "isi": "",
+    "ringkasan": "Polinomial singkat",
+    "jenjang": "SMA",
+    "pdf_path": "materials/d62ea5ca6cce45e1ab1dc2f5382fb559-Polinomial-Kelas-11.pdf",
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/d62ea5ca6cce45e1ab1dc2f5382fb559-Polinomial-Kelas-11.pdf",
+    "pdf_filename": "Polinomial Kelas 11.pdf",
+    "bab": "Polinomial",
+    "updated_at": {
+      "_seconds": 1788090829,
+      "_nanoseconds": 338861000
+    },
+    "urutan_bab": "1",
+    "judul": "Fast-Track Materi",
+    "urutan_subbab": "1",
+    "mapel": "Matematika Tingkat Lanjut"
+  },
+  {
+    "id": "C017hBWnIMYLjNUGBd01",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788729019,
+      "_nanoseconds": 819993000
+    },
+    "bab": "Gaya dan Hukum Newton",
+    "urutan_bab": 2,
+    "mapel": "Fisika",
+    "created_at": {
+      "_seconds": 1788729019,
+      "_nanoseconds": 819989000
+    },
+    "kelas": "11",
+    "ringkasan": "",
+    "judul": "Rumus dan Satuan Gaya",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "jenjang": "SMA",
+    "urutan_subbab": 3,
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/fb9f9823a8844dde9ae52a4fd430c93b-ChatGPT-Image-7-Sep-2026-03.54.50.png",
+    "rangkuman_gambar_path": "soal-images/fb9f9823a8844dde9ae52a4fd430c93b-ChatGPT-Image-7-Sep-2026-03.54.50.png"
+  },
+  {
+    "id": "DYjAoTLFD5Ux9R6iWoQM",
+    "rangkuman_gambar_path": null,
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/7ad0609fd6404f96b270e55f7d0004c1-PPT-Kimia.pdf",
+    "rangkuman_gambar_url": null,
+    "kelas": "11",
+    "mapel": "Kimia",
+    "jenjang": "SMA",
+    "created_at": {
+      "_seconds": 1788097333,
+      "_nanoseconds": 814288000
+    },
+    "pdf_filename": "PPT Kimia.pdf",
+    "updated_at": {
+      "_seconds": 1788097333,
+      "_nanoseconds": 814288000
+    },
+    "bab": "Stoikiometri",
+    "ringkasan": "",
+    "tipe": "pdf",
+    "pdf_path": "materials/7ad0609fd6404f96b270e55f7d0004c1-PPT-Kimia.pdf",
+    "urutan_bab": 1,
+    "judul": "Fast-Track Materi",
+    "urutan_subbab": 1
+  },
+  {
+    "id": "H5sy15klG2vsYrU5UjR4",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/9836b9139ce44fdb897d32653b888f45-ChatGPT-Image-31-Agu-2026-00.50.03.png",
+    "created_at": {
+      "_seconds": 1788112476,
+      "_nanoseconds": 886061000
+    },
+    "tipe": "rangkuman",
+    "ringkasan": "",
+    "judul": "Pengertian & Logika Dasar (Konsep Mol)",
+    "bab": "Stoikiometri",
+    "mapel": "Kimia",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788112476,
+      "_nanoseconds": 886066000
+    },
+    "urutan_subbab": 2,
+    "rangkuman_gambar_path": "soal-images/9836b9139ce44fdb897d32653b888f45-ChatGPT-Image-31-Agu-2026-00.50.03.png",
+    "urutan_bab": 1,
+    "kelas": "11",
+    "pdf_url": null,
+    "jenjang": "SMA"
+  },
+  {
+    "id": "JCbcL3AXd2RvX1yHT1tH",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788728966,
+      "_nanoseconds": 559729000
+    },
+    "bab": "Gaya dan Hukum Newton",
+    "urutan_bab": 2,
+    "mapel": "Fisika",
+    "created_at": {
+      "_seconds": 1788728966,
+      "_nanoseconds": 559724000
+    },
+    "kelas": "11",
+    "ringkasan": "",
+    "judul": "Apa Itu Gaya?",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "jenjang": "SMA",
+    "urutan_subbab": 2,
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/f4389f794839468dbd8bf2725acdb2c4-ChatGPT-Image-7-Sep-2026-03.53.21.png",
+    "rangkuman_gambar_path": "soal-images/f4389f794839468dbd8bf2725acdb2c4-ChatGPT-Image-7-Sep-2026-03.53.21.png"
+  },
+  {
+    "id": "KEo8YaSsAYvDOqW9py94",
+    "pdf_filename": "Materi Matriks Binar Cerdas.pdf",
+    "pdf_path": "materials/ecb65984daa64390a1c59060a1cbcf90-Materi-Matriks-Binar-Cerdas.pdf",
+    "ringkasan": "",
+    "kelas": "11",
+    "created_at": {
+      "_seconds": 1787475405,
+      "_nanoseconds": 736231000
+    },
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/ecb65984daa64390a1c59060a1cbcf90-Materi-Matriks-Binar-Cerdas.pdf",
+    "jenjang": "SMA",
+    "bab": "Matriks",
+    "updated_at": {
+      "_seconds": 1788090779,
+      "_nanoseconds": 210346000
+    },
+    "urutan_bab": "1",
+    "judul": "Fast-Track Materi",
+    "urutan_subbab": "1",
+    "mapel": "Matematika Wajib"
+  },
+  {
+    "id": "LWMCsJcZlURwT9UpvWSQ",
+    "created_at": {
+      "_seconds": 1788382166,
+      "_nanoseconds": 509474000
+    },
+    "kelas": "8",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/acee1c306ace46a595159d1e501912d9-Gemini_Generated_Image_s3r0oms3r0oms3r0-3.jpg",
+    "bab": "Bentuk Akar",
+    "jenjang": "SMP",
+    "pdf_path": null,
+    "tipe": "rangkuman",
+    "ringkasan": "",
+    "pdf_filename": null,
+    "pdf_url": null,
+    "judul": "Merasionalkan Bentuk Akar",
+    "mapel": "Matematika",
+    "rangkuman_gambar_path": "soal-images/acee1c306ace46a595159d1e501912d9-Gemini_Generated_Image_s3r0oms3r0oms3r0-3.jpg",
+    "updated_at": {
+      "_seconds": 1788382450,
+      "_nanoseconds": 928950000
+    },
+    "urutan_bab": "2",
+    "urutan_subbab": "6"
+  },
+  {
+    "id": "LoBDxQAmU55Tgbn5eVAF",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788729224,
+      "_nanoseconds": 231383000
+    },
+    "bab": "Gaya dan Hukum Newton",
+    "urutan_bab": 2,
+    "mapel": "Fisika",
+    "created_at": {
+      "_seconds": 1788729224,
+      "_nanoseconds": 231380000
+    },
+    "kelas": "11",
+    "ringkasan": "",
+    "judul": "Hukum II Newton: Gaya dan Percepatan",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "jenjang": "SMA",
+    "urutan_subbab": 7,
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/b9beacf3a0b2459580efdabba75a0e1b-ChatGPT-Image-7-Sep-2026-04.03.55.png",
+    "rangkuman_gambar_path": "soal-images/b9beacf3a0b2459580efdabba75a0e1b-ChatGPT-Image-7-Sep-2026-04.03.55.png"
+  },
+  {
+    "id": "RhwNOb3cxCR8iiHMKWyq",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788729127,
+      "_nanoseconds": 729719000
+    },
+    "bab": "Gaya dan Hukum Newton",
+    "urutan_bab": 2,
+    "mapel": "Fisika",
+    "created_at": {
+      "_seconds": 1788729127,
+      "_nanoseconds": 729715000
+    },
+    "kelas": "11",
+    "ringkasan": "",
+    "judul": "Jenis-Jenis Gaya",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "jenjang": "SMA",
+    "urutan_subbab": 5,
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/a268a739ddee40008ef4fb3238bf1f8e-ChatGPT-Image-7-Sep-2026-04.00.43.png",
+    "rangkuman_gambar_path": "soal-images/a268a739ddee40008ef4fb3238bf1f8e-ChatGPT-Image-7-Sep-2026-04.00.43.png"
+  },
+  {
+    "id": "S8ah9IzXe1r7GLTvOSj0",
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/4520de68aa7a401383c904473d105787-ChatGPT-Image-2-Sep-2026-18.09.53.png",
+    "updated_at": {
+      "_seconds": 1788347510,
+      "_nanoseconds": 811511000
+    },
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/4520de68aa7a401383c904473d105787-ChatGPT-Image-2-Sep-2026-18.09.53.png",
+    "created_at": {
+      "_seconds": 1788347510,
+      "_nanoseconds": 811508000
+    },
+    "urutan_bab": 2,
+    "judul": "Domain, Kodomain & Range",
+    "ringkasan": "",
+    "jenjang": "SMA",
+    "bab": "Fungsi",
+    "urutan_subbab": 3,
+    "pdf_url": null,
+    "pdf_filename": null,
+    "pdf_path": null,
+    "kelas": "11",
+    "mapel": "Matematika Wajib"
+  },
+  {
+    "id": "TiXoKmjDXpmQZsu7xbKX",
+    "updated_at": {
+      "_seconds": 1788348734,
+      "_nanoseconds": 141683000
+    },
+    "created_at": {
+      "_seconds": 1788348734,
+      "_nanoseconds": 141679000
+    },
+    "mapel": "Matematika Wajib",
+    "bab": "Fungsi",
+    "tipe": "rangkuman",
+    "urutan_bab": 2,
+    "kelas": "11",
+    "rangkuman_gambar_path": "soal-images/c230e52f03f349f4a3f861746cfd1cbe-ChatGPT-Image-Sep-2-2026-06_31_54-PM.png",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/c230e52f03f349f4a3f861746cfd1cbe-ChatGPT-Image-Sep-2-2026-06_31_54-PM.png",
+    "ringkasan": "",
+    "pdf_url": null,
+    "pdf_filename": null,
+    "urutan_subbab": 8,
+    "judul": "Invers dari Komposisi Fungsi",
+    "jenjang": "SMA",
+    "pdf_path": null
+  },
+  {
+    "id": "WOtgp7cTSsqc0HLodYDc",
+    "pdf_path": null,
+    "created_at": {
+      "_seconds": 1788348162,
+      "_nanoseconds": 720888000
+    },
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/278f39a4ed074501bfdd3e9f28237867-ChatGPT-Image-2-Sep-2026-18.22.15.png",
+    "mapel": "Matematika Wajib",
+    "tipe": "rangkuman",
+    "kelas": "11",
+    "urutan_bab": 2,
+    "jenjang": "SMA",
+    "updated_at": {
+      "_seconds": 1788348162,
+      "_nanoseconds": 720892000
+    },
+    "bab": "Fungsi",
+    "pdf_filename": null,
+    "ringkasan": "",
+    "rangkuman_gambar_path": "soal-images/278f39a4ed074501bfdd3e9f28237867-ChatGPT-Image-2-Sep-2026-18.22.15.png",
+    "pdf_url": null,
+    "judul": "Operasi Aljabar pada Fungsi",
+    "urutan_subbab": 5
+  },
+  {
+    "id": "YrgOXjw0KvzPFJgKAB1E",
+    "pdf_path": null,
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/db7f2442a8e94e1491bc683f2924323d-ChatGPT-Image-7-Sep-2026-04.05.28.png",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/db7f2442a8e94e1491bc683f2924323d-ChatGPT-Image-7-Sep-2026-04.05.28.png",
+    "urutan_subbab": 8,
+    "ringkasan": "",
+    "mapel": "Fisika",
+    "judul": "Hukum III Newton: Aksi dan Reaksi",
+    "pdf_filename": null,
+    "kelas": "11",
+    "created_at": {
+      "_seconds": 1788729264,
+      "_nanoseconds": 716676000
+    },
+    "pdf_url": null,
+    "updated_at": {
+      "_seconds": 1788729264,
+      "_nanoseconds": 716680000
+    },
+    "urutan_bab": 2,
+    "bab": "Gaya dan Hukum Newton",
+    "jenjang": "SMA"
+  },
+  {
+    "id": "ZXZg4QqfwON2qa6ohvze",
+    "jenjang": "SMP",
+    "mapel": "Matematika",
+    "created_at": {
+      "_seconds": 1788381995,
+      "_nanoseconds": 970241000
+    },
+    "rangkuman_gambar_path": "soal-images/5f9bfeae88c841d98a5610dc5ab02009-Gemini_Generated_Image_s3r0oms3r0oms3r0-1.jpg",
+    "pdf_filename": null,
+    "judul": "Perkalian Bentuk Akar",
+    "ringkasan": "",
+    "bab": "Bentuk Akar",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/5f9bfeae88c841d98a5610dc5ab02009-Gemini_Generated_Image_s3r0oms3r0oms3r0-1.jpg",
+    "pdf_path": null,
+    "kelas": "8",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "updated_at": {
+      "_seconds": 1788382506,
+      "_nanoseconds": 163006000
+    },
+    "urutan_bab": "2",
+    "urutan_subbab": "4"
+  },
+  {
+    "id": "ecYs7GtDs1fM3JUZyPpq",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/d788c3cf015a4235beb999d5fdf4da68-ChatGPT-Image-31-Agu-2026-01.05.35.png",
+    "created_at": {
+      "_seconds": 1788113152,
+      "_nanoseconds": 141029000
+    },
+    "tipe": "rangkuman",
+    "ringkasan": "",
+    "judul": "Logika Reaksi & Langkah Alur Perhitungan",
+    "bab": "Stoikiometri",
+    "mapel": "Kimia",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788113152,
+      "_nanoseconds": 141034000
+    },
+    "urutan_subbab": 4,
+    "rangkuman_gambar_path": "soal-images/d788c3cf015a4235beb999d5fdf4da68-ChatGPT-Image-31-Agu-2026-01.05.35.png",
+    "urutan_bab": 1,
+    "kelas": "11",
+    "pdf_url": null,
+    "jenjang": "SMA"
+  },
+  {
+    "id": "gtPsjFCytwg5Ik6BDfQA",
+    "pdf_path": null,
+    "created_at": {
+      "_seconds": 1788348335,
+      "_nanoseconds": 513414000
+    },
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/98ea1e1898194df693f3db28327dadee-ChatGPT-Image-2-Sep-2026-18.25.18.png",
+    "mapel": "Matematika Wajib",
+    "tipe": "rangkuman",
+    "kelas": "11",
+    "urutan_bab": 2,
+    "jenjang": "SMA",
+    "updated_at": {
+      "_seconds": 1788348335,
+      "_nanoseconds": 513419000
+    },
+    "bab": "Fungsi",
+    "pdf_filename": null,
+    "ringkasan": "",
+    "rangkuman_gambar_path": "soal-images/98ea1e1898194df693f3db28327dadee-ChatGPT-Image-2-Sep-2026-18.25.18.png",
+    "pdf_url": null,
+    "judul": "Komposisi Fungsi",
+    "urutan_subbab": 6
+  },
+  {
+    "id": "ihaawh1pdU4nvmwsONc3",
+    "created_at": {
+      "_seconds": 1788382090,
+      "_nanoseconds": 795311000
+    },
+    "kelas": "8",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/018da3f915f14268b3e211ea7e346bd3-Gemini_Generated_Image_s3r0oms3r0oms3r0-2.jpg",
+    "bab": "Bentuk Akar",
+    "jenjang": "SMP",
+    "pdf_path": null,
+    "tipe": "rangkuman",
+    "ringkasan": "",
+    "pdf_filename": null,
+    "pdf_url": null,
+    "judul": "Perkalian Suku Dua Bentuk Akar",
+    "mapel": "Matematika",
+    "rangkuman_gambar_path": "soal-images/018da3f915f14268b3e211ea7e346bd3-Gemini_Generated_Image_s3r0oms3r0oms3r0-2.jpg",
+    "updated_at": {
+      "_seconds": 1788382518,
+      "_nanoseconds": 710426000
+    },
+    "urutan_bab": "2",
+    "urutan_subbab": "5"
+  },
+  {
+    "id": "kePkAyzJBfVPwX8zUfJU",
+    "updated_at": {
+      "_seconds": 1788348514,
+      "_nanoseconds": 617878000
+    },
+    "created_at": {
+      "_seconds": 1788348514,
+      "_nanoseconds": 617874000
+    },
+    "mapel": "Matematika Wajib",
+    "bab": "Fungsi",
+    "tipe": "rangkuman",
+    "urutan_bab": 2,
+    "kelas": "11",
+    "rangkuman_gambar_path": "soal-images/2f76ed0b304d4c5e8e9ba62d787bfacc-ChatGPT-Image-2-Sep-2026-18.28.19.png",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/2f76ed0b304d4c5e8e9ba62d787bfacc-ChatGPT-Image-2-Sep-2026-18.28.19.png",
+    "ringkasan": "",
+    "pdf_url": null,
+    "pdf_filename": null,
+    "urutan_subbab": 7,
+    "judul": "Fungsi Invers",
+    "jenjang": "SMA",
+    "pdf_path": null
+  },
+  {
+    "id": "l29qd6C5UKuVqFdH7OHB",
+    "tipe": "rangkuman",
+    "rangkuman_gambar_path": "soal-images/0e027389adc0478e87a5c22b685867c9-ChatGPT-Image-2-Sep-2026-18.01.36.png",
+    "updated_at": {
+      "_seconds": 1788346971,
+      "_nanoseconds": 383793000
+    },
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/0e027389adc0478e87a5c22b685867c9-ChatGPT-Image-2-Sep-2026-18.01.36.png",
+    "created_at": {
+      "_seconds": 1788346971,
+      "_nanoseconds": 383788000
+    },
+    "urutan_bab": 2,
+    "judul": "Konsep Dasar Fungsi",
+    "ringkasan": "",
+    "jenjang": "SMA",
+    "bab": "Fungsi",
+    "urutan_subbab": 2,
+    "pdf_url": null,
+    "pdf_filename": null,
+    "pdf_path": null,
+    "kelas": "11",
+    "mapel": "Matematika Wajib"
+  },
+  {
+    "id": "nBo7xSObfC1JIeGgAr6K",
+    "tipe": "rangkuman",
+    "pdf_filename": null,
+    "pdf_path": null,
+    "created_at": {
+      "_seconds": 1788113636,
+      "_nanoseconds": 434194000
+    },
+    "jenjang": "SMA",
+    "bab": "Stoikiometri",
+    "ringkasan": "",
+    "judul": "Penerapan & Soal Cerita (Variasi Aplikasi)",
+    "pdf_url": null,
+    "kelas": "11",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/185d55196fe74abf925022c0fb6e0746-ChatGPT-Image-Aug-31-2026-01_12_34-AM.png",
+    "mapel": "Kimia",
+    "rangkuman_gambar_path": "soal-images/185d55196fe74abf925022c0fb6e0746-ChatGPT-Image-Aug-31-2026-01_12_34-AM.png",
+    "updated_at": {
+      "_seconds": 1788113854,
+      "_nanoseconds": 265533000
+    },
+    "urutan_bab": "1",
+    "urutan_subbab": "5"
+  },
+  {
+    "id": "nczFR6zmYCZ1V1sEvYS7",
+    "pdf_filename": "Bentuk_Akar.pdf",
+    "urutan_bab": 2,
+    "updated_at": {
+      "_seconds": 1788379972,
+      "_nanoseconds": 793496000
+    },
+    "tipe": "pdf",
+    "created_at": {
+      "_seconds": 1788379972,
+      "_nanoseconds": 793492000
+    },
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/97e9e482de6c4a8f8ea1dc0a3d220b52-Bentuk_Akar.pdf",
+    "jenjang": "SMP",
+    "urutan_subbab": 1,
+    "bab": "Bentuk Akar",
+    "ringkasan": "",
+    "kelas": "8",
+    "rangkuman_gambar_path": null,
+    "mapel": "Matematika",
+    "pdf_path": "materials/97e9e482de6c4a8f8ea1dc0a3d220b52-Bentuk_Akar.pdf",
+    "judul": "Fast-Track Materi",
+    "rangkuman_gambar_url": null
+  },
+  {
+    "id": "sXbnqM934OvZPxKQa0uW",
+    "jenjang": "SMP",
+    "mapel": "Matematika",
+    "created_at": {
+      "_seconds": 1788381939,
+      "_nanoseconds": 682327000
+    },
+    "rangkuman_gambar_path": "soal-images/c9c4f44377b24f26b24c1a65e896ab44-Gemini_Generated_Image_s3r0oms3r0oms3r0.jpg",
+    "pdf_filename": null,
+    "ringkasan": "",
+    "bab": "Bentuk Akar",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/c9c4f44377b24f26b24c1a65e896ab44-Gemini_Generated_Image_s3r0oms3r0oms3r0.jpg",
+    "pdf_path": null,
+    "kelas": "8",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "urutan_bab": "2",
+    "judul": "Penjumlahan Dan pengurangan bentuk akar",
+    "updated_at": {
+      "_seconds": 1788382482,
+      "_nanoseconds": 869557000
+    },
+    "urutan_subbab": "3"
+  },
+  {
+    "id": "tU0YItbGFvpuqYYpjOlH",
+    "updated_at": {
+      "_seconds": 1788382565,
+      "_nanoseconds": 332242000
+    },
+    "judul": "Pengertian Bentuk Akar",
+    "bab": "Bentuk Akar",
+    "created_at": {
+      "_seconds": 1788382565,
+      "_nanoseconds": 332211000
+    },
+    "urutan_subbab": 2,
+    "kelas": "8",
+    "jenjang": "SMP",
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/6074a0926b2e4b39a0143aac97d9b3b2-bentuk_akar_ringkasan.png",
+    "rangkuman_gambar_path": "soal-images/6074a0926b2e4b39a0143aac97d9b3b2-bentuk_akar_ringkasan.png",
+    "mapel": "Matematika",
+    "pdf_filename": null,
+    "urutan_bab": 2,
+    "pdf_url": null,
+    "pdf_path": null,
+    "ringkasan": "",
+    "tipe": "rangkuman"
+  },
+  {
+    "id": "ykuDtH01V7o3C3PBD23O",
+    "pdf_path": null,
+    "pdf_filename": null,
+    "updated_at": {
+      "_seconds": 1788729307,
+      "_nanoseconds": 831453000
+    },
+    "bab": "Gaya dan Hukum Newton",
+    "urutan_bab": 2,
+    "mapel": "Fisika",
+    "created_at": {
+      "_seconds": 1788729307,
+      "_nanoseconds": 831449000
+    },
+    "kelas": "11",
+    "ringkasan": "",
+    "judul": "Aplikasi dan Materi Pengayaan",
+    "tipe": "rangkuman",
+    "pdf_url": null,
+    "jenjang": "SMA",
+    "urutan_subbab": 9,
+    "rangkuman_gambar_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/soal-images/4c7d567af59248318cd9a4cc368bd423-ChatGPT-Image-7-Sep-2026-04.08.09.png",
+    "rangkuman_gambar_path": "soal-images/4c7d567af59248318cd9a4cc368bd423-ChatGPT-Image-7-Sep-2026-04.08.09.png"
+  },
+  {
+    "id": "zNJMMxiBFFaCQ41s5Ar4",
+    "mapel": "Fisika",
+    "ringkasan": "",
+    "updated_at": {
+      "_seconds": 1788724969,
+      "_nanoseconds": 992654000
+    },
+    "urutan_subbab": 1,
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/9364917f75d74db3932798a1e4269e43-PICIKA.pdf",
+    "pdf_path": "materials/9364917f75d74db3932798a1e4269e43-PICIKA.pdf",
+    "created_at": {
+      "_seconds": 1788724969,
+      "_nanoseconds": 992650000
+    },
+    "rangkuman_gambar_url": null,
+    "rangkuman_gambar_path": null,
+    "jenjang": "SMA",
+    "bab": "Gaya dan Hukum Newton",
+    "pdf_filename": "PICIKA.pdf",
+    "judul": "Fast-Track Materi",
+    "kelas": "11",
+    "urutan_bab": 2,
+    "tipe": "pdf"
+  },
+  {
+    "id": "zOXK7QyFoYcLSSPr4VQO",
+    "mapel": "Matematika Wajib",
+    "judul": "Fast-Track Materi",
+    "created_at": {
+      "_seconds": 1788345507,
+      "_nanoseconds": 594989000
+    },
+    "pdf_url": "https://eocdfmijovsyyqsgtfvk.supabase.co/storage/v1/object/public/materi/materials/44850e5d136e46fb8b46685d6dfc8a9b-Matematika_Fungsi_lengkap-1.pdf",
+    "pdf_filename": "Matematika_Fungsi_lengkap (1).pdf",
+    "pdf_path": "materials/44850e5d136e46fb8b46685d6dfc8a9b-Matematika_Fungsi_lengkap-1.pdf",
+    "rangkuman_gambar_path": null,
+    "bab": "Fungsi",
+    "urutan_bab": 2,
+    "updated_at": {
+      "_seconds": 1788345507,
+      "_nanoseconds": 594993000
+    },
+    "urutan_subbab": 1,
+    "kelas": "11",
+    "tipe": "pdf",
+    "ringkasan": "",
+    "jenjang": "SMA",
+    "rangkuman_gambar_url": null
+  }
+]

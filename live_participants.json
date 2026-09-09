@@ -1,0 +1,543 @@
+[
+  {
+    "id": "S1hiXaXHKsdOPqt3V2Bp__S2IGhxBCfeQ40qgtQPro",
+    "joined_at": {
+      "_seconds": 1788120657,
+      "_nanoseconds": 685154000
+    },
+    "skor": 0,
+    "user_id": "S2IGhxBCfeQ40qgtQPro",
+    "jawaban": {},
+    "session_id": "S1hiXaXHKsdOPqt3V2Bp",
+    "nama": "Juju"
+  },
+  {
+    "id": "XMKuxcKUHFWmX6XTZXki__HVFTv67SyRgmpipE4GKW",
+    "user_id": "HVFTv67SyRgmpipE4GKW",
+    "joined_at": {
+      "_seconds": 1788183700,
+      "_nanoseconds": 210235000
+    },
+    "session_id": "XMKuxcKUHFWmX6XTZXki",
+    "nama": "Rizky Mulya Permana",
+    "jawaban": {
+      "q4_1788120769_3": {
+        "waktu_ms": 62747,
+        "selected": "B",
+        "skor": 651,
+        "benar": true
+      },
+      "q15_1788120769_14": {
+        "waktu_ms": 312014,
+        "selected": "C",
+        "skor": 500,
+        "benar": true
+      },
+      "q8_1788120769_7": {
+        "waktu_ms": 61438,
+        "selected": "B",
+        "skor": 659,
+        "benar": true
+      },
+      "q10_1788120769_9": {
+        "waktu_ms": 88099,
+        "selected": "B",
+        "skor": 0,
+        "benar": false
+      },
+      "q2_1788120769_1": {
+        "waktu_ms": 23502,
+        "selected": "C",
+        "skor": 869,
+        "benar": true
+      },
+      "q1_1788120769_0": {
+        "waktu_ms": 18955,
+        "selected": "A",
+        "skor": 895,
+        "benar": true
+      },
+      "q11_1788120769_10": {
+        "waktu_ms": 69323,
+        "selected": "A",
+        "skor": 0,
+        "benar": false
+      },
+      "q9_1788120769_8": {
+        "waktu_ms": 68658,
+        "selected": "B",
+        "skor": 619,
+        "benar": true
+      },
+      "q13_1788120769_12": {
+        "waktu_ms": 205610,
+        "selected": "C",
+        "skor": 500,
+        "benar": true
+      },
+      "q3_1788120769_2": {
+        "waktu_ms": 22726,
+        "selected": "C",
+        "skor": 0,
+        "benar": false
+      },
+      "q5_1788120769_4": {
+        "waktu_ms": 60501,
+        "selected": "B",
+        "skor": 664,
+        "benar": true
+      },
+      "q14_1788120769_13": {
+        "waktu_ms": 37334,
+        "selected": "B",
+        "skor": 793,
+        "benar": true
+      },
+      "q7_1788120769_6": {
+        "waktu_ms": 41305,
+        "selected": "B",
+        "skor": 771,
+        "benar": true
+      },
+      "q12_1788120769_11": {
+        "waktu_ms": 214759,
+        "selected": "B",
+        "skor": 500,
+        "benar": true
+      },
+      "q6_1788120769_5": {
+        "waktu_ms": 23608,
+        "selected": "C",
+        "skor": 869,
+        "benar": true
+      }
+    },
+    "skor": 8290
+  },
+  {
+    "id": "XMKuxcKUHFWmX6XTZXki__S2IGhxBCfeQ40qgtQPro",
+    "joined_at": {
+      "_seconds": 1788120754,
+      "_nanoseconds": 641802000
+    },
+    "user_id": "S2IGhxBCfeQ40qgtQPro",
+    "session_id": "XMKuxcKUHFWmX6XTZXki",
+    "nama": "Juju",
+    "jawaban": {},
+    "skor": 0
+  },
+  {
+    "id": "XMKuxcKUHFWmX6XTZXki__gVA7Y1Bgh0mmaxWsMzGW",
+    "user_id": "gVA7Y1Bgh0mmaxWsMzGW",
+    "joined_at": {
+      "_seconds": 1788183682,
+      "_nanoseconds": 930610000
+    },
+    "session_id": "XMKuxcKUHFWmX6XTZXki",
+    "nama": "Keneysha Nailah Arkana",
+    "jawaban": {
+      "q2_1788120769_1": {
+        "waktu_ms": 21912,
+        "selected": "C",
+        "skor": 878,
+        "benar": true
+      },
+      "q10_1788120769_9": {
+        "waktu_ms": 44232,
+        "selected": "C",
+        "skor": 754,
+        "benar": true
+      },
+      "q11_1788120769_10": {
+        "waktu_ms": 143365,
+        "selected": "C",
+        "skor": 500,
+        "benar": true
+      },
+      "q4_1788120769_3": {
+        "waktu_ms": 43892,
+        "selected": "B",
+        "skor": 756,
+        "benar": true
+      },
+      "q3_1788120769_2": {
+        "waktu_ms": 25585,
+        "selected": "C",
+        "skor": 0,
+        "benar": false
+      },
+      "q9_1788120769_8": {
+        "waktu_ms": 71305,
+        "selected": "B",
+        "skor": 604,
+        "benar": true
+      },
+      "q5_1788120769_4": {
+        "waktu_ms": 64156,
+        "selected": "B",
+        "skor": 644,
+        "benar": true
+      },
+      "q15_1788120769_14": {
+        "waktu_ms": 343267,
+        "selected": "C",
+        "skor": 500,
+        "benar": true
+      },
+      "q14_1788120769_13": {
+        "waktu_ms": 38456,
+        "selected": "B",
+        "skor": 786,
+        "benar": true
+      },
+      "q12_1788120769_11": {
+        "waktu_ms": 257494,
+        "selected": "D",
+        "skor": 0,
+        "benar": false
+      },
+      "q7_1788120769_6": {
+        "waktu_ms": 48658,
+        "selected": "B",
+        "skor": 730,
+        "benar": true
+      },
+      "q1_1788120769_0": {
+        "waktu_ms": 26140,
+        "selected": "A",
+        "skor": 855,
+        "benar": true
+      },
+      "q6_1788120769_5": {
+        "waktu_ms": 28990,
+        "selected": "C",
+        "skor": 839,
+        "benar": true
+      },
+      "q13_1788120769_12": {
+        "waktu_ms": 207648,
+        "selected": "A",
+        "skor": 0,
+        "benar": false
+      }
+    },
+    "skor": 7846
+  },
+  {
+    "id": "dBBNK3JHSSno6qKtmgX9__gVA7Y1Bgh0mmaxWsMzGW",
+    "joined_at": {
+      "_seconds": 1788530139,
+      "_nanoseconds": 286253000
+    },
+    "session_id": "dBBNK3JHSSno6qKtmgX9",
+    "user_id": "gVA7Y1Bgh0mmaxWsMzGW",
+    "nama": "Keneysha Nailah Arkana",
+    "jawaban": {
+      "q13_1788522848_12": {
+        "waktu_ms": 25393,
+        "selected": "A",
+        "skor": 894,
+        "benar": true
+      },
+      "q15_1788522848_14": {
+        "waktu_ms": 69055,
+        "selected": "A",
+        "skor": 712,
+        "benar": true
+      },
+      "q20_1788522848_19": {
+        "waktu_ms": 59962,
+        "selected": "C",
+        "skor": 750,
+        "benar": true
+      },
+      "q19_1788522848_18": {
+        "waktu_ms": 35366,
+        "selected": "C",
+        "skor": 853,
+        "benar": true
+      },
+      "q10_1788522848_9": {
+        "waktu_ms": 6689,
+        "selected": "C",
+        "skor": 972,
+        "benar": true
+      },
+      "q5_1788522848_4": {
+        "waktu_ms": 14399,
+        "selected": "B",
+        "skor": 940,
+        "benar": true
+      },
+      "q9_1788522848_8": {
+        "waktu_ms": 7200,
+        "selected": "B",
+        "skor": 970,
+        "benar": true
+      },
+      "q16_1788522848_15": {
+        "waktu_ms": 46351,
+        "selected": "B",
+        "skor": 807,
+        "benar": true
+      }
+    },
+    "skor": 6898
+  },
+  {
+    "id": "dBBNK3JHSSno6qKtmgX9__k8cyaD5lk0aKS44yhQb5",
+    "joined_at": {
+      "_seconds": 1788530239,
+      "_nanoseconds": 939508000
+    },
+    "session_id": "dBBNK3JHSSno6qKtmgX9",
+    "user_id": "k8cyaD5lk0aKS44yhQb5",
+    "nama": "Quina Destyananda",
+    "jawaban": {
+      "q13_1788522848_12": {
+        "waktu_ms": 96967,
+        "selected": "A",
+        "skor": 596,
+        "benar": true
+      },
+      "q15_1788522848_14": {
+        "waktu_ms": 98039,
+        "selected": "A",
+        "skor": 592,
+        "benar": true
+      },
+      "q5_1788522848_4": {
+        "waktu_ms": 33229,
+        "selected": "C",
+        "skor": 0,
+        "benar": false
+      },
+      "q9_1788522848_8": {
+        "waktu_ms": 3813,
+        "selected": "A",
+        "skor": 0,
+        "benar": false
+      },
+      "q16_1788522848_15": {
+        "waktu_ms": 219315,
+        "selected": "B",
+        "skor": 500,
+        "benar": true
+      },
+      "q20_1788522848_19": {
+        "waktu_ms": 52421,
+        "selected": "C",
+        "skor": 782,
+        "benar": true
+      },
+      "q19_1788522848_18": {
+        "waktu_ms": 45684,
+        "selected": "C",
+        "skor": 810,
+        "benar": true
+      }
+    },
+    "skor": 3280
+  },
+  {
+    "id": "dBBNK3JHSSno6qKtmgX9__oQm7py3kCZcxlWBsZh2B",
+    "joined_at": {
+      "_seconds": 1788530187,
+      "_nanoseconds": 636133000
+    },
+    "user_id": "oQm7py3kCZcxlWBsZh2B",
+    "nama": "ANDIKA ASKHAR EFFENDI",
+    "session_id": "dBBNK3JHSSno6qKtmgX9",
+    "jawaban": {
+      "q16_1788522848_15": {
+        "skor": 500,
+        "benar": true,
+        "waktu_ms": 214163,
+        "selected": "B"
+      },
+      "q13_1788522848_12": {
+        "skor": 0,
+        "benar": false,
+        "waktu_ms": 94730,
+        "selected": "D"
+      },
+      "q9_1788522848_8": {
+        "skor": 851,
+        "benar": true,
+        "waktu_ms": 35844,
+        "selected": "B"
+      },
+      "q15_1788522848_14": {
+        "skor": 573,
+        "benar": true,
+        "waktu_ms": 102453,
+        "selected": "A"
+      },
+      "q5_1788522848_4": {
+        "skor": 762,
+        "benar": true,
+        "waktu_ms": 57151,
+        "selected": "B"
+      },
+      "q19_1788522848_18": {
+        "skor": 773,
+        "benar": true,
+        "waktu_ms": 54536,
+        "selected": "C"
+      },
+      "q20_1788522848_19": {
+        "skor": 597,
+        "benar": true,
+        "waktu_ms": 96813,
+        "selected": "C"
+      }
+    },
+    "skor": 4056
+  },
+  {
+    "id": "xHTTFy345rjtRCkAXyb3__HVFTv67SyRgmpipE4GKW",
+    "user_id": "HVFTv67SyRgmpipE4GKW",
+    "joined_at": {
+      "_seconds": 1788788594,
+      "_nanoseconds": 322093000
+    },
+    "session_id": "xHTTFy345rjtRCkAXyb3",
+    "nama": "Rizky Mulya Permana",
+    "jawaban": {
+      "q2_1788784337_1": {
+        "waktu_ms": 17587,
+        "selected": "C",
+        "skor": 927,
+        "benar": true
+      },
+      "q9_1788784337_8": {
+        "waktu_ms": 161486,
+        "selected": "B",
+        "skor": 500,
+        "benar": true
+      },
+      "q10_1788784337_9": {
+        "waktu_ms": 31670,
+        "selected": "B",
+        "skor": 868,
+        "benar": true
+      },
+      "q5_1788784337_4": {
+        "waktu_ms": 25202,
+        "selected": "B",
+        "skor": 895,
+        "benar": true
+      },
+      "q3_1788784337_2": {
+        "waktu_ms": 9487,
+        "selected": "C",
+        "skor": 960,
+        "benar": true
+      },
+      "q8_1788784337_7": {
+        "waktu_ms": 53957,
+        "selected": "B",
+        "skor": 775,
+        "benar": true
+      },
+      "q4_1788784337_3": {
+        "waktu_ms": 15983,
+        "selected": "C",
+        "skor": 933,
+        "benar": true
+      },
+      "q6_1788784337_5": {
+        "waktu_ms": 29898,
+        "selected": "C",
+        "skor": 875,
+        "benar": true
+      },
+      "q1_1788784337_0": {
+        "waktu_ms": 14573,
+        "selected": "B",
+        "skor": 939,
+        "benar": true
+      },
+      "q7_1788784337_6": {
+        "waktu_ms": 67115,
+        "selected": "C",
+        "skor": 720,
+        "benar": true
+      }
+    },
+    "skor": 8392
+  },
+  {
+    "id": "xHTTFy345rjtRCkAXyb3__gVA7Y1Bgh0mmaxWsMzGW",
+    "user_id": "gVA7Y1Bgh0mmaxWsMzGW",
+    "joined_at": {
+      "_seconds": 1788788539,
+      "_nanoseconds": 785030000
+    },
+    "session_id": "xHTTFy345rjtRCkAXyb3",
+    "nama": "Keneysha Nailah Arkana",
+    "jawaban": {
+      "q2_1788784337_1": {
+        "waktu_ms": 9893,
+        "selected": "C",
+        "skor": 959,
+        "benar": true
+      },
+      "q9_1788784337_8": {
+        "waktu_ms": 33050,
+        "selected": "B",
+        "skor": 862,
+        "benar": true
+      },
+      "q10_1788784337_9": {
+        "waktu_ms": 54253,
+        "selected": "B",
+        "skor": 774,
+        "benar": true
+      },
+      "q5_1788784337_4": {
+        "waktu_ms": 19370,
+        "selected": "B",
+        "skor": 919,
+        "benar": true
+      },
+      "q3_1788784337_2": {
+        "waktu_ms": 32145,
+        "selected": "C",
+        "skor": 866,
+        "benar": true
+      },
+      "q8_1788784337_7": {
+        "waktu_ms": 26263,
+        "selected": "B",
+        "skor": 891,
+        "benar": true
+      },
+      "q4_1788784337_3": {
+        "waktu_ms": 18718,
+        "selected": "C",
+        "skor": 922,
+        "benar": true
+      },
+      "q6_1788784337_5": {
+        "waktu_ms": 32948,
+        "selected": "C",
+        "skor": 863,
+        "benar": true
+      },
+      "q1_1788784337_0": {
+        "waktu_ms": 16372,
+        "selected": "B",
+        "skor": 932,
+        "benar": true
+      },
+      "q7_1788784337_6": {
+        "waktu_ms": 40777,
+        "selected": "C",
+        "skor": 830,
+        "benar": true
+      }
+    },
+    "skor": 8818
+  }
+]

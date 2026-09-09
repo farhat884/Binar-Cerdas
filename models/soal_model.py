@@ -3,6 +3,24 @@ from database import fetch_all, fetch_one, execute, new_id, utcnow_iso, json_dum
 from services.supabase_storage import delete_file
 COLLECTION="questions"; ATTEMPTS="quiz_attempts"; DRAFTS="quiz_drafts"
 
+# "checkpoint" = tag bagian/sub-topik dalam sebuah bab (misal "Pengertian & Konsep
+# Gaya", "Jenis-jenis Gaya"). Dipakai supaya pas Kelas Live, pengajar bisa
+# tiba-tiba menyalakan kuis pendek untuk SATU bagian tertentu yang baru saja
+# dijelaskan -- soal yang keluar dipilih acak dari bank soal bertag sama,
+# jadi tiap kali dinyalakan (walau bagian yang sama) soalnya bisa beda.
+QUESTION_EXTRA_COLUMNS = {"checkpoint": "TEXT DEFAULT ''"}
+
+def ensure_question_columns():
+    try:
+        cols = {str(r.get("name")) for r in fetch_all("PRAGMA table_info(questions)")}
+        for name, ddl in QUESTION_EXTRA_COLUMNS.items():
+            if name not in cols:
+                execute(f"ALTER TABLE questions ADD COLUMN {name} {ddl}")
+    except Exception:
+        pass
+
+ensure_question_columns()
+
 def _question(d):
     if not d:return None
     d=dict(d)
@@ -21,10 +39,10 @@ def _draft(d):
     if not d:return None
     d=dict(d); d["answers"]=json_loads(d.get("answers"), {}); return d
 
-def create_question(jenjang,kelas,mapel,tipe,pertanyaan,pilihan,jawaban_benar,penjelasan="",material_id=None,gambar_url=None,gambar_path=None,pilihan_gambar=None,pilihan_gambar_path=None,konteks_ai="",konteks_ai_pilihan=None,bab=""):
+def create_question(jenjang,kelas,mapel,tipe,pertanyaan,pilihan,jawaban_benar,penjelasan="",material_id=None,gambar_url=None,gambar_path=None,pilihan_gambar=None,pilihan_gambar_path=None,konteks_ai="",konteks_ai_pilihan=None,bab="",checkpoint=""):
     qid=new_id(); now=utcnow_iso();
-    data={"id":qid,"jenjang":jenjang,"kelas":str(kelas),"mapel":mapel,"bab":bab or "","tipe":tipe,"material_id":material_id,"pertanyaan":pertanyaan,"pilihan":pilihan,"jawaban_benar":jawaban_benar,"penjelasan":penjelasan,"konteks_ai":konteks_ai or "","konteks_ai_pilihan":konteks_ai_pilihan or ["","","",""],"gambar_url":gambar_url,"gambar_path":gambar_path,"pilihan_gambar":pilihan_gambar or [None,None,None,None],"pilihan_gambar_path":pilihan_gambar_path or [None,None,None,None],"created_at":now}
-    execute("""INSERT INTO questions (id,jenjang,kelas,mapel,bab,tipe,material_id,pertanyaan,pilihan,jawaban_benar,penjelasan,konteks_ai,konteks_ai_pilihan,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(qid,jenjang,str(kelas),mapel,bab or "",tipe,material_id,pertanyaan,json_dumps(pilihan),jawaban_benar,penjelasan,konteks_ai or "",json_dumps(konteks_ai_pilihan or ["","","",""]),gambar_url,gambar_path,json_dumps(pilihan_gambar or [None,None,None,None]),json_dumps(pilihan_gambar_path or [None,None,None,None]),now))
+    data={"id":qid,"jenjang":jenjang,"kelas":str(kelas),"mapel":mapel,"bab":bab or "","tipe":tipe,"material_id":material_id,"pertanyaan":pertanyaan,"pilihan":pilihan,"jawaban_benar":jawaban_benar,"penjelasan":penjelasan,"konteks_ai":konteks_ai or "","konteks_ai_pilihan":konteks_ai_pilihan or ["","","",""],"gambar_url":gambar_url,"gambar_path":gambar_path,"pilihan_gambar":pilihan_gambar or [None,None,None,None],"pilihan_gambar_path":pilihan_gambar_path or [None,None,None,None],"checkpoint":(checkpoint or "").strip(),"created_at":now}
+    execute("""INSERT INTO questions (id,jenjang,kelas,mapel,bab,tipe,material_id,pertanyaan,pilihan,jawaban_benar,penjelasan,konteks_ai,konteks_ai_pilihan,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,checkpoint,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(qid,jenjang,str(kelas),mapel,bab or "",tipe,material_id,pertanyaan,json_dumps(pilihan),jawaban_benar,penjelasan,konteks_ai or "",json_dumps(konteks_ai_pilihan or ["","","",""]),gambar_url,gambar_path,json_dumps(pilihan_gambar or [None,None,None,None]),json_dumps(pilihan_gambar_path or [None,None,None,None]),(checkpoint or "").strip(),now))
     return data
 
 def get_question(qid): return _question(fetch_one("SELECT * FROM questions WHERE id=? LIMIT 1",(qid,)))
@@ -36,9 +54,21 @@ def get_questions(**filters):
         if all(str(x.get(k) or "")==str(v) for k,v in filters.items() if v not in (None,"")): out.append(x)
     return sorted(out,key=lambda x:str(x.get("created_at") or ""))
 
+def get_checkpoints(mapel, bab, tipe="latihan"):
+    """Daftar nama 'bagian' (checkpoint) unik untuk mapel+bab tertentu, lengkap
+    jumlah soal per bagian. Dipakai buat tombol 'Kuis Cepat' di Kelas Live."""
+    qs = get_questions(mapel=mapel, bab=bab, tipe=tipe)
+    counts = {}
+    for q in qs:
+        cp = (q.get("checkpoint") or "").strip()
+        if not cp:
+            continue
+        counts[cp] = counts.get(cp, 0) + 1
+    return [{"nama": k, "jumlah": v} for k, v in sorted(counts.items())]
+
 def update_question(qid, **fields):
     json_fields={"pilihan","konteks_ai_pilihan","pilihan_gambar","pilihan_gambar_path"}
-    allowed={"jenjang","kelas","mapel","bab","tipe","material_id","pertanyaan","pilihan","jawaban_benar","penjelasan","konteks_ai","konteks_ai_pilihan","gambar_url","gambar_path","pilihan_gambar","pilihan_gambar_path"}
+    allowed={"jenjang","kelas","mapel","bab","tipe","material_id","pertanyaan","pilihan","jawaban_benar","penjelasan","konteks_ai","konteks_ai_pilihan","gambar_url","gambar_path","pilihan_gambar","pilihan_gambar_path","checkpoint"}
     fields={k:(json_dumps(v) if k in json_fields else v) for k,v in fields.items() if k in allowed}
     if not fields:return
     execute("UPDATE questions SET "+", ".join(f"{k}=?" for k in fields)+" WHERE id=?",tuple(fields[k] for k in fields)+(qid,))
