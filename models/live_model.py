@@ -179,13 +179,22 @@ def submit_answer(session_id,user_id,question_id,selected,waktu_ms):
     questions=sess.get("questions") or []; q=next((x for x in questions if x["id"]==question_id),None)
     if not q:return None,"Soal tidak ditemukan."
     idx=sess.get("current_index",-1)
-    if idx<0 or idx>=len(questions) or questions[idx]["id"]!=question_id:return None,"Soal ini bukan soal yang sedang aktif."
+    if idx<0 or idx>=len(questions):return None,"Soal ini bukan soal yang sedang aktif."
+    # Tiap siswa bisa punya urutan soal sendiri (diacak per-siswa) lewat
+    # quiz_assignments -- jadi soal "aktif" buat siswa ITU belum tentu sama
+    # dengan questions[idx] (urutan global/default). Validasi harus pakai
+    # urutan milik siswa itu sendiri kalau ada, baru fallback ke urutan
+    # global kalau siswa itu gak punya assignment (mode lama/tanpa acak).
+    order=(sess.get("quiz_assignments") or {}).get(user_id)
+    expected_id=order[idx] if order and 0<=idx<len(order) else questions[idx]["id"]
+    if expected_id!=question_id:return None,"Soal ini bukan soal yang sedang aktif."
     data=get_participant(session_id,user_id)
     if not data:return None,"Kamu belum join sesi ini."
     jawaban=data.get("jawaban") or {}
     if question_id in jawaban:return jawaban[question_id],None
     benar=selected==q.get("jawaban_benar"); waktu_ms=max(0,int(waktu_ms or 0)); skor_soal=hitung_skor(benar,waktu_ms,sess.get("durasi_detik",DURASI_DEFAULT)); hasil={"selected":selected,"benar":benar,"skor":skor_soal,"waktu_ms":waktu_ms}; jawaban[question_id]=hasil
     execute("UPDATE live_participants SET jawaban=?,skor=? WHERE id=?",(json_dumps(jawaban),data.get("skor",0)+skor_soal,_participant_id(session_id,user_id))); return hasil,None
+
 
 
 def configure_class(session_id, material_id=None):

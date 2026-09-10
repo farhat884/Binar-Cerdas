@@ -253,7 +253,7 @@ def aktifkan_checkpoint(session_id):
     target_ids = [p["user_id"] for p in peserta]
     if not target_ids:
         return jsonify({"error": "Belum ada siswa yang join."}), 400
-    live_model.activate_checkpoint_quiz(session_id, checkpoint, questions, target_ids, acak_per_siswa)
+    live_model.activate_checkpoint_quiz(session_id, checkpoint or label, questions, target_ids, acak_per_siswa)
     return jsonify({"ok": True})
 
 
