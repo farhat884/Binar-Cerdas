@@ -497,12 +497,28 @@ def _soal_aktif_dengan_jawaban(sess):
     return dict(questions[idx], nomor=idx + 1)
 
 
+def _auto_tutup_jika_waktu_habis(sess):
+    """Kalau waktu jawab soal udah habis (sisa_detik 0) tapi admin belum sempat
+    klik 'Tutup soal & bahas' -- misal lagi sibuk jelasin di kelas -- status
+    otomatis dipindah ke JEDA di sini. Tanpa ini, siswa yang sudah jawab bisa
+    nyangkut selamanya di teks "Jawaban terkirim, tunggu pembahasan" sampai
+    admin ingat buat klik tombolnya. Dipanggil dari endpoint /status DUA sisi
+    (admin & siswa) yang di-poll tiap ~1-2 detik, jadi siapa pun yang polling
+    duluan setelah waktu habis bakal men-trigger transisi ini. Transisi
+    JEDA -> soal berikutnya TETAP manual (pengajar yang atur kapan lanjut,
+    biar ada waktu buat bahas jawabannya dulu)."""
+    if sess["status"] == live_model.STATUS_SOAL and sess.get("current_started_at") and (_sisa_detik(sess) or 0) <= 0:
+        return live_model.advance_session(sess["id"])
+    return sess
+
+
 @live_admin_bp.route("/<session_id>/status")
 @admin_required
 def status(session_id):
     sess = _get_owned_session_or_none(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
+    sess = _auto_tutup_jika_waktu_habis(sess)
     peserta = live_model.get_leaderboard(session_id)
     total_soal = len(sess.get("questions") or [])
     idx = sess.get("current_index", -1)
@@ -587,6 +603,7 @@ def status(session_id):
     sess = live_model.get_session(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
+    sess = _auto_tutup_jika_waktu_habis(sess)
     peserta = live_model.get_participant(session_id, session["user_id"])
     if not peserta:
         return jsonify({"error": "Kamu belum join sesi ini."}), 403
