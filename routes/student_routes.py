@@ -281,7 +281,7 @@ def cek_jawaban_soal(question_id):
     ai=explain_answer(q["pertanyaan"],selected,q["jawaban_benar"],q.get("penjelasan",""),benar=benar,konteks_ai=q.get("konteks_ai",""),pilihan=q.get("pilihan"),konteks_ai_pilihan=q.get("konteks_ai_pilihan"))
     scope_type=data.get("scope_type"); scope_key=str(data.get("scope_key") or "")[:200]
     if scope_type in ("ujian","latihan") and scope_key:
-        save_draft_answer(user["id"],scope_type,scope_key,question_id,{"selected":selected,"benar":benar,"jawaban_benar":q.get("jawaban_benar"),"penjelasan_ai":ai,"answered_at":datetime.datetime.utcnow()})
+        save_draft_answer(user["id"],scope_type,scope_key,question_id,{"selected":selected,"benar":benar,"jawaban_benar":q.get("jawaban_benar"),"penjelasan_ai":ai,"answered_at":datetime.datetime.utcnow().isoformat()})
     return jsonify({"benar":benar,"jawaban_benar":q.get("jawaban_benar"),"penjelasan_ai":ai})
 
 @student_bp.route("/ujian/<tipe>/<mapel>",methods=["GET","POST"])
