@@ -180,7 +180,10 @@
         </div>
         <div class="teacher-material-wrap" id="teacher_material_wrap">
           <div id="tm_empty" class="material-placeholder">Belum ada materi dipilih.</div>
-          <iframe id="tm_pdf" class="material-frame" hidden></iframe>
+          <div id="tm_pdf_stage" class="pdf-stage" hidden>
+            <div class="pdf-canvas-wrap"><canvas id="tm_pdf_canvas"></canvas></div>
+            <div id="tm_pdf_status" class="pdf-stage-status" hidden>Memuat halaman…</div>
+          </div>
           <img id="tm_img" class="material-img" hidden>
           <div id="tm_text" class="material-text" hidden></div>
         </div>
@@ -230,23 +233,43 @@
 </main></div>
 
 {% if sesi.status != 'lobi' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (() => {
+ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
  const root=document.getElementById('live_admin_root'), board=document.getElementById('live_board'), ctx=board.getContext('2d');
  const statusUrl=root.dataset.statusUrl, drawingUrl=root.dataset.drawingUrl;
  const halamanUrl=root.dataset.halamanUrl, gantiMateriUrl=root.dataset.gantiMateriUrl, checkpointUrl=root.dataset.checkpointUrl;
  let drawing=[], lastHash='', drawingActive=false, last={x:0,y:0}, penW=3;
  let lastMaterialId=null, lastPage=null;
+ let pdfDoc=null, pdfDocUrl=null, pdfRenderTask=null;
  document.querySelectorAll('.pen-size-btn').forEach(btn=>{btn.onclick=()=>{penW=+btn.dataset.w;document.querySelectorAll('.pen-size-btn').forEach(b=>b.classList.toggle('active',b===btn))}});
+ async function renderTmPdf(url, page){
+   const stage=document.getElementById('tm_pdf_stage'), canvas=document.getElementById('tm_pdf_canvas'), status=document.getElementById('tm_pdf_status');
+   try{
+     if(pdfDocUrl!==url){status.hidden=false;status.textContent='Memuat PDF…';pdfDoc=await pdfjsLib.getDocument(url).promise;pdfDocUrl=url}
+     const total=pdfDoc.numPages; page=Math.max(1,Math.min(total,page||1));
+     const pdfPage=await pdfDoc.getPage(page);
+     const v0=pdfPage.getViewport({scale:1});
+     const scale=Math.min(stage.clientWidth/v0.width,stage.clientHeight/v0.height)*devicePixelRatio;
+     const viewport=pdfPage.getViewport({scale});
+     canvas.width=viewport.width;canvas.height=viewport.height;
+     canvas.style.width=(viewport.width/devicePixelRatio)+'px';canvas.style.height=(viewport.height/devicePixelRatio)+'px';
+     if(pdfRenderTask){try{pdfRenderTask.cancel()}catch(e){}}
+     pdfRenderTask=pdfPage.render({canvasContext:canvas.getContext('2d'),viewport});
+     await pdfRenderTask.promise;
+     status.hidden=true;
+     document.getElementById('page_indicator').textContent='Hal. '+page+' / '+total;
+   }catch(e){status.hidden=false;status.textContent='Gagal memuat PDF.'}
+ }
  function tmMaterial(m, page){
-   const empty=document.getElementById('tm_empty'),pdf=document.getElementById('tm_pdf'),img=document.getElementById('tm_img'),txt=document.getElementById('tm_text');
-   empty.hidden=!!m; pdf.hidden=true; img.hidden=true; txt.hidden=true;
-   document.getElementById('page_indicator').textContent='Hal. '+(page||1);
-   if(!m) return;
+   const empty=document.getElementById('tm_empty'),pdfStage=document.getElementById('tm_pdf_stage'),img=document.getElementById('tm_img'),txt=document.getElementById('tm_text');
+   empty.hidden=!!m; pdfStage.hidden=true; img.hidden=true; txt.hidden=true;
+   if(!m){document.getElementById('page_indicator').textContent='Hal. 1';return}
    const changed=lastMaterialId!==m.id;
-   if(m.pdf_url){pdf.hidden=false; if(changed||lastPage!==page){pdf.src=''; pdf.src=m.pdf_url+'#page='+(page||1)+'&t='+Date.now(); lastPage=page}}
-   else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false}
-   else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false}
+   if(m.pdf_url){pdfStage.hidden=false; if(changed||lastPage!==page){lastPage=page; renderTmPdf(m.pdf_url,page||1)}}
+   else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false;document.getElementById('page_indicator').textContent='Hal. 1'}
+   else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false;document.getElementById('page_indicator').textContent='Hal. 1'}
    lastMaterialId=m.id;
  }
  document.getElementById('btn_prev_page').onclick=async()=>{await fetch(halamanUrl,{method:'POST',body:new URLSearchParams({delta:-1})});poll()};
