@@ -13,75 +13,60 @@
   {% if sesi.status == 'lobi' %}
   <div class="live-config-grid">
     <section class="card-simple">
-      <h2>1. Materi pengajaran</h2>
-      <p class="muted">Pilih kelas, mapel, lalu bab yang akan tampil full-screen di layar siswa.</p>
+      <h2>1. Sumber soal (Kelas → Mapel → Bab)</h2>
+      <p class="muted">Gak ada tampilan materi/PDF lagi di Kelas Live — layar siswa cuma papan tulis (pas kamu nyalain) atau skor &amp; papan peringkat. Pilihan di bawah cuma nentuin soal dari Bank Soal mana yang dipakai buat "Atur kuis" &amp; "Kuis Cepat".</p>
       <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
         <div class="field-row">
           <div class="field"><label>Kelas</label>
-            <select id="sel_kelas"><option value="">— Pilih kelas —</option></select>
+            <select id="sel_kelas" name="quiz_kelas"><option value="">— Pilih kelas —</option></select>
           </div>
           <div class="field"><label>Mapel</label>
-            <select id="sel_mapel" disabled><option value="">— Pilih mapel —</option></select>
+            <select id="sel_mapel" name="quiz_mapel" disabled><option value="">— Pilih mapel —</option></select>
           </div>
         </div>
         <div class="field"><label>Bab</label>
-          <select id="sel_bab" disabled><option value="">— Pilih bab —</option></select>
+          <select id="sel_bab" name="quiz_bab" disabled><option value="">— Pilih bab —</option></select>
         </div>
-        <input type="hidden" name="material_id" id="input_material_id">
-        <p class="muted" id="materi_pilihan_info" style="font-size:.82rem"></p>
-        <button class="btn btn-gold" type="submit">Simpan pengaturan kelas</button>
+        <button class="btn btn-gold" type="submit">Simpan sumber soal</button>
       </form>
-      <p class="muted" style="margin-top:10px">Tenang, materi ini bisa kamu ganti lagi (pindah tahapan/halaman) kapan pun selagi kelas sedang berjalan nanti — gak harus pas ke sini lagi. Izin mencoret di papan tulis juga diatur belakangan pas kelas sudah berjalan, bukan di sini.</p>
-      <script id="materials_data" type="application/json">{{ materials|tojson }}</script>
+      <p class="muted" style="margin-top:10px">Izin mencoret &amp; nyala/matiin papan tulis diatur belakangan pas kelas sudah berjalan, bukan di sini.</p>
+      <script id="kelas_map_data" type="application/json">{{ kelas_map|tojson }}</script>
+      <script id="bab_materials_data" type="application/json">{{ materials|tojson }}</script>
       <script>
       (() => {
-        const materials = JSON.parse(document.getElementById('materials_data').textContent);
-        const currentMaterialId = {{ (sesi.material_id or "")|tojson }};
+        const kelasMap = JSON.parse(document.getElementById('kelas_map_data').textContent);
+        const materials = JSON.parse(document.getElementById('bab_materials_data').textContent);
+        const currentKelas = {{ (sesi.quiz_kelas or "")|tojson }};
+        const currentMapel = {{ (sesi.quiz_mapel or "")|tojson }};
+        const currentBab = {{ (sesi.quiz_bab or "")|tojson }};
         const selKelas = document.getElementById('sel_kelas'), selMapel = document.getElementById('sel_mapel'),
-              selBab = document.getElementById('sel_bab'), hidden = document.getElementById('input_material_id'),
-              info = document.getElementById('materi_pilihan_info');
+              selBab = document.getElementById('sel_bab');
         function unik(arr){ return [...new Set(arr)].sort(); }
         function fill(select, values, placeholder){
           select.innerHTML = `<option value="">${placeholder}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join('');
         }
-        function pilihBab(){
-          const kelas = selKelas.value, mapel = selMapel.value, bab = selBab.value;
-          if(!kelas || !mapel || !bab){ hidden.value=''; info.textContent=''; return; }
-          // Kalau bab punya beberapa subbab/tahapan, mulai dari yang paling awal --
-          // sisanya tinggal digeser lewat "Ganti materi" pas kelas sudah jalan.
-          const anggota = materials.filter(m=>String(m.kelas)===kelas && m.mapel===mapel && m.bab===bab)
-                                    .sort((a,b)=>(a.urutan_subbab||1)-(b.urutan_subbab||1));
-          if(!anggota.length){ hidden.value=''; info.textContent=''; return; }
-          hidden.value = anggota[0].id;
-          info.textContent = anggota.length>1
-            ? `Dimulai dari "${anggota[0].judul}" (${anggota.length} bagian dalam bab ini, bisa lanjut ke bagian berikutnya lewat "Ganti materi" saat kelas berjalan).`
-            : `Materi: ${anggota[0].judul}`;
-        }
-        function onKelasChange(){
+        function onKelasChange(keepValue){
           const kelas = selKelas.value;
-          selMapel.disabled = !kelas; selBab.disabled = true; hidden.value=''; info.textContent='';
-          fill(selBab, [], '— Pilih bab —');
-          if(!kelas){ fill(selMapel, [], '— Pilih mapel —'); return; }
-          fill(selMapel, unik(materials.filter(m=>String(m.kelas)===kelas).map(m=>m.mapel)), '— Pilih mapel —');
+          selMapel.disabled = !kelas;
+          const mapelKeep = keepValue ? currentMapel : '';
+          if(!kelas){ fill(selMapel, [], '— Pilih mapel —'); onMapelChange(keepValue); return; }
+          fill(selMapel, (kelasMap[kelas] || {mapel:[]}).mapel, '— Pilih mapel —');
+          if(mapelKeep) selMapel.value = mapelKeep;
+          onMapelChange(keepValue);
         }
-        function onMapelChange(){
+        function onMapelChange(keepValue){
           const kelas = selKelas.value, mapel = selMapel.value;
-          selBab.disabled = !mapel; hidden.value=''; info.textContent='';
+          selBab.disabled = !mapel;
           if(!mapel){ fill(selBab, [], '— Pilih bab —'); return; }
           const babs = materials.filter(m=>String(m.kelas)===kelas && m.mapel===mapel)
                                  .sort((a,b)=>(a.urutan_bab||1)-(b.urutan_bab||1)).map(m=>m.bab);
           fill(selBab, unik(babs), '— Pilih bab —');
+          if(keepValue && currentBab) selBab.value = currentBab;
         }
-        selKelas.onchange = onKelasChange; selMapel.onchange = onMapelChange; selBab.onchange = pilihBab;
-        fill(selKelas, unik(materials.map(m=>String(m.kelas))), '— Pilih kelas —');
-        // Kalau kelas ini sudah punya materi tersimpan sebelumnya, pre-select cascade-nya.
-        const existing = materials.find(m=>m.id===currentMaterialId);
-        if(existing){
-          selKelas.value = String(existing.kelas); onKelasChange();
-          selMapel.value = existing.mapel; onMapelChange();
-          selBab.value = existing.bab; hidden.value = currentMaterialId;
-          info.textContent = `Materi: ${existing.judul}`;
-        }
+        selKelas.onchange = () => onKelasChange(false);
+        selMapel.onchange = () => onMapelChange(false);
+        fill(selKelas, Object.keys(kelasMap).sort((a,b)=>(+a)-(+b)), '— Pilih kelas —');
+        if(currentKelas){ selKelas.value = currentKelas; onKelasChange(true); }
       })();
       </script>
     </section>
@@ -118,10 +103,10 @@
       });
       </script>
       {% else %}
-        {% if materi_terpilih %}
-        <div class="live-empty">Materi/bab "<b>{{ materi_terpilih.mapel }} · {{ materi_terpilih.bab }}</b>" sudah dipilih, tapi belum ada soal untuk bab ini di Bank Soal. Tambahkan dulu lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> (pastikan Mapel &amp; Bab-nya sama persis: "{{ materi_terpilih.mapel }}" / "{{ materi_terpilih.bab }}").</div>
+        {% if sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
+        <div class="live-empty">Bab "<b>{{ sesi.quiz_mapel }} · {{ sesi.quiz_bab }}</b>" sudah dipilih, tapi belum ada soal untuk bab ini di Bank Soal. Tambahkan dulu lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> (pastikan Kelas/Mapel/Bab-nya sama persis).</div>
         {% else %}
-        <div class="live-empty">Pilih materi dulu (lengkap sampai bab) agar soal pada bab tersebut muncul di sini.</div>
+        <div class="live-empty">Pilih Kelas → Mapel → Bab dulu di atas agar soal pada bab tersebut muncul di sini.</div>
         {% endif %}
       {% endif %}
     </section>
@@ -153,8 +138,7 @@
   <div id="live_admin_root" class="live-teacher-panel"
        data-status-url="{{ url_for('live_admin.status', session_id=sesi.id) }}"
        data-drawing-url="{{ url_for('live_admin.drawing', session_id=sesi.id) }}"
-       data-halaman-url="{{ url_for('live_admin.halaman', session_id=sesi.id) }}"
-       data-ganti-materi-url="{{ url_for('live_admin.ganti_materi', session_id=sesi.id) }}"
+       data-papan-toggle-url="{{ url_for('live_admin.papan_toggle', session_id=sesi.id) }}"
        data-checkpoint-url="{{ url_for('live_admin.aktifkan_checkpoint', session_id=sesi.id) }}"
        data-durasi="{{ sesi.durasi_detik }}">
     <div class="teacher-toolbar">
@@ -168,26 +152,10 @@
     <div class="teacher-layout">
       <section class="teacher-board-wrap">
         <div class="page-nav">
-          <select id="materi_switch">
-            <option value="">— Tanpa materi —</option>
-            {% for m in materials %}
-            <option value="{{ m.id }}" data-mapel="{{ m.mapel }}" data-bab="{{ m.bab }}" {% if sesi.material_id == m.id %}selected{% endif %}>{{ m.mapel }} · {{ m.bab }} · {{ m.judul }}</option>
-            {% endfor %}
-          </select>
-          <button id="btn_prev_page" class="btn btn-ghost btn-sm">◀ Halaman</button>
-          <span id="page_indicator" class="muted">Hal. 1</span>
-          <button id="btn_next_page" class="btn btn-gold btn-sm">Halaman ▶</button>
+          <button id="btn_papan_toggle" class="btn btn-gold" type="button">🖊️ Nyalakan papan tulis ke siswa</button>
+          <span id="papan_status_text" class="muted"></span>
         </div>
-        <div class="teacher-material-wrap" id="teacher_material_wrap">
-          <div id="tm_empty" class="material-placeholder">Belum ada materi dipilih.</div>
-          <div id="tm_pdf_stage" class="pdf-stage" hidden>
-            <div class="pdf-canvas-wrap"><canvas id="tm_pdf_canvas"></canvas></div>
-            <div id="tm_pdf_status" class="pdf-stage-status" hidden>Memuat halaman…</div>
-          </div>
-          <img id="tm_img" class="material-img" hidden>
-          <div id="tm_text" class="material-text" hidden></div>
-        </div>
-        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><div class="pen-size-group"><button class="pen-size-btn active" data-w="3">✏️ Pensil</button><button class="pen-size-btn" data-w="8">🖊️ Spidol</button><button class="pen-size-btn" data-w="14">🖍️ Tebal</button></div><span class="muted">Papan tulis bersama (tampil di layar siswa, di atas materi)</span></div>
+        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><div class="pen-size-group"><button class="pen-size-btn active" data-w="3">✏️ Pensil</button><button class="pen-size-btn" data-w="8">🖊️ Spidol</button><button class="pen-size-btn" data-w="14">🖍️ Tebal</button></div><span class="muted">Bisa dicoret kapan saja — nyala/matinya tampilan ke siswa diatur tombol di atas.</span></div>
         <canvas id="live_board"></canvas>
       </section>
       <aside class="teacher-side card-simple">
@@ -212,7 +180,7 @@
         <p class="muted" style="margin:0 0 8px">Baru selesai jelasin satu bagian? Langsung tembak kuis singkatnya di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
         <div class="checkpoint-quiz-list">
           {% for c in checkpoints %}
-          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}" data-tahapan-id="{{ c.tahapan_id or '' }}">
+          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
             <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
@@ -221,8 +189,8 @@
           </div>
           {% endfor %}
         </div>
-        {% elif sesi.material_id %}
-        <hr><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab materi ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tombol Kuis Cepat muncul di sini.</p>
+        {% elif sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
+        <hr><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tombol Kuis Cepat muncul di sini.</p>
         {% endif %}
         <hr>
         <h3>Peserta kuis</h3><div id="admin_leaderboard"></div>
@@ -233,53 +201,34 @@
 </main></div>
 
 {% if sesi.status != 'lobi' %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (() => {
- pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
  const root=document.getElementById('live_admin_root'), board=document.getElementById('live_board'), ctx=board.getContext('2d');
  const statusUrl=root.dataset.statusUrl, drawingUrl=root.dataset.drawingUrl;
- const halamanUrl=root.dataset.halamanUrl, gantiMateriUrl=root.dataset.gantiMateriUrl, checkpointUrl=root.dataset.checkpointUrl;
- let drawing=[], lastHash='', drawingActive=false, last={x:0,y:0}, penW=3;
- let lastMaterialId=null, lastPage=null;
- let pdfDoc=null, pdfDocUrl=null, pdfRenderTask=null;
+ const papanToggleUrl=root.dataset.papanToggleUrl, checkpointUrl=root.dataset.checkpointUrl;
+ let drawing=[], drawingActive=false, last={x:0,y:0}, penW=3, papanAktif=false, papanBusy=false;
  document.querySelectorAll('.pen-size-btn').forEach(btn=>{btn.onclick=()=>{penW=+btn.dataset.w;document.querySelectorAll('.pen-size-btn').forEach(b=>b.classList.toggle('active',b===btn))}});
- async function renderTmPdf(url, page){
-   const stage=document.getElementById('tm_pdf_stage'), canvas=document.getElementById('tm_pdf_canvas'), status=document.getElementById('tm_pdf_status');
+ const papanBtn=document.getElementById('btn_papan_toggle'), papanText=document.getElementById('papan_status_text');
+ function renderPapanBtn(){
+   papanBtn.textContent = papanAktif ? '⏹ Matikan papan tulis' : '🖊️ Nyalakan papan tulis ke siswa';
+   papanBtn.className = papanAktif ? 'btn btn-ghost' : 'btn btn-gold';
+   papanText.textContent = papanAktif ? 'Papan tulis lagi tampil ke semua siswa.' : 'Layar siswa lagi nampilin skor & papan peringkat.';
+ }
+ papanBtn.onclick = async () => {
+   if(papanBusy) return; papanBusy = true;
+   const target = !papanAktif;
    try{
-     if(pdfDocUrl!==url){status.hidden=false;status.textContent='Memuat PDF…';pdfDoc=await pdfjsLib.getDocument(url).promise;pdfDocUrl=url}
-     const total=pdfDoc.numPages; page=Math.max(1,Math.min(total,page||1));
-     const pdfPage=await pdfDoc.getPage(page);
-     const v0=pdfPage.getViewport({scale:1});
-     const scale=Math.min(stage.clientWidth/v0.width,stage.clientHeight/v0.height)*devicePixelRatio;
-     const viewport=pdfPage.getViewport({scale});
-     canvas.width=viewport.width;canvas.height=viewport.height;
-     canvas.style.width=(viewport.width/devicePixelRatio)+'px';canvas.style.height=(viewport.height/devicePixelRatio)+'px';
-     if(pdfRenderTask){try{pdfRenderTask.cancel()}catch(e){}}
-     pdfRenderTask=pdfPage.render({canvasContext:canvas.getContext('2d'),viewport});
-     await pdfRenderTask.promise;
-     status.hidden=true;
-     document.getElementById('page_indicator').textContent='Hal. '+page+' / '+total;
-   }catch(e){status.hidden=false;status.textContent='Gagal memuat PDF.'}
- }
- function tmMaterial(m, page){
-   const empty=document.getElementById('tm_empty'),pdfStage=document.getElementById('tm_pdf_stage'),img=document.getElementById('tm_img'),txt=document.getElementById('tm_text');
-   empty.hidden=!!m; pdfStage.hidden=true; img.hidden=true; txt.hidden=true;
-   if(!m){document.getElementById('page_indicator').textContent='Hal. 1';return}
-   const changed=lastMaterialId!==m.id;
-   if(m.pdf_url){pdfStage.hidden=false; if(changed||lastPage!==page){lastPage=page; renderTmPdf(m.pdf_url,page||1)}}
-   else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false;document.getElementById('page_indicator').textContent='Hal. 1'}
-   else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false;document.getElementById('page_indicator').textContent='Hal. 1'}
-   lastMaterialId=m.id;
- }
- document.getElementById('btn_prev_page').onclick=async()=>{await fetch(halamanUrl,{method:'POST',body:new URLSearchParams({delta:-1})});poll()};
- document.getElementById('btn_next_page').onclick=async()=>{await fetch(halamanUrl,{method:'POST',body:new URLSearchParams({delta:1})});poll()};
- document.getElementById('materi_switch').onchange=async(e)=>{await fetch(gantiMateriUrl,{method:'POST',body:new URLSearchParams({material_id:e.target.value})});lastMaterialId=null;poll()};
+     const res = await fetch(papanToggleUrl,{method:'POST',body:new URLSearchParams({aktif: target ? 'on' : 'off'})});
+     const data = await res.json().catch(()=>({}));
+     if(res.ok){ papanAktif = !!data.papan_aktif; renderPapanBtn(); }
+   }catch(e){}
+   papanBusy = false;
+ };
  document.querySelectorAll('.cp-fire-btn').forEach(btn=>{
    btn.onclick=async()=>{
-     const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const tahapanId=item.dataset.tahapanId; const jumlah=item.querySelector('.cp-jumlah').value||3;
+     const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const jumlah=item.querySelector('.cp-jumlah').value||3;
      btn.disabled=true; btn.textContent='Menyalakan…';
-     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,tahapan_id:tahapanId,jumlah,acak_per_siswa:'on'})});
+     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah,acak_per_siswa:'on'})});
      const data=await res.json().catch(()=>({}));
      if(!res.ok){alert(data.error||'Gagal menyalakan kuis cepat.')}
      btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
@@ -295,9 +244,9 @@
  board.addEventListener('pointerup',()=>drawingActive=false); board.addEventListener('pointercancel',()=>drawingActive=false);
  document.getElementById('clear_board').onclick=async()=>{drawing=[];render();await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clear:true})})};
  window.addEventListener('resize',resize); resize();
- async function poll(){try{const d=await (await fetch(statusUrl)).json();drawing=d.drawing||[];render();tmMaterial(d.material,d.current_page);document.getElementById('admin_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';document.getElementById('admin_students').textContent=d.jumlah_peserta;document.getElementById('admin_answered').textContent=d.sudah_jawab;document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Jelaskan materi di papan/materi. Kuis cepat bisa dinyalakan kapan saja dari panel kanan.';document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';renderLB(d.leaderboard||[])}catch(e){}}
+ async function poll(){try{const d=await (await fetch(statusUrl)).json();drawing=d.drawing||[];render();if(!papanBusy){papanAktif=!!d.papan_aktif;renderPapanBtn()}document.getElementById('admin_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';document.getElementById('admin_students').textContent=d.jumlah_peserta;document.getElementById('admin_answered').textContent=d.sudah_jawab;document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Jelasin di papan tulis. Kuis cepat bisa dinyalakan kapan saja dari panel kanan.';document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';renderLB(d.leaderboard||[])}catch(e){}}
  function renderLB(a){document.getElementById('admin_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>'}
- poll();setInterval(poll,2000);
+ renderPapanBtn(); poll();setInterval(poll,2000);
 })();
 </script>
 {% endif %}

@@ -21,6 +21,17 @@ PROGRAM_MAP = {
 }
 def get_program_map(): return PROGRAM_MAP
 
+def get_kelas_map():
+    """Flatten PROGRAM_MAP jadi per-Kelas (bukan per-Jenjang) -- nilai kelas
+    (5,6,7...11) unik lintas jenjang, jadi admin bisa langsung pilih 'Kelas'
+    tanpa perlu milih Jenjang dulu. Dipakai buat cascade Kelas->Mapel->Bab
+    di halaman kelola Kelas Live (sumber soal Kuis Cepat)."""
+    out = {}
+    for jenjang, prog in PROGRAM_MAP.items():
+        for k in prog["kelas"]:
+            out[k] = {"jenjang": jenjang, "mapel": prog["mapel"]}
+    return out
+
 def allowed_subjects(jenjang, kelas):
     kelas = str(kelas)
     rules = {"SD": ({"5", "6"}, {"Matematika", "IPA"}), "SMP": ({"7", "8", "9"}, {"Matematika", "IPA"}), "SMA": ({"10", "11"}, {"Matematika Wajib", "Matematika Tingkat Lanjut", "Fisika", "Kimia"})}

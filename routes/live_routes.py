@@ -16,7 +16,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from auth.decorators import admin_required, student_required
 from models.user_model import get_user_by_id
 from utils.formatter import parse_full_mcq
-from models.materi_model import get_all_materials, get_material
+from models.materi_model import get_all_materials
+from models.program_model import get_kelas_map
 from models.soal_model import get_questions
 import random
 import models.live_model as live_model
@@ -52,48 +53,30 @@ def _get_owned_session_or_none(session_id):
     return sess
 
 
-def _soal_bab_materi(m, **extra_filters):
-    """Soal yang match mapel+bab materi ATAU tertaut langsung lewat
-    material_id -- digabung (union) tanpa dobel. Perlu supaya soal yang
-    ditautkan ke materi tapi field bab-nya sempat berubah tetap kebaca."""
-    by_bab = get_questions(mapel=m.get("mapel"), bab=m.get("bab"), **extra_filters)
-    by_material = get_questions(material_id=m.get("id"), **extra_filters) if m.get("id") else []
-    seen = set()
-    out = []
-    for q in by_bab + by_material:
-        if q["id"] not in seen:
-            seen.add(q["id"]); out.append(q)
-    return out
+def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
+    """Soal yang match Kelas+Mapel+Bab langsung dari Bank Soal -- ini sekarang
+    satu-satunya sumber soal buat Kelas Live, gak ditautkan ke materi/PDF
+    lagi sama sekali."""
+    if not (kelas and mapel and bab):
+        return []
+    return get_questions(kelas=kelas, mapel=mapel, bab=bab, **extra_filters)
 
 
-def _kelompokkan_soal(bank_questions, materi_by_id):
-    """Kelompokkan soal buat ditampilkan: pakai label Checkpoint kalau diisi,
-    kalau kosong jatuh balik ke nama 'Tahapan Materi' yang ditautkan lewat
-    material_id (kolom "Tahapan Materi" pas nambah soal) -- ini yang paling
-    sering keisi, jadi soal gak nyasar semua ke 'Tanpa tahapan' cuma karena
-    Checkpoint (field lain, opsional) belum diisi. Tiap grup dikasih tahu asal
-    labelnya (checkpoint asli atau tahapan materi) supaya "Kuis Cepat" bisa
-    nembak soal yang benar walau grupnya dari fallback."""
-    by_group, group_urutan, group_checkpoint, group_tahapan_id = {}, {}, {}, {}
+def _kelompokkan_soal(bank_questions):
+    """Kelompokkan soal buat ditampilkan & buat tombol 'Kuis Cepat': murni
+    berdasarkan label Bagian/Checkpoint yang diisi pas nambah soal. Soal
+    tanpa checkpoint dikumpulkan ke 'Tanpa tahapan' -- tetap tampil buat
+    dipilih manual di 'Atur kuis', tapi gak dapat tombol Kuis Cepat sendiri
+    (checkpoint kosong berarti gak ada label buat ditembak)."""
+    by_group = {}
     for q in bank_questions:
         cp = (q.get("checkpoint") or "").strip()
-        if cp:
-            nama, urutan, real_cp, tahapan_id = cp, 0, cp, None
-        else:
-            mat_q = materi_by_id.get(q.get("material_id"))
-            if mat_q:
-                nama, urutan, real_cp, tahapan_id = mat_q["judul"], mat_q.get("urutan_subbab", 1), None, mat_q["id"]
-            else:
-                nama, urutan, real_cp, tahapan_id = "Tanpa tahapan", 999, None, None
+        nama = cp if cp else "Tanpa tahapan"
         by_group.setdefault(nama, []).append(q)
-        group_urutan.setdefault(nama, urutan)
-        group_checkpoint.setdefault(nama, real_cp)
-        group_tahapan_id.setdefault(nama, tahapan_id)
     tanpa = by_group.pop("Tanpa tahapan", [])
-    grup = [{"nama": nama, "soal": qs, "checkpoint": group_checkpoint[nama], "tahapan_id": group_tahapan_id[nama]}
-            for nama, qs in sorted(by_group.items(), key=lambda kv: (group_urutan[kv[0]], kv[0]))]
+    grup = [{"nama": nama, "soal": qs, "checkpoint": nama} for nama, qs in sorted(by_group.items())]
     if tanpa:
-        grup.append({"nama": "Tanpa tahapan", "soal": tanpa, "checkpoint": None, "tahapan_id": None})
+        grup.append({"nama": "Tanpa tahapan", "soal": tanpa, "checkpoint": None})
     return grup
 
 
@@ -105,36 +88,28 @@ def kelola(session_id):
         flash("Sesi live tidak ditemukan.", "danger")
         return redirect(url_for("live_admin.daftar"))
     peserta = live_model.get_participants(session_id)
+    kelas_map = get_kelas_map()
+    # Cuma dipakai buat daftar nama Bab resmi per Kelas+Mapel (taksonomi),
+    # BUKAN buat ditampilkan sebagai materi/PDF ke siswa lagi.
     materials = get_all_materials()
     bank_questions = []
     checkpoints = []
     grouped_questions = []
-    materi_terpilih = None
-    if sess.get("material_id"):
-        m = get_material(sess["material_id"])
-        if m:
-            materi_terpilih = m
-            # Gabungkan soal yang match mapel+bab DENGAN soal yang tertaut
-            # langsung lewat material_id (kalau bab-nya sempat diubah nama
-            # setelah soal dibuat, soal itu tetap kebaca lewat material_id).
-            bank_questions = _soal_bab_materi(m)
-            materi_by_id = {mm["id"]: mm for mm in materials}
-            grup = _kelompokkan_soal(bank_questions, materi_by_id)
-            grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
-            # "Kuis Cepat": cuma grup yang punya identitas (checkpoint asli ATAU
-            # tahapan materi), dan cuma hitung soal tipe "latihan" -- soal
-            # UH/UTS/UAS gak dipakai buat kuis dadakan ala Ruang Guru ini.
-            for g in grup:
-                if not (g["checkpoint"] or g["tahapan_id"]):
-                    continue
-                jumlah = len([q for q in g["soal"] if (q.get("tipe") or "latihan") == "latihan"])
-                if jumlah:
-                    checkpoints.append({"nama": g["nama"], "jumlah": jumlah,
-                                         "checkpoint": g["checkpoint"], "tahapan_id": g["tahapan_id"]})
+    if sess.get("quiz_kelas") and sess.get("quiz_mapel") and sess.get("quiz_bab"):
+        bank_questions = _soal_kelas_mapel_bab(sess["quiz_kelas"], sess["quiz_mapel"], sess["quiz_bab"])
+        grup = _kelompokkan_soal(bank_questions)
+        grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
+        # "Kuis Cepat": cuma grup yang punya label checkpoint, dan cuma hitung
+        # soal tipe "latihan" -- soal UH/UTS/UAS gak dipakai buat kuis dadakan.
+        for g in grup:
+            if not g["checkpoint"]:
+                continue
+            jumlah = len([q for q in g["soal"] if (q.get("tipe") or "latihan") == "latihan"])
+            if jumlah:
+                checkpoints.append({"nama": g["nama"], "jumlah": jumlah, "checkpoint": g["checkpoint"]})
     return render_template("admin/live_kelola.html", sesi=sess, peserta=peserta,
-                           materials=materials, bank_questions=bank_questions,
-                           grouped_questions=grouped_questions, materi_terpilih=materi_terpilih,
-                           checkpoints=checkpoints)
+                           kelas_map=kelas_map, materials=materials, bank_questions=bank_questions,
+                           grouped_questions=grouped_questions, checkpoints=checkpoints)
 
 @live_admin_bp.route("/<session_id>/kelas-config", methods=["POST"])
 @admin_required
@@ -146,9 +121,11 @@ def kelas_config(session_id):
     if sess["status"] != live_model.STATUS_LOBI:
         flash("Pengaturan kelas hanya bisa diubah sebelum sesi dimulai.", "danger")
         return redirect(url_for("live_admin.kelola", session_id=session_id))
-    material_id = request.form.get("material_id", "").strip() or None
-    live_model.configure_class(session_id, material_id)
-    flash("Materi kelas diperbarui.", "success")
+    kelas = request.form.get("quiz_kelas", "").strip()
+    mapel = request.form.get("quiz_mapel", "").strip()
+    bab = request.form.get("quiz_bab", "").strip()
+    live_model.set_quiz_source(session_id, kelas, mapel, bab)
+    flash("Sumber soal kelas diperbarui.", "success")
     return redirect(url_for("live_admin.kelola", session_id=session_id))
 
 
@@ -170,34 +147,19 @@ def izin_coret(session_id):
     return redirect(url_for("live_admin.kelola", session_id=session_id))
 
 
-@live_admin_bp.route("/<session_id>/ganti-materi", methods=["POST"])
+@live_admin_bp.route("/<session_id>/papan-toggle", methods=["POST"])
 @admin_required
-def ganti_materi(session_id):
-    """Pindah tahapan/materi yang tampil DI TENGAH kelas berlangsung, gaya
-    ganti slide presentasi ke bab/tahapan berikutnya. Beda dari kelas-config
-    di atas (yang cuma bisa dipakai sebelum kelas mulai)."""
+def papan_toggle(session_id):
+    """Saklar utama papan tulis: nyala -> layar SEMUA siswa otomatis pindah
+    nampilin papan tulis (siswa ikut lewat polling /status). Bisa dipanggil
+    kapan saja selama kelas berjalan. Siapa yang boleh ikut nyoret tetap
+    diatur terpisah lewat 'Izin papan tulis' (izin_coret di bawah)."""
     sess = _get_owned_session_or_none(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    material_id = (request.form.get("material_id") or "").strip() or None
-    live_model.set_material_live(session_id, material_id)
-    return jsonify({"ok": True})
-
-
-@live_admin_bp.route("/<session_id>/halaman", methods=["POST"])
-@admin_required
-def halaman(session_id):
-    """Kontrol halaman materi gaya presentasi: next/prev. Siswa ikut pindah
-    otomatis lewat polling /status. Bisa dipanggil kapan saja selama kelas
-    berjalan, gak dibatasi cuma pas lobi seperti pengaturan lain."""
-    sess = _get_owned_session_or_none(session_id)
-    if not sess:
-        return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    if request.form.get("page") is not None:
-        live_model.set_page(session_id, request.form.get("page"))
-    else:
-        live_model.step_page(session_id, request.form.get("delta", 1))
-    return jsonify({"ok": True, "current_page": live_model.get_session(session_id)["current_page"]})
+    aktif = request.form.get("aktif") == "on"
+    live_model.set_papan_aktif(session_id, aktif)
+    return jsonify({"ok": True, "papan_aktif": aktif})
 
 
 @live_admin_bp.route("/<session_id>/aktifkan-checkpoint", methods=["POST"])
@@ -205,43 +167,28 @@ def halaman(session_id):
 def aktifkan_checkpoint(session_id):
     """'Kuis Cepat' ala Ruang Guru: pengajar lagi menjelaskan, lalu tiba-tiba
     menyalakan kuis singkat untuk SATU bagian/checkpoint yang baru dibahas.
-    Soalnya diambil ACAK dari bank soal bertag checkpoint yang sama, jadi
-    setiap dinyalakan (walau bagiannya sama) soal yang keluar bisa beda --
-    tapi jenis/temanya tetap sama. Bisa dipanggil kapan saja saat 'mengajar',
-    tanpa perlu balik ke lobi dulu."""
+    Soalnya diambil ACAK dari Bank Soal (Kelas+Mapel+Bab yang sudah diatur di
+    kelas-config) bertag checkpoint yang sama, jadi setiap dinyalakan (walau
+    bagiannya sama) soal yang keluar bisa beda -- tapi jenis/temanya tetap
+    sama. Bisa dipanggil kapan saja saat 'mengajar', tanpa perlu balik ke
+    lobi dulu."""
     sess = _get_owned_session_or_none(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    if not sess.get("material_id"):
-        return jsonify({"error": "Pilih materi/tahapan dulu sebelum menyalakan kuis cepat."}), 400
-    m = get_material(sess["material_id"])
-    if not m:
-        return jsonify({"error": "Materi tidak ditemukan."}), 404
+    kelas, mapel, bab = sess.get("quiz_kelas"), sess.get("quiz_mapel"), sess.get("quiz_bab")
+    if not (kelas and mapel and bab):
+        return jsonify({"error": "Pilih Kelas/Mapel/Bab dulu sebelum menyalakan kuis cepat."}), 400
     checkpoint = (request.form.get("checkpoint") or "").strip()
-    tahapan_id = (request.form.get("tahapan_id") or "").strip()
-    if not checkpoint and not tahapan_id:
+    if not checkpoint:
         return jsonify({"error": "Bagian/checkpoint wajib dipilih."}), 400
     try:
         jumlah = max(1, min(20, int(request.form.get("jumlah", 3))))
     except (TypeError, ValueError):
         jumlah = 3
     acak_per_siswa = request.form.get("acak_per_siswa", "on") == "on"
-    if checkpoint:
-        bank = _soal_bab_materi(m, tipe="latihan", checkpoint=checkpoint)
-        label = checkpoint
-    else:
-        # Grup ini bukan dari Checkpoint asli, tapi fallback ke Tahapan Materi
-        # -- ambil soal yang tertaut ke tahapan itu DAN belum diberi checkpoint
-        # (yang sudah punya checkpoint sendiri sudah masuk grup checkpoint-nya).
-        # Query langsung (bukan lewat _soal_bab_materi) supaya gak dobel kirim
-        # material_id -- di sini material_id yang dipakai adalah tahapan_id,
-        # bukan material_id sesi secara keseluruhan.
-        bank = [q for q in get_questions(mapel=m.get("mapel"), bab=m.get("bab"), tipe="latihan", material_id=tahapan_id)
-                if not (q.get("checkpoint") or "").strip()]
-        mat_tahapan = get_material(tahapan_id)
-        label = mat_tahapan["judul"] if mat_tahapan else tahapan_id
+    bank = _soal_kelas_mapel_bab(kelas, mapel, bab, tipe="latihan", checkpoint=checkpoint)
     if not bank:
-        return jsonify({"error": f"Belum ada soal untuk bagian '{label}'."}), 400
+        return jsonify({"error": f"Belum ada soal untuk bagian '{checkpoint}'."}), 400
     ambil = random.sample(bank, min(jumlah, len(bank)))
     random.shuffle(ambil)
     questions = [{"id": q["id"], "pertanyaan": q.get("pertanyaan", ""),
@@ -253,7 +200,7 @@ def aktifkan_checkpoint(session_id):
     target_ids = [p["user_id"] for p in peserta]
     if not target_ids:
         return jsonify({"error": "Belum ada siswa yang join."}), 400
-    live_model.activate_checkpoint_quiz(session_id, checkpoint or label, questions, target_ids, acak_per_siswa)
+    live_model.activate_checkpoint_quiz(session_id, checkpoint, questions, target_ids, acak_per_siswa)
     return jsonify({"ok": True})
 
 
@@ -510,10 +457,8 @@ def status(session_id):
     sudah_jawab = 0
     if soal_aktif:
         sudah_jawab = sum(1 for p in peserta if soal_aktif["id"] in (p.get("jawaban") or {}))
-    mat = get_material(sess.get("material_id")) if sess.get("material_id") else None
     return jsonify({
         "status": sess["status"],
-        "material": {"id": mat["id"], "judul": mat.get("judul"), "tipe": mat.get("tipe"), "pdf_url": mat.get("pdf_url"), "rangkuman_gambar_url": mat.get("rangkuman_gambar_url"), "ringkasan": mat.get("ringkasan","")} if mat else None,
         "current_index": idx,
         "total_soal": total_soal,
         "sisa_detik": _sisa_detik(sess),
@@ -521,10 +466,10 @@ def status(session_id):
         "jumlah_peserta": len(peserta),
         "sudah_jawab": sudah_jawab,
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in peserta[:10]],
-        "mode": sess.get("mode", "mengajar"), "material_id": sess.get("material_id"),
+        "mode": sess.get("mode", "mengajar"),
         "drawing": sess.get("drawing") or [], "draw_allowed_ids": sess.get("draw_allowed_ids") or [],
-        "quiz_enabled": sess.get("quiz_enabled", False),
-        "current_page": sess.get("current_page", 1), "active_checkpoint": sess.get("active_checkpoint", ""),
+        "quiz_enabled": sess.get("quiz_enabled", False), "papan_aktif": sess.get("papan_aktif", False),
+        "active_checkpoint": sess.get("active_checkpoint", ""),
     })
 
 
@@ -605,10 +550,8 @@ def status(session_id):
             }
     leaderboard = live_model.get_leaderboard(session_id)
     peringkat_saya = next((i + 1 for i, p in enumerate(leaderboard) if p["user_id"] == session["user_id"]), None)
-    mat = get_material(sess.get("material_id")) if sess.get("material_id") else None
     return jsonify({
         "status": sess["status"],
-        "material": {"id": mat["id"], "judul": mat.get("judul"), "tipe": mat.get("tipe"), "pdf_url": mat.get("pdf_url"), "rangkuman_gambar_url": mat.get("rangkuman_gambar_url"), "ringkasan": mat.get("ringkasan","")} if mat else None,
         "current_index": sess.get("current_index", -1),
         "total_soal": total_soal,
         "sisa_detik": _sisa_detik(sess),
@@ -618,10 +561,10 @@ def status(session_id):
         "skor_saya": peserta.get("skor", 0),
         "peringkat_saya": peringkat_saya,
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in leaderboard[:10]],
-        "mode": sess.get("mode", "mengajar"), "material_id": sess.get("material_id"),
+        "mode": sess.get("mode", "mengajar"),
         "drawing": sess.get("drawing") or [], "student_draw_enabled": session["user_id"] in (sess.get("draw_allowed_ids") or []),
-        "quiz_enabled": sess.get("quiz_enabled", False),
-        "current_page": sess.get("current_page", 1), "active_checkpoint": sess.get("active_checkpoint", ""),
+        "quiz_enabled": sess.get("quiz_enabled", False), "papan_aktif": sess.get("papan_aktif", False),
+        "active_checkpoint": sess.get("active_checkpoint", ""),
         "quiz_allowed": session["user_id"] in (sess.get("quiz_assignments") or {})    })
 
 

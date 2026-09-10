@@ -12,17 +12,16 @@
     </header>
     <main class="live-stage" id="live_stage">
       <div class="live-material" id="material_panel">
-        <div id="material_empty" class="material-placeholder">Pengajar sedang menyiapkan materi…</div>
-        <div id="pdf_stage" class="pdf-stage" hidden>
-          <div id="pdf_canvas_wrap" class="pdf-canvas-wrap">
-            <canvas id="material_pdf_canvas"></canvas>
+        <div id="board_off_panel" class="board-off-panel">
+          <div class="board-off-inner">
+            <span class="board-off-kicker">Skor kamu</span>
+            <div class="board-off-score" id="score_value_big">0</div>
+            <p class="muted" id="rank_text_idle"></p>
+            <h3>Papan Peringkat</h3>
+            <div id="idle_leaderboard"></div>
           </div>
-          <div id="pdf_status" class="pdf-stage-status" hidden>Memuat halaman…</div>
         </div>
-        <img id="material_img" class="material-img" hidden>
-        <div id="material_text" class="material-text" hidden></div>
-        <canvas id="live_board"></canvas>
-        <span id="material_page_badge" class="material-page-badge" hidden></span>
+        <canvas id="live_board" hidden></canvas>
 
         <div class="draw-toolbar" id="draw_toolbar" hidden>
           <button id="student_draw_btn" class="btn btn-ghost btn-sm">✎ Coret</button>
@@ -32,7 +31,7 @@
             <button class="pen-size-btn" data-w="12">🖍️ Tebal</button>
           </div>
         </div>
-        <div class="score-float">Skor: <span id="skor_lobi">0</span></div>
+        <div class="score-float" id="score_float" hidden>Skor: <span id="skor_lobi">0</span></div>
       </div>
 
       <div class="live-overlay" id="live_overlay" hidden>
@@ -56,21 +55,19 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (() => {
- pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
  const root=document.getElementById('live_root'), board=document.getElementById('live_board'),ctx=board.getContext('2d');
  const statusUrl=root.dataset.statusUrl,jawabUrl=root.dataset.jawabUrl,drawingUrl=root.dataset.drawingUrl,durasi=+root.dataset.durasi||20;
  const overlay=document.getElementById('live_overlay'),qPanel=document.getElementById('quiz_panel'),resPanel=document.getElementById('result_panel');
+ const boardOffPanel=document.getElementById('board_off_panel'),scoreFloat=document.getElementById('score_float');
  let drawing=[],qid=null,seen=0,answered=false,drawAllowed=false,drawOn=false,drawingActive=false,last={x:0,y:0},penW=2;
- let lastMaterialId=null,lastPage=null;
 
  // --- Fullscreen: kontainer #live_root sudah menutupi seluruh layar
  // (position:fixed;inset:0), Fullscreen API cuma nambah hilangin address bar
  // di browser yang dukung (Android/laptop). Di iPhone Safari API ini gak
  // didukung buat elemen biasa -- tombolnya gak akan ngefek di situ, tapi
- // materinya tetap tampil penuh layar.
+ // panelnya tetap tampil penuh layar.
  const fsBtn=document.getElementById('fullscreen_btn');
  function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
  function syncFsBtn(){fsBtn.textContent=isFs()?'⛶ Keluar':'⛶ Fullscreen'}
@@ -79,18 +76,11 @@
  document.addEventListener('webkitfullscreenchange',()=>{syncFsBtn();resizeBoard()});
  syncFsBtn();
 
- // --- Papan coret-coret: ukurannya SELALU dipaskan ke canvas materi (PDF)
- // kalau lagi nampilin PDF, atau ke seluruh panel kalau materinya gambar/teks.
- // Jadi coretan presisi nempel di kontennya, di HP maupun laptop.
- // --- Papan coret-coret: posisinya SELALU dihitung ulang biar pas nempel di
- // atas konten yang lagi tampil -- canvas PDF (kalau lagi PDF, termasuk area
- // letterbox-nya) atau seluruh panel materi (kalau gambar/teks). Jadi
- // coretan presisi nempel di kontennya, di HP maupun laptop.
- function boardTargetEl(){const wrap=document.getElementById('pdf_canvas_wrap');return (!document.getElementById('pdf_stage').hidden)?wrap:document.getElementById('material_panel')}
+ // --- Papan tulis sekarang satu-satunya "konten" panel (gak ada lagi
+ // materi/PDF), jadi canvas-nya selalu dipaskan ke seluruh panel.
  function resizeBoard(){
-  const panel=document.getElementById('material_panel'), el=boardTargetEl();
-  const pRect=panel.getBoundingClientRect(), r=el.getBoundingClientRect();
-  board.style.position='absolute';board.style.left=(r.left-pRect.left)+'px';board.style.top=(r.top-pRect.top)+'px';
+  const panel=document.getElementById('material_panel');
+  const r=panel.getBoundingClientRect();
   board.style.width=r.width+'px';board.style.height=r.height+'px';
   board.width=r.width*devicePixelRatio;board.height=r.height*devicePixelRatio;
   ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);renderStrokes();
@@ -102,52 +92,40 @@
  document.getElementById('student_draw_btn')?.addEventListener('click',()=>{drawOn=!drawOn;document.getElementById('student_draw_btn').textContent=drawOn?'✓ Mencoret':'✎ Coret';document.getElementById('pen_size_group').hidden=!drawOn});
  document.querySelectorAll('.pen-size-btn').forEach(btn=>{btn.onclick=()=>{penW=+btn.dataset.w;document.querySelectorAll('.pen-size-btn').forEach(b=>b.classList.toggle('active',b===btn))}});
 
- // --- Render materi PDF pakai PDF.js (bukan iframe) supaya konsisten di semua
- // browser/HP -- gak lagi kejadian PDF malah kebuka/kedownload sendiri.
- let pdfDoc=null,pdfDocUrl=null,pdfRenderTask=null;
- async function renderPdf(url,page){
-  const wrap=document.getElementById('pdf_canvas_wrap'),canvas=document.getElementById('material_pdf_canvas'),status=document.getElementById('pdf_status');
-  try{
-    if(pdfDocUrl!==url){status.hidden=false;status.textContent='Memuat PDF…';pdfDoc=await pdfjsLib.getDocument(url).promise;pdfDocUrl=url}
-    const totalPages=pdfDoc.numPages;page=Math.max(1,Math.min(totalPages,page||1));
-    const pdfPage=await pdfDoc.getPage(page);
-    const stageEl=document.getElementById('pdf_stage');
-    const containerW=stageEl.clientWidth,containerH=stageEl.clientHeight;
-    const v0=pdfPage.getViewport({scale:1});
-    const scale=Math.min(containerW/v0.width,containerH/v0.height)*devicePixelRatio;
-    const viewport=pdfPage.getViewport({scale});
-    canvas.width=viewport.width;canvas.height=viewport.height;
-    canvas.style.width=(viewport.width/devicePixelRatio)+'px';canvas.style.height=(viewport.height/devicePixelRatio)+'px';
-    if(pdfRenderTask){try{pdfRenderTask.cancel()}catch(e){}}
-    pdfRenderTask=pdfPage.render({canvasContext:canvas.getContext('2d'),viewport});
-    await pdfRenderTask.promise;
-    status.hidden=true;
-    resizeBoard();
-    document.getElementById('material_page_badge').hidden=false;
-    document.getElementById('material_page_badge').textContent='📄 Halaman '+page+' / '+totalPages;
-  }catch(e){status.hidden=false;status.textContent='Gagal memuat PDF. Coba refresh halaman.'}
- }
-
- function material(m,page){
-  const empty=document.getElementById('material_empty'),pdfStage=document.getElementById('pdf_stage'),img=document.getElementById('material_img'),txt=document.getElementById('material_text'),badge=document.getElementById('material_page_badge');
-  empty.hidden=!!m;pdfStage.hidden=true;img.hidden=true;txt.hidden=true;badge.hidden=true;
-  if(!m)return;
-  const materialChanged=lastMaterialId!==m.id;
-  if(m.pdf_url){
-    pdfStage.hidden=false;
-    if(materialChanged||lastPage!==page){lastPage=page;renderPdf(m.pdf_url,page||1)}
-  }else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false;if(materialChanged)requestAnimationFrame(resizeBoard)}
-  else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false;if(materialChanged)requestAnimationFrame(resizeBoard)}
-  lastMaterialId=m.id;
- }
  const labels=['A','B','C','D'];
  function renderQ(q){if(qid===q.id)return;qid=q.id;seen=Date.now();answered=false;document.getElementById('siswa_menunggu_text').hidden=true;document.getElementById('siswa_gagal_text').hidden=true;document.getElementById('siswa_pertanyaan').textContent=q.pertanyaan;const g=document.getElementById('siswa_pilihan_grid');g.innerHTML='';(q.pilihan||[]).forEach((x,i)=>{const b=document.createElement('button');b.className='live-choice-btn live-choice-'+labels[i].toLowerCase();b.textContent=labels[i]+'. '+x;b.onclick=async()=>{if(answered)return;answered=true;[...g.children].forEach(x=>x.disabled=true);try{const res=await fetch(jawabUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id,selected:labels[i],waktu_ms:Date.now()-seen})});if(res.ok){document.getElementById('siswa_menunggu_text').hidden=false}else{document.getElementById('siswa_gagal_text').hidden=false}}catch(e){document.getElementById('siswa_gagal_text').hidden=false}};g.appendChild(b)})}
  function renderLB(a,peringkat){document.getElementById('siswa_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>';document.getElementById('result_rank').textContent=peringkat?`Peringkat kamu saat ini: #${peringkat}`:''}
- async function poll(){try{const d=await(await fetch(statusUrl)).json();document.getElementById('student_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';material(d.material,d.current_page);drawing=d.drawing||[];renderStrokes();drawAllowed=!!d.student_draw_enabled;board.style.pointerEvents=drawAllowed?'auto':'none';const dt=document.getElementById('draw_toolbar');if(dt){dt.hidden=!drawAllowed;if(!drawAllowed){drawOn=false;document.getElementById('pen_size_group').hidden=true;document.getElementById('student_draw_btn').textContent='✎ Coret'}}
+ function renderIdleLB(a,peringkat){document.getElementById('idle_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>';document.getElementById('rank_text_idle').textContent=peringkat?`Peringkat kamu saat ini: #${peringkat}`:''}
+
+ async function poll(){try{const d=await(await fetch(statusUrl)).json();
  const quizAllowed=d.quiz_allowed!==false;
- if(d.status==='soal'&&d.soal_aktif&&quizAllowed){overlay.hidden=false;qPanel.hidden=false;resPanel.hidden=true;renderQ(d.soal_aktif);document.getElementById('siswa_progress_text').textContent=`Soal ${d.current_index+1} dari ${d.total_soal}`;document.getElementById('timer_text').textContent=(d.sisa_detik??0)+' detik';document.getElementById('siswa_timer_fill').style.width=Math.max(0,Math.min(100,(d.sisa_detik/durasi)*100))+'%';if(d.sudah_jawab){answered=true;[...document.getElementById('siswa_pilihan_grid').children].forEach(x=>x.disabled=true);document.getElementById('siswa_menunggu_text').hidden=false}}
- else if(d.status==='jeda'){overlay.hidden=false;qPanel.hidden=true;resPanel.hidden=false;document.getElementById('result_text').textContent=d.hasil_soal_ini?(d.hasil_soal_ini.jawaban_saya?.benar?'Benar! +'+d.hasil_soal_ini.jawaban_saya.skor+' poin.':'Jawaban belum tepat.'):'Menunggu soal berikutnya.';renderLB(d.leaderboard||[],d.peringkat_saya)}
- else {overlay.hidden=true;qPanel.hidden=true;resPanel.hidden=true;document.getElementById('skor_lobi').textContent=d.skor_saya||0}
+ const soalAktif = d.status==='soal' && d.soal_aktif && quizAllowed;
+ const jedaAktif = d.status==='jeda';
+ const papanAktif = !!d.papan_aktif;
+
+ document.getElementById('student_mode').textContent = soalAktif||jedaAktif
+   ? ('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF'))
+   : (papanAktif ? 'PAPAN TULIS' : 'MENGAJAR');
+
+ // Papan tulis cuma tampil kalau lagi dinyalain admin DAN gak ada kuis
+ // yang lagi aktif -- siswa otomatis pindah tanpa perlu ngapa-ngapain.
+ const tampilkanPapan = papanAktif && !soalAktif && !jedaAktif;
+ board.hidden = !tampilkanPapan;
+ boardOffPanel.hidden = tampilkanPapan;
+ scoreFloat.hidden = !tampilkanPapan;
+ if(tampilkanPapan){ requestAnimationFrame(resizeBoard); }
+
+ drawing=d.drawing||[]; if(!board.hidden) renderStrokes();
+ drawAllowed=!!d.student_draw_enabled && tampilkanPapan;
+ board.style.pointerEvents=drawAllowed?'auto':'none';
+ const dt=document.getElementById('draw_toolbar');
+ if(dt){dt.hidden=!drawAllowed;if(!drawAllowed){drawOn=false;document.getElementById('pen_size_group').hidden=true;document.getElementById('student_draw_btn').textContent='✎ Coret'}}
+
+ if(soalAktif){overlay.hidden=false;qPanel.hidden=false;resPanel.hidden=true;renderQ(d.soal_aktif);document.getElementById('siswa_progress_text').textContent=`Soal ${d.current_index+1} dari ${d.total_soal}`;document.getElementById('timer_text').textContent=(d.sisa_detik??0)+' detik';document.getElementById('siswa_timer_fill').style.width=Math.max(0,Math.min(100,(d.sisa_detik/durasi)*100))+'%';if(d.sudah_jawab){answered=true;[...document.getElementById('siswa_pilihan_grid').children].forEach(x=>x.disabled=true);document.getElementById('siswa_menunggu_text').hidden=false}}
+ else if(jedaAktif){overlay.hidden=false;qPanel.hidden=true;resPanel.hidden=false;document.getElementById('result_text').textContent=d.hasil_soal_ini?(d.hasil_soal_ini.jawaban_saya?.benar?'Benar! +'+d.hasil_soal_ini.jawaban_saya.skor+' poin.':'Jawaban belum tepat.'):'Menunggu soal berikutnya.';renderLB(d.leaderboard||[],d.peringkat_saya)}
+ else {overlay.hidden=true;qPanel.hidden=true;resPanel.hidden=true;document.getElementById('skor_lobi').textContent=d.skor_saya||0;
+   if(!tampilkanPapan){document.getElementById('score_value_big').textContent=d.skor_saya||0;renderIdleLB(d.leaderboard||[],d.peringkat_saya)}
+ }
  }catch(e){}}
  window.addEventListener('resize',resizeBoard);resizeBoard();poll();setInterval(poll,2000);
 })();

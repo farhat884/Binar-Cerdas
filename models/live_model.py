@@ -6,26 +6,33 @@ SESSIONS="live_sessions"; PARTICIPANTS="live_participants"
 STATUS_LOBI="lobi"; STATUS_SOAL="soal"; STATUS_JEDA="jeda"; STATUS_SELESAI="selesai"
 DURASI_DEFAULT=20
 
-# Kolom tambahan untuk mode "kelas live": materi, papan tulis bersama,
-# izin coret siswa, kontrol kuis, dan pembagian soal per siswa.
+# Kolom tambahan untuk mode "kelas live": papan tulis bersama, izin coret
+# siswa, kontrol kuis, dan pembagian soal per siswa. Materi/PDF sengaja TIDAK
+# ada lagi di sini -- layar siswa sekarang cuma papan tulis (pas dinyalakan
+# admin) atau skor+peringkat, dan soal kuis diambil langsung dari Bank Soal
+# berdasarkan Kelas+Mapel+Bab, bukan ditautkan ke materi.
 LIVE_EXTRA_COLUMNS = {
     "mode": "TEXT DEFAULT 'mengajar'",
-    "material_id": "TEXT",
     "drawing": "TEXT DEFAULT '[]'",
     "student_draw_enabled": "TEXT DEFAULT 'false'",
     # Daftar user_id siswa yang diizinkan mencoret di papan tulis. Diatur
     # pengajar KAPAN SAJA selagi kelas berlangsung (bukan pas lobi), dan
     # pengajar pilih sendiri siapa yang boleh -- bukan on/off buat semua.
     "draw_allowed_ids": "TEXT DEFAULT '[]'",
+    # Saklar utama papan tulis: nyala -> otomatis tampil ke layar SEMUA siswa
+    # (siapa yang boleh ikut nyoret tetap diatur terpisah lewat draw_allowed_ids).
+    "papan_aktif": "TEXT DEFAULT 'false'",
     "quiz_enabled": "TEXT DEFAULT 'false'",
     "quiz_question_ids": "TEXT DEFAULT '[]'",
     "quiz_assignments": "TEXT DEFAULT '{}'",
     # "Kelas Hari Ini" ditujukan untuk jenjang/kelas tertentu (misal "Kelas 11"),
     # tapi siswa kelas lain tetap bisa ikut nebeng sementara -> lihat get_today_open_sessions().
     "target_kelas": "TEXT DEFAULT ''",
-    # Halaman materi yang sedang tampil (gaya "presentasi") -- pengajar
-    # klik lanjut/mundur halaman, siswa ikut pindah otomatis lewat polling.
-    "current_page": "INTEGER DEFAULT 1",
+    # Sumber soal buat "Kuis Cepat" per-checkpoint: dipilih dari Bank Soal
+    # lewat Kelas+Mapel+Bab langsung (bukan ditautkan ke tahapan materi lagi).
+    "quiz_kelas": "TEXT DEFAULT ''",
+    "quiz_mapel": "TEXT DEFAULT ''",
+    "quiz_bab": "TEXT DEFAULT ''",
     # Nama "bagian/checkpoint" kuis yang sedang aktif (kalau dinyalakan lewat
     # tombol Kuis Cepat), cuma buat ditampilkan di layar, bukan sumber soal.
     "active_checkpoint": "TEXT DEFAULT ''",
@@ -45,7 +52,7 @@ ensure_live_columns()
 
 def _decode_session(d):
     if not d:return None
-    d=dict(d); d["questions"]=json_loads(d.get("questions"), []); d["drawing"]=json_loads(d.get("drawing"), []); d["quiz_question_ids"]=json_loads(d.get("quiz_question_ids"), []); d["quiz_assignments"]=json_loads(d.get("quiz_assignments"), {}); d["student_draw_enabled"]=str(d.get("student_draw_enabled","false")).lower() in ("true","1","yes","on"); d["quiz_enabled"]=str(d.get("quiz_enabled","false")).lower() in ("true","1","yes","on"); d["mode"]=d.get("mode") or "mengajar"; d["current_index"]=as_int(d.get("current_index"),-1); d["durasi_detik"]=as_int(d.get("durasi_detik"),DURASI_DEFAULT); d["target_kelas"]=d.get("target_kelas") or ""; d["current_page"]=max(1,as_int(d.get("current_page"),1)); d["active_checkpoint"]=d.get("active_checkpoint") or ""; d["draw_allowed_ids"]=json_loads(d.get("draw_allowed_ids"), []); return d
+    d=dict(d); d["questions"]=json_loads(d.get("questions"), []); d["drawing"]=json_loads(d.get("drawing"), []); d["quiz_question_ids"]=json_loads(d.get("quiz_question_ids"), []); d["quiz_assignments"]=json_loads(d.get("quiz_assignments"), {}); d["student_draw_enabled"]=str(d.get("student_draw_enabled","false")).lower() in ("true","1","yes","on"); d["quiz_enabled"]=str(d.get("quiz_enabled","false")).lower() in ("true","1","yes","on"); d["papan_aktif"]=str(d.get("papan_aktif","false")).lower() in ("true","1","yes","on"); d["mode"]=d.get("mode") or "mengajar"; d["current_index"]=as_int(d.get("current_index"),-1); d["durasi_detik"]=as_int(d.get("durasi_detik"),DURASI_DEFAULT); d["target_kelas"]=d.get("target_kelas") or ""; d["quiz_kelas"]=d.get("quiz_kelas") or ""; d["quiz_mapel"]=d.get("quiz_mapel") or ""; d["quiz_bab"]=d.get("quiz_bab") or ""; d["active_checkpoint"]=d.get("active_checkpoint") or ""; d["draw_allowed_ids"]=json_loads(d.get("draw_allowed_ids"), []); return d
 
 def _decode_participant(d):
     if not d:return None
@@ -58,8 +65,8 @@ def _generate_kode():
         if not get_session_by_kode(kode):return kode
 
 def create_session(admin_id,judul,mapel="",durasi_detik=DURASI_DEFAULT,target_kelas=""):
-    sid=new_id(); data={"id":sid,"admin_id":admin_id,"judul":judul or "Kelas Hari Ini","mapel":mapel or "","target_kelas":target_kelas or "","kode":_generate_kode(),"status":STATUS_LOBI,"mode":"mengajar","material_id":None,"drawing":[],"student_draw_enabled":False,"quiz_enabled":False,"quiz_question_ids":[],"quiz_assignments":{},"questions":[],"current_index":-1,"durasi_detik":int(durasi_detik) if durasi_detik else DURASI_DEFAULT,"current_started_at":None,"created_at":utcnow_iso()}
-    execute("""INSERT INTO live_sessions (id,admin_id,judul,mapel,kode,status,questions,current_index,durasi_detik,current_started_at,created_at,mode,material_id,drawing,student_draw_enabled,quiz_enabled,quiz_question_ids,quiz_assignments,target_kelas) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(sid,data["admin_id"],data["judul"],data["mapel"],data["kode"],data["status"],"[]",-1,data["durasi_detik"],None,data["created_at"],"mengajar",None,"[]","false","false","[]","{}",data["target_kelas"]))
+    sid=new_id(); data={"id":sid,"admin_id":admin_id,"judul":judul or "Kelas Hari Ini","mapel":mapel or "","target_kelas":target_kelas or "","kode":_generate_kode(),"status":STATUS_LOBI,"mode":"mengajar","drawing":[],"student_draw_enabled":False,"papan_aktif":False,"quiz_enabled":False,"quiz_question_ids":[],"quiz_assignments":{},"quiz_kelas":"","quiz_mapel":"","quiz_bab":"","questions":[],"current_index":-1,"durasi_detik":int(durasi_detik) if durasi_detik else DURASI_DEFAULT,"current_started_at":None,"created_at":utcnow_iso()}
+    execute("""INSERT INTO live_sessions (id,admin_id,judul,mapel,kode,status,questions,current_index,durasi_detik,current_started_at,created_at,mode,drawing,student_draw_enabled,papan_aktif,quiz_enabled,quiz_question_ids,quiz_assignments,target_kelas,quiz_kelas,quiz_mapel,quiz_bab) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(sid,data["admin_id"],data["judul"],data["mapel"],data["kode"],data["status"],"[]",-1,data["durasi_detik"],None,data["created_at"],"mengajar","[]","false","false","false","[]","{}",data["target_kelas"],"","",""))
     return data
 
 def get_session(session_id):return _decode_session(fetch_one("SELECT * FROM live_sessions WHERE id=? LIMIT 1",(session_id,)))
@@ -159,7 +166,7 @@ def end_quiz_to_teaching(session_id):
             ("mengajar","mengajar","false","",None,session_id))
     return get_session(session_id)
 def reset_session(session_id):
-    execute("UPDATE live_participants SET skor=?,jawaban=? WHERE session_id=?",(0,"{}",session_id)); execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=?,quiz_enabled=?,active_checkpoint=?,current_page=1 WHERE id=?",(STATUS_LOBI,-1,None,"mengajar","false","",session_id)); return get_session(session_id)
+    execute("UPDATE live_participants SET skor=?,jawaban=? WHERE session_id=?",(0,"{}",session_id)); execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=?,quiz_enabled=?,active_checkpoint=?,papan_aktif=? WHERE id=?",(STATUS_LOBI,-1,None,"mengajar","false","","false",session_id)); return get_session(session_id)
 def _participant_id(session_id,user_id):return f"{session_id}__{user_id}"
 def join_session(session_id,user_id,nama):
     pid=_participant_id(session_id,user_id); old=get_participant(session_id,user_id)
@@ -197,11 +204,13 @@ def submit_answer(session_id,user_id,question_id,selected,waktu_ms):
 
 
 
-def configure_class(session_id, material_id=None):
-    """Izin papan tulis sengaja TIDAK diatur di sini lagi -- itu dipilih
-    pengajar per-siswa, KAPAN SAJA selama kelas berjalan, lewat set_draw_allowed()."""
-    execute("UPDATE live_sessions SET material_id=? WHERE id=?",
-            (material_id or None, session_id))
+def set_quiz_source(session_id, kelas, mapel, bab):
+    """Set sumber soal 'Kuis Cepat' untuk kelas ini lewat Kelas+Mapel+Bab
+    langsung dari Bank Soal (bukan ditautkan ke materi/tahapan lagi).
+    Cuma boleh diubah selagi sesi masih di lobi -- lihat pengecekan di
+    routes/live_routes.py:kelas_config()."""
+    execute("UPDATE live_sessions SET quiz_kelas=?, quiz_mapel=?, quiz_bab=? WHERE id=?",
+            (kelas or "", mapel or "", bab or "", session_id))
     return get_session(session_id)
 
 def set_draw_allowed(session_id, user_ids):
@@ -212,26 +221,14 @@ def set_draw_allowed(session_id, user_ids):
             (json_dumps(list(dict.fromkeys(user_ids or []))), session_id))
     return get_session(session_id)
 
-def set_material_live(session_id, material_id):
-    """Ganti materi/tahapan yang tampil di layar siswa KAPAN SAJA selama
-    kelas berlangsung (bukan cuma sebelum mulai) -- ini yang bikin admin
-    bisa pindah dari satu tahapan/bab ke tahapan berikutnya di tengah
-    penjelasan, gaya presentasi. Halaman direset ke 1 tiap ganti materi."""
-    execute("UPDATE live_sessions SET material_id=?, current_page=1 WHERE id=?",
-            (material_id or None, session_id))
+def set_papan_aktif(session_id, aktif):
+    """Saklar utama papan tulis. Nyala -> layar SEMUA siswa otomatis pindah
+    nampilin papan tulis (lewat polling /status), gantiin tampilan materi
+    yang sudah dihapus. Mati & kuis lagi gak aktif -> siswa balik lihat
+    skor + papan peringkat (lihat routes/live_routes.py:status())."""
+    execute("UPDATE live_sessions SET papan_aktif=? WHERE id=?",
+            ("true" if aktif else "false", session_id))
     return get_session(session_id)
-
-def set_page(session_id, page):
-    page = max(1, as_int(page, 1))
-    execute("UPDATE live_sessions SET current_page=? WHERE id=?", (page, session_id))
-    return get_session(session_id)
-
-def step_page(session_id, delta):
-    """Maju/mundur satu halaman (delta = 1 atau -1), gaya tombol next/prev
-    di aplikasi presentasi -- siswa ikut pindah otomatis lewat polling."""
-    sess = get_session(session_id)
-    if not sess: return None
-    return set_page(session_id, sess.get("current_page", 1) + as_int(delta, 0))
 
 def set_student_draw(session_id, enabled):
     execute("UPDATE live_sessions SET student_draw_enabled=? WHERE id=?",
