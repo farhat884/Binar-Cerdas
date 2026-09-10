@@ -184,7 +184,7 @@
           <img id="tm_img" class="material-img" hidden>
           <div id="tm_text" class="material-text" hidden></div>
         </div>
-        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><span class="muted">Papan tulis bersama (tampil di layar siswa, di atas materi)</span></div>
+        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><div class="pen-size-group"><button class="pen-size-btn active" data-w="3">✏️ Pensil</button><button class="pen-size-btn" data-w="8">🖊️ Spidol</button><button class="pen-size-btn" data-w="14">🖍️ Tebal</button></div><span class="muted">Papan tulis bersama (tampil di layar siswa, di atas materi)</span></div>
         <canvas id="live_board"></canvas>
       </section>
       <aside class="teacher-side card-simple">
@@ -209,7 +209,7 @@
         <p class="muted" style="margin:0 0 8px">Baru selesai jelasin satu bagian? Langsung tembak kuis singkatnya di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
         <div class="checkpoint-quiz-list">
           {% for c in checkpoints %}
-          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.nama }}">
+          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}" data-tahapan-id="{{ c.tahapan_id or '' }}">
             <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
@@ -235,15 +235,16 @@
  const root=document.getElementById('live_admin_root'), board=document.getElementById('live_board'), ctx=board.getContext('2d');
  const statusUrl=root.dataset.statusUrl, drawingUrl=root.dataset.drawingUrl;
  const halamanUrl=root.dataset.halamanUrl, gantiMateriUrl=root.dataset.gantiMateriUrl, checkpointUrl=root.dataset.checkpointUrl;
- let drawing=[], lastHash='', drawingActive=false, last={x:0,y:0};
+ let drawing=[], lastHash='', drawingActive=false, last={x:0,y:0}, penW=3;
  let lastMaterialId=null, lastPage=null;
+ document.querySelectorAll('.pen-size-btn').forEach(btn=>{btn.onclick=()=>{penW=+btn.dataset.w;document.querySelectorAll('.pen-size-btn').forEach(b=>b.classList.toggle('active',b===btn))}});
  function tmMaterial(m, page){
    const empty=document.getElementById('tm_empty'),pdf=document.getElementById('tm_pdf'),img=document.getElementById('tm_img'),txt=document.getElementById('tm_text');
    empty.hidden=!!m; pdf.hidden=true; img.hidden=true; txt.hidden=true;
    document.getElementById('page_indicator').textContent='Hal. '+(page||1);
    if(!m) return;
    const changed=lastMaterialId!==m.id;
-   if(m.pdf_url){pdf.hidden=false; if(changed||lastPage!==page){pdf.src=m.pdf_url+'#page='+(page||1); lastPage=page}}
+   if(m.pdf_url){pdf.hidden=false; if(changed||lastPage!==page){pdf.src=''; pdf.src=m.pdf_url+'#page='+(page||1)+'&t='+Date.now(); lastPage=page}}
    else if(m.rangkuman_gambar_url){img.src=m.rangkuman_gambar_url;img.hidden=false}
    else{txt.textContent=m.ringkasan||m.judul||'Materi';txt.hidden=false}
    lastMaterialId=m.id;
@@ -253,9 +254,9 @@
  document.getElementById('materi_switch').onchange=async(e)=>{await fetch(gantiMateriUrl,{method:'POST',body:new URLSearchParams({material_id:e.target.value})});lastMaterialId=null;poll()};
  document.querySelectorAll('.cp-fire-btn').forEach(btn=>{
    btn.onclick=async()=>{
-     const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const jumlah=item.querySelector('.cp-jumlah').value||3;
+     const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const tahapanId=item.dataset.tahapanId; const jumlah=item.querySelector('.cp-jumlah').value||3;
      btn.disabled=true; btn.textContent='Menyalakan…';
-     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah,acak_per_siswa:'on'})});
+     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,tahapan_id:tahapanId,jumlah,acak_per_siswa:'on'})});
      const data=await res.json().catch(()=>({}));
      if(!res.ok){alert(data.error||'Gagal menyalakan kuis cepat.')}
      btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
@@ -267,7 +268,7 @@
  function render(){ctx.clearRect(0,0,board.clientWidth,board.clientHeight);ctx.lineCap='round';ctx.lineJoin='round'; for(const st of drawing){ctx.beginPath();ctx.lineWidth=st.w||3;ctx.moveTo(st.x1*board.clientWidth,st.y1*board.clientHeight);ctx.lineTo(st.x2*board.clientWidth,st.y2*board.clientHeight);ctx.stroke();}}
  async function send(st){try{await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stroke:st})})}catch(e){}}
  board.addEventListener('pointerdown',e=>{drawingActive=true;last={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};board.setPointerCapture(e.pointerId)});
- board.addEventListener('pointermove',e=>{if(!drawingActive)return;const now={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};const st={x1:last.x,y1:last.y,x2:now.x,y2:now.y,w:3};drawing.push(st);render();send(st);last=now});
+ board.addEventListener('pointermove',e=>{if(!drawingActive)return;const now={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};const st={x1:last.x,y1:last.y,x2:now.x,y2:now.y,w:penW};drawing.push(st);render();send(st);last=now});
  board.addEventListener('pointerup',()=>drawingActive=false); board.addEventListener('pointercancel',()=>drawingActive=false);
  document.getElementById('clear_board').onclick=async()=>{drawing=[];render();await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clear:true})})};
  window.addEventListener('resize',resize); resize();

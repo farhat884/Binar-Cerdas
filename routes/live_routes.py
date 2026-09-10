@@ -66,6 +66,37 @@ def _soal_bab_materi(m, **extra_filters):
     return out
 
 
+def _kelompokkan_soal(bank_questions, materi_by_id):
+    """Kelompokkan soal buat ditampilkan: pakai label Checkpoint kalau diisi,
+    kalau kosong jatuh balik ke nama 'Tahapan Materi' yang ditautkan lewat
+    material_id (kolom "Tahapan Materi" pas nambah soal) -- ini yang paling
+    sering keisi, jadi soal gak nyasar semua ke 'Tanpa tahapan' cuma karena
+    Checkpoint (field lain, opsional) belum diisi. Tiap grup dikasih tahu asal
+    labelnya (checkpoint asli atau tahapan materi) supaya "Kuis Cepat" bisa
+    nembak soal yang benar walau grupnya dari fallback."""
+    by_group, group_urutan, group_checkpoint, group_tahapan_id = {}, {}, {}, {}
+    for q in bank_questions:
+        cp = (q.get("checkpoint") or "").strip()
+        if cp:
+            nama, urutan, real_cp, tahapan_id = cp, 0, cp, None
+        else:
+            mat_q = materi_by_id.get(q.get("material_id"))
+            if mat_q:
+                nama, urutan, real_cp, tahapan_id = mat_q["judul"], mat_q.get("urutan_subbab", 1), None, mat_q["id"]
+            else:
+                nama, urutan, real_cp, tahapan_id = "Tanpa tahapan", 999, None, None
+        by_group.setdefault(nama, []).append(q)
+        group_urutan.setdefault(nama, urutan)
+        group_checkpoint.setdefault(nama, real_cp)
+        group_tahapan_id.setdefault(nama, tahapan_id)
+    tanpa = by_group.pop("Tanpa tahapan", [])
+    grup = [{"nama": nama, "soal": qs, "checkpoint": group_checkpoint[nama], "tahapan_id": group_tahapan_id[nama]}
+            for nama, qs in sorted(by_group.items(), key=lambda kv: (group_urutan[kv[0]], kv[0]))]
+    if tanpa:
+        grup.append({"nama": "Tanpa tahapan", "soal": tanpa, "checkpoint": None, "tahapan_id": None})
+    return grup
+
+
 @live_admin_bp.route("/<session_id>")
 @admin_required
 def kelola(session_id):
@@ -87,41 +118,19 @@ def kelola(session_id):
             # langsung lewat material_id (kalau bab-nya sempat diubah nama
             # setelah soal dibuat, soal itu tetap kebaca lewat material_id).
             bank_questions = _soal_bab_materi(m)
-            # Daftar "bagian/checkpoint" pada bab yang sama, buat tombol Kuis Cepat
-            # -- dihitung dari pool yang sama (union) biar konsisten sama daftar soal di atas.
-            counts = {}
-            for q in bank_questions:
-                if (q.get("tipe") or "latihan") != "latihan":
-                    continue
-                cp = (q.get("checkpoint") or "").strip()
-                if cp:
-                    counts[cp] = counts.get(cp, 0) + 1
-            checkpoints = [{"nama": k, "jumlah": v} for k, v in sorted(counts.items())]
-            # Grup buat ditampilkan di "Atur kuis": pakai label Checkpoint kalau
-            # diisi, kalau kosong jatuh balik ke nama "Tahapan Materi" yang
-            # ditautkan lewat material_id (kolom "Tahapan Materi" pas nambah
-            # soal) -- ini yang paling sering keisi, jadi soal gak nyasar semua
-            # ke "Tanpa tahapan" cuma karena Checkpoint (field lain, opsional)
-            # belum diisi.
             materi_by_id = {mm["id"]: mm for mm in materials}
-            by_group = {}
-            group_urutan = {}
-            for q in bank_questions:
-                cp = (q.get("checkpoint") or "").strip()
-                if not cp:
-                    mat_q = materi_by_id.get(q.get("material_id"))
-                    cp = mat_q["judul"] if mat_q else ""
-                    urutan = mat_q.get("urutan_subbab", 1) if mat_q else 999
-                else:
-                    urutan = 0
-                cp = cp or "Tanpa tahapan"
-                by_group.setdefault(cp, []).append(q)
-                group_urutan.setdefault(cp, urutan)
-            tanpa = by_group.pop("Tanpa tahapan", [])
-            grouped_questions = [{"nama": cp, "soal": qs} for cp, qs in
-                                  sorted(by_group.items(), key=lambda kv: (group_urutan[kv[0]], kv[0]))]
-            if tanpa:
-                grouped_questions.append({"nama": "Tanpa tahapan", "soal": tanpa})
+            grup = _kelompokkan_soal(bank_questions, materi_by_id)
+            grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
+            # "Kuis Cepat": cuma grup yang punya identitas (checkpoint asli ATAU
+            # tahapan materi), dan cuma hitung soal tipe "latihan" -- soal
+            # UH/UTS/UAS gak dipakai buat kuis dadakan ala Ruang Guru ini.
+            for g in grup:
+                if not (g["checkpoint"] or g["tahapan_id"]):
+                    continue
+                jumlah = len([q for q in g["soal"] if (q.get("tipe") or "latihan") == "latihan"])
+                if jumlah:
+                    checkpoints.append({"nama": g["nama"], "jumlah": jumlah,
+                                         "checkpoint": g["checkpoint"], "tahapan_id": g["tahapan_id"]})
     return render_template("admin/live_kelola.html", sesi=sess, peserta=peserta,
                            materials=materials, bank_questions=bank_questions,
                            grouped_questions=grouped_questions, materi_terpilih=materi_terpilih,
@@ -209,16 +218,30 @@ def aktifkan_checkpoint(session_id):
     if not m:
         return jsonify({"error": "Materi tidak ditemukan."}), 404
     checkpoint = (request.form.get("checkpoint") or "").strip()
-    if not checkpoint:
+    tahapan_id = (request.form.get("tahapan_id") or "").strip()
+    if not checkpoint and not tahapan_id:
         return jsonify({"error": "Bagian/checkpoint wajib dipilih."}), 400
     try:
         jumlah = max(1, min(20, int(request.form.get("jumlah", 3))))
     except (TypeError, ValueError):
         jumlah = 3
     acak_per_siswa = request.form.get("acak_per_siswa", "on") == "on"
-    bank = _soal_bab_materi(m, tipe="latihan", checkpoint=checkpoint)
+    if checkpoint:
+        bank = _soal_bab_materi(m, tipe="latihan", checkpoint=checkpoint)
+        label = checkpoint
+    else:
+        # Grup ini bukan dari Checkpoint asli, tapi fallback ke Tahapan Materi
+        # -- ambil soal yang tertaut ke tahapan itu DAN belum diberi checkpoint
+        # (yang sudah punya checkpoint sendiri sudah masuk grup checkpoint-nya).
+        # Query langsung (bukan lewat _soal_bab_materi) supaya gak dobel kirim
+        # material_id -- di sini material_id yang dipakai adalah tahapan_id,
+        # bukan material_id sesi secara keseluruhan.
+        bank = [q for q in get_questions(mapel=m.get("mapel"), bab=m.get("bab"), tipe="latihan", material_id=tahapan_id)
+                if not (q.get("checkpoint") or "").strip()]
+        mat_tahapan = get_material(tahapan_id)
+        label = mat_tahapan["judul"] if mat_tahapan else tahapan_id
     if not bank:
-        return jsonify({"error": f"Belum ada soal untuk bagian '{checkpoint}'."}), 400
+        return jsonify({"error": f"Belum ada soal untuk bagian '{label}'."}), 400
     ambil = random.sample(bank, min(jumlah, len(bank)))
     random.shuffle(ambil)
     questions = [{"id": q["id"], "pertanyaan": q.get("pertanyaan", ""),
