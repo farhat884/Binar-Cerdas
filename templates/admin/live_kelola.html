@@ -297,7 +297,7 @@
  window.addEventListener('resize',resize); resize();
  async function poll(){try{const d=await (await fetch(statusUrl)).json();drawing=d.drawing||[];render();tmMaterial(d.material,d.current_page);document.getElementById('admin_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';document.getElementById('admin_students').textContent=d.jumlah_peserta;document.getElementById('admin_answered').textContent=d.sudah_jawab;document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Jelaskan materi di papan/materi. Kuis cepat bisa dinyalakan kapan saja dari panel kanan.';document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';renderLB(d.leaderboard||[])}catch(e){}}
  function renderLB(a){document.getElementById('admin_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>'}
- poll();setInterval(poll,1000);
+ poll();setInterval(poll,2000);
 })();
 </script>
 {% endif %}
