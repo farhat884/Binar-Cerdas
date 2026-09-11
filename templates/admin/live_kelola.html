@@ -141,7 +141,7 @@
     <div class="teacher-toolbar">
       <div><span id="admin_mode" class="live-status-pill">Menunggu</span><span id="admin_progress" class="muted"></span></div>
       <div class="toolbar-actions">
-        {% if sesi.quiz_question_ids %}<button id="btn_quiz_prebuilt" class="btn btn-gold">▶ Nyalakan kuis siap-pakai ({{ sesi.quiz_question_ids|length }} soal)</button>{% endif %}
+        {% if sesi.quiz_question_ids %}<form method="POST" action="{{ url_for('live_admin.quiz_toggle', session_id=sesi.id) }}" id="form_quiz_prebuilt" style="display:none"><input type="hidden" name="enabled" value="on"><button id="btn_quiz_prebuilt" class="btn btn-gold" type="submit">▶ Nyalakan kuis siap-pakai ({{ sesi.quiz_question_ids|length }} soal)</button></form>{% endif %}
         <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none"><button class="btn btn-gold" id="btn_lanjut">Tutup soal</button></form>
         <form method="POST" action="{{ url_for('live_admin.akhiri', session_id=sesi.id) }}" onsubmit="return confirm('Akhiri kelas?')"><button class="btn btn-ghost">Akhiri</button></form>
       </div>
@@ -198,8 +198,7 @@
      btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
    };
  });
- const prebuiltBtn=document.getElementById('btn_quiz_prebuilt');
- if(prebuiltBtn){prebuiltBtn.onclick=async()=>{const f=new URLSearchParams({enabled:'on'});await fetch(location.pathname+'/quiz-toggle',{method:'POST',body:f});poll()}}
+ const prebuiltForm=document.getElementById('form_quiz_prebuilt');
  function medal(r){return r===1?'🥇':r===2?'🥈':'🥉'}
  function renderPapan(arr){
    const podiumEl=document.getElementById('admin_podium'), listEl=document.getElementById('admin_leaderboard');
@@ -216,7 +215,7 @@
    document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';
    document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';
    document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';
-   if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
+   if(prebuiltForm)prebuiltForm.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
    renderPapan(d.leaderboard||[]);
  }catch(e){}}
  poll();setInterval(poll,2000);

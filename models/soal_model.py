@@ -40,23 +40,6 @@ def _derive_checkpoint(material_id):
         m = None
     return ((m or {}).get("judul") or "").strip()
 
-def backfill_checkpoints():
-    """Sekali jalan tiap start server: benerin soal LAMA yang sudah tautkan
-    Tahapan Materi tapi checkpoint-nya masih kosong (dari sebelum checkpoint
-    disatukan otomatis dengan Tahapan Materi)."""
-    try:
-        rows = fetch_all("SELECT id, material_id, checkpoint FROM questions WHERE material_id IS NOT NULL AND material_id != ''")
-        for r in rows:
-            if (r.get("checkpoint") or "").strip():
-                continue
-            cp = _derive_checkpoint(r.get("material_id"))
-            if cp:
-                execute("UPDATE questions SET checkpoint=? WHERE id=?", (cp, r["id"]))
-    except Exception:
-        pass
-
-backfill_checkpoints()
-
 def _question(d):
     if not d:return None
     d=dict(d)
@@ -88,6 +71,21 @@ def get_questions(**filters):
     for row in rows:
         x=_question(row)
         if all(str(x.get(k) or "")==str(v) for k,v in filters.items() if v not in (None,"")): out.append(x)
+    # Fallback tampilan buat soal LAMA yang sudah tertaut Tahapan Materi tapi
+    # kolom checkpoint-nya belum kesimpan (dari sebelum checkpoint disatukan
+    # otomatis dengan Tahapan Materi). Dihitung sekali per request kalau ada
+    # yang perlu saja -- TIDAK ditulis balik ke DB, biar gak nambah query
+    # tulis tiap request (soal ini akan permanen kesimpen begitu soalnya
+    # di-edit/disimpan-ulang lewat Bank Soal).
+    kosong=[q for q in out if q.get("material_id") and not (q.get("checkpoint") or "").strip()]
+    if kosong:
+        try:
+            from models.materi_model import get_all_materials
+            peta={m["id"]:(m.get("judul") or "") for m in get_all_materials()}
+            for q in kosong:
+                q["checkpoint"]=(peta.get(q.get("material_id")) or "").strip()
+        except Exception:
+            pass
     return sorted(out,key=lambda x:str(x.get("created_at") or ""))
 
 def get_checkpoints(mapel, bab, tipe="latihan"):

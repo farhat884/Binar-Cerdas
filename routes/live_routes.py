@@ -221,8 +221,18 @@ def quiz_toggle(session_id):
     enabled = request.form.get("enabled") == "on"
     if enabled:
         assignments = sess.get("quiz_assignments") or {}
+        if not assignments and sess.get("quiz_question_ids"):
+            # Assignment bisa kosong kalau "Atur kuis" disimpan SEBELUM ada
+            # siswa yang join (target "Semua siswa yang join" saat itu
+            # nemuin peserta kosong). Bangun ulang otomatis dari siswa yang
+            # SUDAH join sekarang, pakai urutan soal yang sudah disimpan.
+            peserta = live_model.get_participants(session_id)
+            if peserta:
+                order = list(sess.get("quiz_question_ids") or [])
+                assignments = {p["user_id"]: list(order) for p in peserta}
+                live_model.set_quiz_assignments(session_id, assignments)
         if not assignments:
-            flash("Belum ada siswa/soal yang ditentukan untuk kuis.", "danger")
+            flash("Belum ada siswa yang join kelas ini, atau soal kuis belum diatur lewat 'Atur kuis'.", "danger")
         else:
             live_model.set_quiz_enabled(session_id, True)
             live_model.start_session(session_id)
