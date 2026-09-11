@@ -182,4 +182,58 @@
       populateSelect(sel, babs.map((b) => ({ value: b, label: b })), current, "-- Pilih Bab --");
     });
   };
+  // Filter di Bank Soal (Jenjang/Kelas/Mapel di atas tabel). Beda dari
+  // wireSoalCascade: di sini ada opsi "Semua ..." dan kalau Jenjang belum
+  // dipilih, Kelas/Mapel nampilin GABUNGAN dari semua jenjang (bukan kosong),
+  // biar admin bisa langsung filter mapel/kelas aja tanpa wajib pilih jenjang
+  // dulu.
+  window.wireFilterCascade = function () {
+    const jenjangEl = document.getElementById("filter_jenjang");
+    const kelasEl = document.getElementById("filter_kelas");
+    const mapelEl = document.getElementById("filter_mapel");
+    if (!jenjangEl || !kelasEl || !mapelEl) return;
+
+    const PROGRAM_MAP = window.SOAL_PROGRAM_MAP || {};
+    const initialKelas = kelasEl.dataset.initial || "";
+    const initialMapel = mapelEl.dataset.initial || "";
+    let firstRun = true;
+
+    function uniqueAcrossJenjang(field) {
+      const seen = new Set();
+      const out = [];
+      Object.values(PROGRAM_MAP).forEach((prog) => {
+        (prog[field] || []).forEach((v) => {
+          if (!seen.has(v)) { seen.add(v); out.push(v); }
+        });
+      });
+      return out;
+    }
+
+    function fill(sel, values, keep, placeholder) {
+      const current = keep !== undefined ? keep : sel.value;
+      sel.innerHTML = "";
+      const opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.textContent = placeholder;
+      sel.appendChild(opt0);
+      values.forEach((v) => {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = v;
+        sel.appendChild(o);
+      });
+      if (current && values.some((v) => String(v) === String(current))) sel.value = current;
+    }
+
+    function sync() {
+      const j = jenjangEl.value;
+      const prog = j ? (PROGRAM_MAP[j] || { kelas: [], mapel: [] }) : { kelas: uniqueAcrossJenjang("kelas"), mapel: uniqueAcrossJenjang("mapel") };
+      fill(kelasEl, prog.kelas || [], firstRun ? initialKelas : undefined, "Semua Kelas");
+      fill(mapelEl, prog.mapel || [], firstRun ? initialMapel : undefined, "Semua Mapel");
+      firstRun = false;
+    }
+
+    jenjangEl.addEventListener("change", sync);
+    sync();
+  };
 })();

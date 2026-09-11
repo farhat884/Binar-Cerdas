@@ -772,8 +772,38 @@ def soal():
             linked=get_material(material_id); bab=(linked or {}).get("bab","")
         create_question(jenjang,kelas,mapel,request.form.get("tipe","latihan"),request.form.get("pertanyaan",""),pilihan,request.form.get("jawaban_benar","A"),request.form.get("penjelasan",""),material_id,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,konteks_ai=request.form.get("konteks_ai","").strip(),konteks_ai_pilihan=konteks_ai_pilihan,bab=bab)
         flash("Soal berhasil ditambahkan.","success"); return redirect(url_for("admin.soal"))
-    all_questions=_tandai_kelengkapan(get_questions())
-    return render_template("admin/soal.html",questions=all_questions,materials=get_all_materials(),program_map=get_program_map())
+    all_questions_unfiltered=get_questions()
+    total_questions=len(all_questions_unfiltered)
+
+    f_jenjang=request.args.get("jenjang","").strip()
+    f_kelas=request.args.get("kelas","").strip()
+    f_mapel=request.args.get("mapel","").strip()
+    f_tipe=request.args.get("tipe","").strip()
+    f_cari=request.args.get("cari","").strip()
+
+    filtered=all_questions_unfiltered
+    if f_jenjang: filtered=[q for q in filtered if str(q.get("jenjang") or "")==f_jenjang]
+    if f_kelas: filtered=[q for q in filtered if str(q.get("kelas") or "")==f_kelas]
+    if f_mapel: filtered=[q for q in filtered if str(q.get("mapel") or "")==f_mapel]
+    if f_tipe: filtered=[q for q in filtered if str(q.get("tipe") or "")==f_tipe]
+    if f_cari:
+        needle=f_cari.lower()
+        filtered=[q for q in filtered if needle in (q.get("pertanyaan") or "").lower()]
+
+    # Urutkan berdasarkan Jenjang -> Kelas -> Mapel -> Bab, biar soal yang
+    # mapel/kelasnya sama ketumpuk jadi satu kelompok (gak acak), meski lagi
+    # gak difilter sama sekali. Jenjang dipaksa urut SD->SMP->SMA (bukan abjad,
+    # soalnya "SMA" < "SMP" secara alfabet padahal urutan aslinya kebalik).
+    JENJANG_ORDER={"SD":0,"SMP":1,"SMA":2}
+    def _sort_key(q):
+        try: kelas_num=int(q.get("kelas") or 0)
+        except (TypeError,ValueError): kelas_num=0
+        return (JENJANG_ORDER.get(q.get("jenjang") or "",99), kelas_num, q.get("mapel") or "", q.get("bab") or "")
+    filtered.sort(key=_sort_key)
+
+    all_questions=_tandai_kelengkapan(filtered)
+    active_filters={"jenjang":f_jenjang,"kelas":f_kelas,"mapel":f_mapel,"tipe":f_tipe,"cari":f_cari}
+    return render_template("admin/soal.html",questions=all_questions,materials=get_all_materials(),program_map=get_program_map(),filters=active_filters,total_questions=total_questions)
 
 def _tandai_kelengkapan(questions):
     # Tandai tiap soal "lengkap" (semua 4 pilihan sudah ada teks/gambar) atau
