@@ -850,7 +850,8 @@ def bulk_edit_soal():
         bab=request.form.get(f"bab_{qid}","").strip()
         if material_id and not bab:
             linked=get_material(material_id); bab=(linked or {}).get("bab","")
-        update_question(qid,mapel=mapel,bab=bab,tipe=tipe,material_id=material_id)
+        checkpoint=request.form.get(f"checkpoint_{qid}","").strip()
+        update_question(qid,mapel=mapel,bab=bab,tipe=tipe,material_id=material_id,checkpoint=checkpoint)
         diperbarui+=1
     flash(f"{diperbarui} soal berhasil diperbarui sekaligus.","success")
     return redirect(url_for("admin.soal"))
@@ -867,6 +868,7 @@ def impor_soal():
 
     mode=request.form.get("mode","sederhana")
     teks=request.form.get("teks_soal","")
+    checkpoint=request.form.get("checkpoint","").strip()
 
     if mode=="lengkap":
         # Mode lengkap: soal + pilihan A-D + jawaban benar diimpor sekaligus.
@@ -878,7 +880,7 @@ def impor_soal():
             flash("Gak ada soal yang kebaca dari teks yang ditempel. Cek lagi formatnya (harus ada nomor, pilihan A-D, dan baris JAWABAN).","danger")
             return redirect(url_for("admin.soal"))
         for soal in berhasil:
-            create_question(jenjang,kelas,mapel,tipe,soal["pertanyaan"],soal["pilihan"],soal["jawaban_benar"],"",material_id,bab=bab)
+            create_question(jenjang,kelas,mapel,tipe,soal["pertanyaan"],soal["pilihan"],soal["jawaban_benar"],"",material_id,bab=bab,checkpoint=checkpoint)
         if berhasil:
             pesan=f"{len(berhasil)} soal lengkap (pertanyaan + pilihan + jawaban benar) berhasil diimpor."
         else:
@@ -895,6 +897,6 @@ def impor_soal():
     if not daftar_pertanyaan:
         flash("Gak ada soal yang kebaca dari teks yang ditempel. Pastikan tiap soal diawali nomor, misal '1. ...', '2. ...'.","danger"); return redirect(url_for("admin.soal"))
     for pertanyaan in daftar_pertanyaan:
-        create_question(jenjang,kelas,mapel,tipe,pertanyaan,["","","",""],"A","",material_id,bab=bab)
+        create_question(jenjang,kelas,mapel,tipe,pertanyaan,["","","",""],"A","",material_id,bab=bab,checkpoint=checkpoint)
     flash(f"{len(daftar_pertanyaan)} soal berhasil diimpor. Lengkapi pilihan jawaban tiap soal lewat tombol Edit ya.","success")
     return redirect(url_for("admin.soal"))

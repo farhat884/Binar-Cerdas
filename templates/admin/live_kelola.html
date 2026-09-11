@@ -14,7 +14,7 @@
   <div class="live-config-grid">
     <section class="card-simple">
       <h2>1. Sumber soal (Kelas → Mapel → Bab)</h2>
-      <p class="muted">Gak ada papan tulis atau materi/PDF lagi di Kelas Live — cuma kuis, dipecah per tahapan/bagian. Pilihan di bawah cuma nentuin soal dari Bank Soal mana yang dipakai buat "Atur kuis" &amp; "Kuis per Tahapan".</p>
+      <p class="muted">Pilih sumber soal dari Bank Soal untuk kuis kelas ini. Soal dikelompokkan otomatis per tahapan/bagian.</p>
       <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
         <div class="field-row">
           <div class="field"><label>Kelas</label>
@@ -72,7 +72,7 @@
 
     <section class="card-simple">
       <h2>2. Atur kuis</h2>
-      <p class="muted">Semua soal pada bab ini tersedia di bawah, dikelompokkan per tahapan/bagian — pilih tahapan mana saja yang mau dipakai buat kuis.</p>
+      <p class="muted">Semua soal pada bab ini dikelompokkan per tahapan. Pilih tahapan yang ingin dipakai.</p>
       {% if grouped_questions %}
       <form method="POST" action="{{ url_for('live_admin.atur_kuis', session_id=sesi.id) }}">
         {% for grup in grouped_questions %}
@@ -156,7 +156,7 @@
         {% if checkpoints %}
         <div class="card-simple">
           <h3>🎯 Kuis per Tahapan</h3>
-          <p class="muted" style="margin:0 0 8px">Mau ngetes paham atau engga di satu bagian tertentu (misal "Logika")? Nyalakan kuis bagian itu di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
+          <p class="muted" style="margin:0 0 8px">Uji pemahaman siswa per tahapan. Soal diambil acak dari Bank Soal.</p>
           <div class="checkpoint-quiz-list">
             {% for c in checkpoints %}
             <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
@@ -170,7 +170,7 @@
           </div>
         </div>
         {% elif sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
-        <div class="card-simple"><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tahapan-tahapan kuis muncul di sini.</p></div>
+        <div class="card-simple"><p class="muted">Belum ada soal dengan label Bagian/Checkpoint untuk bab ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a>.</p></div>
         {% endif %}
       </section>
       <aside class="teacher-side card-simple">
