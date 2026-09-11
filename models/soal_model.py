@@ -3,11 +3,18 @@ from database import fetch_all, fetch_one, execute, new_id, utcnow_iso, json_dum
 from services.supabase_storage import delete_file
 COLLECTION="questions"; ATTEMPTS="quiz_attempts"; DRAFTS="quiz_drafts"
 
-# "checkpoint" = tag bagian/sub-topik dalam sebuah bab (misal "Pengertian & Konsep
-# Gaya", "Jenis-jenis Gaya"). Dipakai supaya pas Kelas Live, pengajar bisa
-# tiba-tiba menyalakan kuis pendek untuk SATU bagian tertentu yang baru saja
-# dijelaskan -- soal yang keluar dipilih acak dari bank soal bertag sama,
-# jadi tiap kali dinyalakan (walau bagian yang sama) soalnya bisa beda.
+# "checkpoint" = tag bagian/tahapan dalam sebuah bab (misal "Pengertian &
+# Konsep Gaya", "Jenis-jenis Gaya"). Dipakai supaya pas Kelas Live, pengajar
+# bisa tiba-tiba menyalakan kuis pendek untuk SATU tahapan tertentu yang
+# baru saja dijelaskan -- soal yang keluar dipilih acak dari bank soal
+# bertag sama, jadi tiap kali dinyalakan (walau tahapan yang sama) soalnya
+# bisa beda.
+#
+# PENTING: "checkpoint" BUKAN kolom yang diisi manual terpisah. Nilainya
+# selalu disamakan otomatis dengan judul "Tahapan Materi" (material_id) yang
+# dipilih pada soal tersebut -- lihat _derive_checkpoint() di bawah. Ini
+# sengaja dibuat begitu supaya admin cukup isi SATU field ("Tahapan Materi"),
+# bukan dua field yang isinya sama tapi gampang kelewat salah satunya.
 QUESTION_EXTRA_COLUMNS = {"checkpoint": "TEXT DEFAULT ''"}
 
 def ensure_question_columns():
@@ -20,6 +27,35 @@ def ensure_question_columns():
         pass
 
 ensure_question_columns()
+
+def _derive_checkpoint(material_id):
+    """Checkpoint = judul Tahapan Materi yang ditautkan. Gak ada material_id
+    -> gak ada checkpoint (soal itu gak akan muncul di 'Kuis per Tahapan')."""
+    if not material_id:
+        return ""
+    try:
+        from models.materi_model import get_material
+        m = get_material(material_id)
+    except Exception:
+        m = None
+    return ((m or {}).get("judul") or "").strip()
+
+def backfill_checkpoints():
+    """Sekali jalan tiap start server: benerin soal LAMA yang sudah tautkan
+    Tahapan Materi tapi checkpoint-nya masih kosong (dari sebelum checkpoint
+    disatukan otomatis dengan Tahapan Materi)."""
+    try:
+        rows = fetch_all("SELECT id, material_id, checkpoint FROM questions WHERE material_id IS NOT NULL AND material_id != ''")
+        for r in rows:
+            if (r.get("checkpoint") or "").strip():
+                continue
+            cp = _derive_checkpoint(r.get("material_id"))
+            if cp:
+                execute("UPDATE questions SET checkpoint=? WHERE id=?", (cp, r["id"]))
+    except Exception:
+        pass
+
+backfill_checkpoints()
 
 def _question(d):
     if not d:return None
@@ -39,10 +75,10 @@ def _draft(d):
     if not d:return None
     d=dict(d); d["answers"]=json_loads(d.get("answers"), {}); return d
 
-def create_question(jenjang,kelas,mapel,tipe,pertanyaan,pilihan,jawaban_benar,penjelasan="",material_id=None,gambar_url=None,gambar_path=None,pilihan_gambar=None,pilihan_gambar_path=None,konteks_ai="",konteks_ai_pilihan=None,bab="",checkpoint=""):
-    qid=new_id(); now=utcnow_iso();
-    data={"id":qid,"jenjang":jenjang,"kelas":str(kelas),"mapel":mapel,"bab":bab or "","tipe":tipe,"material_id":material_id,"pertanyaan":pertanyaan,"pilihan":pilihan,"jawaban_benar":jawaban_benar,"penjelasan":penjelasan,"konteks_ai":konteks_ai or "","konteks_ai_pilihan":konteks_ai_pilihan or ["","","",""],"gambar_url":gambar_url,"gambar_path":gambar_path,"pilihan_gambar":pilihan_gambar or [None,None,None,None],"pilihan_gambar_path":pilihan_gambar_path or [None,None,None,None],"checkpoint":(checkpoint or "").strip(),"created_at":now}
-    execute("""INSERT INTO questions (id,jenjang,kelas,mapel,bab,tipe,material_id,pertanyaan,pilihan,jawaban_benar,penjelasan,konteks_ai,konteks_ai_pilihan,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,checkpoint,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(qid,jenjang,str(kelas),mapel,bab or "",tipe,material_id,pertanyaan,json_dumps(pilihan),jawaban_benar,penjelasan,konteks_ai or "",json_dumps(konteks_ai_pilihan or ["","","",""]),gambar_url,gambar_path,json_dumps(pilihan_gambar or [None,None,None,None]),json_dumps(pilihan_gambar_path or [None,None,None,None]),(checkpoint or "").strip(),now))
+def create_question(jenjang,kelas,mapel,tipe,pertanyaan,pilihan,jawaban_benar,penjelasan="",material_id=None,gambar_url=None,gambar_path=None,pilihan_gambar=None,pilihan_gambar_path=None,konteks_ai="",konteks_ai_pilihan=None,bab=""):
+    qid=new_id(); now=utcnow_iso(); checkpoint=_derive_checkpoint(material_id)
+    data={"id":qid,"jenjang":jenjang,"kelas":str(kelas),"mapel":mapel,"bab":bab or "","tipe":tipe,"material_id":material_id,"pertanyaan":pertanyaan,"pilihan":pilihan,"jawaban_benar":jawaban_benar,"penjelasan":penjelasan,"konteks_ai":konteks_ai or "","konteks_ai_pilihan":konteks_ai_pilihan or ["","","",""],"gambar_url":gambar_url,"gambar_path":gambar_path,"pilihan_gambar":pilihan_gambar or [None,None,None,None],"pilihan_gambar_path":pilihan_gambar_path or [None,None,None,None],"checkpoint":checkpoint,"created_at":now}
+    execute("""INSERT INTO questions (id,jenjang,kelas,mapel,bab,tipe,material_id,pertanyaan,pilihan,jawaban_benar,penjelasan,konteks_ai,konteks_ai_pilihan,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,checkpoint,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(qid,jenjang,str(kelas),mapel,bab or "",tipe,material_id,pertanyaan,json_dumps(pilihan),jawaban_benar,penjelasan,konteks_ai or "",json_dumps(konteks_ai_pilihan or ["","","",""]),gambar_url,gambar_path,json_dumps(pilihan_gambar or [None,None,None,None]),json_dumps(pilihan_gambar_path or [None,None,None,None]),checkpoint,now))
     return data
 
 def get_question(qid): return _question(fetch_one("SELECT * FROM questions WHERE id=? LIMIT 1",(qid,)))
@@ -68,8 +104,12 @@ def get_checkpoints(mapel, bab, tipe="latihan"):
 
 def update_question(qid, **fields):
     json_fields={"pilihan","konteks_ai_pilihan","pilihan_gambar","pilihan_gambar_path"}
-    allowed={"jenjang","kelas","mapel","bab","tipe","material_id","pertanyaan","pilihan","jawaban_benar","penjelasan","konteks_ai","konteks_ai_pilihan","gambar_url","gambar_path","pilihan_gambar","pilihan_gambar_path","checkpoint"}
+    allowed={"jenjang","kelas","mapel","bab","tipe","material_id","pertanyaan","pilihan","jawaban_benar","penjelasan","konteks_ai","konteks_ai_pilihan","gambar_url","gambar_path","pilihan_gambar","pilihan_gambar_path"}
     fields={k:(json_dumps(v) if k in json_fields else v) for k,v in fields.items() if k in allowed}
+    if "material_id" in fields:
+        # Checkpoint selalu ikut Tahapan Materi -- bukan field terpisah yang
+        # bisa nyasar beda sama Tahapan Materi-nya.
+        fields["checkpoint"]=_derive_checkpoint(fields["material_id"])
     if not fields:return
     execute("UPDATE questions SET "+", ".join(f"{k}=?" for k in fields)+" WHERE id=?",tuple(fields[k] for k in fields)+(qid,))
 

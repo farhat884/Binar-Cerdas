@@ -770,11 +770,10 @@ def soal():
         bab=request.form.get("bab","").strip()
         if material_id and not bab:
             linked=get_material(material_id); bab=(linked or {}).get("bab","")
-        create_question(jenjang,kelas,mapel,request.form.get("tipe","latihan"),request.form.get("pertanyaan",""),pilihan,request.form.get("jawaban_benar","A"),request.form.get("penjelasan",""),material_id,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,konteks_ai=request.form.get("konteks_ai","").strip(),konteks_ai_pilihan=konteks_ai_pilihan,bab=bab,checkpoint=request.form.get("checkpoint","").strip())
+        create_question(jenjang,kelas,mapel,request.form.get("tipe","latihan"),request.form.get("pertanyaan",""),pilihan,request.form.get("jawaban_benar","A"),request.form.get("penjelasan",""),material_id,gambar_url,gambar_path,pilihan_gambar,pilihan_gambar_path,konteks_ai=request.form.get("konteks_ai","").strip(),konteks_ai_pilihan=konteks_ai_pilihan,bab=bab)
         flash("Soal berhasil ditambahkan.","success"); return redirect(url_for("admin.soal"))
     all_questions=_tandai_kelengkapan(get_questions())
-    checkpoint_list=sorted({q.get("checkpoint") for q in all_questions if q.get("checkpoint")})
-    return render_template("admin/soal.html",questions=all_questions,materials=get_all_materials(),program_map=get_program_map(),checkpoint_list=checkpoint_list)
+    return render_template("admin/soal.html",questions=all_questions,materials=get_all_materials(),program_map=get_program_map())
 
 def _tandai_kelengkapan(questions):
     # Tandai tiap soal "lengkap" (semua 4 pilihan sudah ada teks/gambar) atau
@@ -824,7 +823,6 @@ def edit_soal(question_id):
             konteks_ai_pilihan=konteks_ai_pilihan,
             gambar_url=gambar_url,gambar_path=gambar_path,
             pilihan_gambar=pilihan_gambar,pilihan_gambar_path=pilihan_gambar_path,
-            checkpoint=request.form.get("checkpoint","").strip(),
         )
         flash("Soal berhasil diperbarui.","success"); return redirect(url_for("admin.soal"))
     return render_template("admin/edit_soal.html",question=question,materials=get_all_materials(),program_map=get_program_map())
@@ -850,8 +848,7 @@ def bulk_edit_soal():
         bab=request.form.get(f"bab_{qid}","").strip()
         if material_id and not bab:
             linked=get_material(material_id); bab=(linked or {}).get("bab","")
-        checkpoint=request.form.get(f"checkpoint_{qid}","").strip()
-        update_question(qid,mapel=mapel,bab=bab,tipe=tipe,material_id=material_id,checkpoint=checkpoint)
+        update_question(qid,mapel=mapel,bab=bab,tipe=tipe,material_id=material_id)
         diperbarui+=1
     flash(f"{diperbarui} soal berhasil diperbarui sekaligus.","success")
     return redirect(url_for("admin.soal"))
@@ -868,7 +865,6 @@ def impor_soal():
 
     mode=request.form.get("mode","sederhana")
     teks=request.form.get("teks_soal","")
-    checkpoint=request.form.get("checkpoint","").strip()
 
     if mode=="lengkap":
         # Mode lengkap: soal + pilihan A-D + jawaban benar diimpor sekaligus.
@@ -880,7 +876,7 @@ def impor_soal():
             flash("Gak ada soal yang kebaca dari teks yang ditempel. Cek lagi formatnya (harus ada nomor, pilihan A-D, dan baris JAWABAN).","danger")
             return redirect(url_for("admin.soal"))
         for soal in berhasil:
-            create_question(jenjang,kelas,mapel,tipe,soal["pertanyaan"],soal["pilihan"],soal["jawaban_benar"],"",material_id,bab=bab,checkpoint=checkpoint)
+            create_question(jenjang,kelas,mapel,tipe,soal["pertanyaan"],soal["pilihan"],soal["jawaban_benar"],"",material_id,bab=bab)
         if berhasil:
             pesan=f"{len(berhasil)} soal lengkap (pertanyaan + pilihan + jawaban benar) berhasil diimpor."
         else:
@@ -897,6 +893,6 @@ def impor_soal():
     if not daftar_pertanyaan:
         flash("Gak ada soal yang kebaca dari teks yang ditempel. Pastikan tiap soal diawali nomor, misal '1. ...', '2. ...'.","danger"); return redirect(url_for("admin.soal"))
     for pertanyaan in daftar_pertanyaan:
-        create_question(jenjang,kelas,mapel,tipe,pertanyaan,["","","",""],"A","",material_id,bab=bab,checkpoint=checkpoint)
+        create_question(jenjang,kelas,mapel,tipe,pertanyaan,["","","",""],"A","",material_id,bab=bab)
     flash(f"{len(daftar_pertanyaan)} soal berhasil diimpor. Lengkapi pilihan jawaban tiap soal lewat tombol Edit ya.","success")
     return redirect(url_for("admin.soal"))
