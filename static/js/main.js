@@ -90,10 +90,26 @@ document.addEventListener("DOMContentLoaded", () => {
 // soalnya MathJax cuma otomatis jalan sekali pas halaman pertama dimuat.
 window.typesetMath = function (el) {
   const target = el || document.body;
+  // Render dulu gambar koordinat ([[plot]]...[[/plot]]) SEBELUM MathJax jalan,
+  // soalnya teks di dalam blok plot (misal label titik) murni teks biasa,
+  // bukan LaTeX -- biar gak ketuker kalau ada tanda kurung/koma di dalamnya.
+  if (window.renderKoordinatPlots) {
+    try { window.renderKoordinatPlots(target); } catch (e) { console.error("renderKoordinatPlots error:", e); }
+  }
   if (window.MathJax && window.MathJax.typesetPromise) {
     window.MathJax.typesetPromise([target]).catch((err) => console.error("MathJax error:", err));
   }
 };
+
+// Konten soal yang sudah ada di HTML pas halaman pertama dimuat (bukan hasil
+// innerHTML dari JS) gak lewat window.typesetMath sama sekali -- MathJax
+// otomatis nemu $...$ sendiri pas startup, tapi [[plot]] butuh dipanggil
+// manual sekali di awal biar soal2 yang render duluan juga dapet gambarnya.
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.renderKoordinatPlots) {
+    try { window.renderKoordinatPlots(document.body); } catch (e) { console.error("renderKoordinatPlots error:", e); }
+  }
+});
 
 // Ambil teks lengkap satu pilihan jawaban ("D. isi pilihannya") dari dalam
 // satu blok soal (qEl), berdasarkan hurufnya (A/B/C/D). Dipakai di halaman
