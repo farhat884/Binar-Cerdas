@@ -12,7 +12,7 @@
 </aside>
 <main class="dash-content">
   <h1>Kelas Hari Ini</h1>
-  <p class="muted" style="max-width:640px">Buka kelas untuk mengajar hari ini: materi tampil full-screen ke siswa, kamu bisa coret-coret di papan tulis bersama, dan sewaktu-waktu bisa selipkan kuis singkat di tengah penjelasan. Siswa join pakai kode, atau lewat daftar "Kelas Hari Ini" di halaman mereka.</p>
+  <p class="muted" style="max-width:640px">Buka kelas untuk menguji pemahaman siswa hari ini lewat kuis, dibagi per tahapan/bagian (sesuai label "Bagian/Checkpoint" di Bank Soal) — misalnya tahapan "Logika" buat ngetes soal-soal logika. Siswa join pakai kode, atau lewat daftar "Kelas Hari Ini" di halaman mereka.</p>
 
   <form method="POST" class="card-simple" style="max-width:560px;margin:20px 0">
     <div class="field">
@@ -55,7 +55,9 @@
         <td>{{ s.created_at.strftime('%d %b %Y, %H:%M') if s.created_at and s.created_at.strftime else s.created_at }}</td>
         <td style="white-space:nowrap">
           <a href="{{ url_for('live_admin.kelola', session_id=s.id) }}" class="btn btn-sm btn-gold">Kelola</a>
-          <button type="submit" formaction="{{ url_for('live_admin.hapus', session_id=s.id) }}" formmethod="POST" class="btn btn-danger btn-sm" onclick="return confirm('Hapus kelas ini beserta semua data pesertanya?')">Hapus</button>
+          <form method="POST" action="{{ url_for('live_admin.hapus', session_id=s.id) }}" style="display:inline" onsubmit="return confirm('Hapus kelas ini beserta semua data pesertanya?')">
+            <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+          </form>
         </td>
       </tr>
       {% endfor %}

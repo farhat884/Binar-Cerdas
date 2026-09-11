@@ -625,37 +625,40 @@ tbody tr:hover { background: #FAF7EE; }
 .live-question-list{max-height:300px;overflow:auto;border:1px solid #e7e8ee;border-radius:12px;margin:12px 0}.live-question-pick{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer}.live-question-pick:last-child{border-bottom:0}.live-question-pick:hover{background:#faf9f3}
 .live-lobby-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px}.live-ready{font-weight:700}.live-empty{padding:18px;background:#fafafa;border-radius:12px;color:#777}
 .teacher-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.toolbar-actions{display:flex;gap:8px;align-items:center}
-.teacher-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}.teacher-board-wrap{background:#fff;border:1px solid #e3e4ea;border-radius:16px;padding:10px}.board-tools{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 9px}.teacher-board-wrap canvas{display:block;width:100%;height:68vh;min-height:430px;background:#fff;cursor:crosshair;border-radius:10px}
+.teacher-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}
 .teacher-side{height:max-content;position:sticky;top:12px}.live-current-question{padding:12px;border-radius:12px;background:#f7f7f8;min-height:80px;line-height:1.5}
-.live-student-shell{position:fixed;inset:0;background:#11131a;z-index:1000}.live-student-top{height:54px;display:flex;align-items:center;gap:18px;padding:0 18px;background:#171a23;color:#fff}.live-student-top strong{color:#f2c94c}.live-top-actions{margin-left:auto;display:flex;align-items:center;gap:12px}.live-top-actions span{font-size:.8rem}.fullscreen-btn{background:#2a2e3a;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:1rem;cursor:pointer;line-height:1}.fullscreen-btn:hover{background:#363b49}.live-stage{position:relative;height:calc(100vh - 54px);overflow:hidden}.live-material{position:absolute;inset:0;background:#fff;overflow:hidden}.material-frame{width:100%;height:100%;border:0}.material-img{display:block;width:100%;height:100%;object-fit:contain}.material-text{padding:40px;font-size:1.3rem;line-height:1.7;overflow:auto;height:100%}.material-placeholder{height:100%;display:grid;place-items:center;color:#777}.material-placeholder[hidden]{display:none}.live-material canvas#live_board{pointer-events:none}.material-page-badge{position:absolute;top:10px;right:10px;background:#171a23e6;color:#fff;padding:5px 12px;border-radius:999px;font-size:.75rem;font-weight:700;z-index:5}
-.teacher-material-wrap{position:relative;background:#fff;border-radius:14px;overflow:hidden;height:38vh;margin-bottom:12px}.teacher-material-wrap .material-frame,.teacher-material-wrap .material-img{width:100%;height:100%;border:0;object-fit:contain}.teacher-material-wrap .material-text{padding:20px;overflow:auto;height:100%}.page-nav{display:flex;align-items:center;gap:10px;margin-bottom:10px}.page-nav select{flex:1}.checkpoint-quiz-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.checkpoint-quiz-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:1px solid #e5e5ea;border-radius:10px;padding:8px 10px}.checkpoint-quiz-item .cp-name{font-weight:700;font-size:.85rem}.checkpoint-quiz-item .cp-count{font-size:.75rem;color:#777}.checkpoint-quiz-item input[type=number]{width:52px}.student-tools{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.quiz-panel{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 30px #00000012}.quiz-top{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;margin-bottom:8px}.quiz-panel h2{font-size:1.15rem;line-height:1.45;margin:18px 0}.student-info{background:#fff;border-radius:16px;padding:24px;line-height:1.6}.live-status-pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#ececf0;font-weight:800;font-size:.75rem}.live-status-pill.aktif{background:#fff0bd}.live-status-pill.jeda{background:#e6eefb}
+.live-student-shell{position:fixed;inset:0;background:#11131a;z-index:1000}.live-student-top{height:54px;display:flex;align-items:center;gap:18px;padding:0 18px;background:#171a23;color:#fff}.live-student-top strong{color:#f2c94c}.live-top-actions{margin-left:auto;display:flex;align-items:center;gap:12px}.live-top-actions span{font-size:.8rem}.fullscreen-btn{background:#2a2e3a;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:1rem;cursor:pointer;line-height:1}.fullscreen-btn:hover{background:#363b49}.live-stage{position:relative;height:calc(100vh - 54px);overflow:hidden}.live-material{position:absolute;inset:0;background:#fff;overflow:auto}
+.checkpoint-quiz-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.checkpoint-quiz-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:1px solid #e5e5ea;border-radius:10px;padding:8px 10px}.checkpoint-quiz-item .cp-name{font-weight:700;font-size:.85rem}.checkpoint-quiz-item .cp-count{font-size:.75rem;color:#777}.checkpoint-quiz-item input[type=number]{width:52px}.student-tools{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.quiz-panel{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 30px #00000012}.quiz-top{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;margin-bottom:8px}.quiz-panel h2{font-size:1.15rem;line-height:1.45;margin:18px 0}.student-info{background:#fff;border-radius:16px;padding:24px;line-height:1.6}.live-status-pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#ececf0;font-weight:800;font-size:.75rem}.live-status-pill.aktif{background:#fff0bd}.live-status-pill.jeda{background:#e6eefb}
 .live-choice-grid{display:grid;grid-template-columns:1fr;gap:8px}.live-choice-btn{border:0;border-radius:11px;padding:13px;text-align:left;font-weight:700;cursor:pointer;background:#f0f1f4}.live-choice-btn:disabled{opacity:.55;cursor:not-allowed}
 .live-choice-a{border-left:5px solid #e76f51}.live-choice-b{border-left:5px solid #457b9d}.live-choice-c{border-left:5px solid #2a9d8f}.live-choice-d{border-left:5px solid #9b5de5}
-@media(max-width:900px){.live-config-grid,.teacher-layout{grid-template-columns:1fr}.teacher-side{position:static}.teacher-board-wrap canvas{height:55vh}}
+@media(max-width:900px){.live-config-grid,.teacher-layout{grid-template-columns:1fr}.teacher-side{position:static}}
 
-/* --- Overlay kuis "pop up" di atas materi/papan tulis (bukan panel statis) --- */
+/* --- Overlay kuis "pop up" di atas layar menunggu (bukan panel statis) --- */
 .live-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:#0d0f16a6;backdrop-filter:blur(2px)}
 .live-overlay[hidden]{display:none}
 .live-overlay .quiz-panel,.live-overlay .student-info{max-width:520px;width:100%;max-height:88vh;overflow:auto;animation:liveOverlayPop .22s ease}
 @keyframes liveOverlayPop{from{transform:translateY(14px) scale(.96);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
 
-/* --- Toolbar coret-coret (mengambang di atas materi, pojok kiri bawah) --- */
-.draw-toolbar{position:absolute;left:14px;bottom:14px;z-index:6;display:flex;align-items:center;gap:8px;background:#171a23e6;padding:8px;border-radius:14px;flex-wrap:wrap}
-.draw-toolbar[hidden]{display:none}
-.draw-toolbar .btn{white-space:nowrap}
-.pen-size-group{display:flex;gap:5px}
-.pen-size-btn{border:0;border-radius:9px;padding:6px 9px;font-size:.78rem;font-weight:700;background:#2a2e3a;color:#cfd2dc;cursor:pointer}
-.pen-size-btn.active{background:#f2c94c;color:#171a23}
-.pen-size-btn[hidden]{display:none}
-
-/* --- Badge skor mengambang, pengganti panel "menunggu" statis --- */
-.score-float{position:absolute;right:14px;bottom:14px;z-index:6;background:#171a23e6;color:#fff;padding:8px 16px;border-radius:999px;font-weight:800;font-size:.85rem}
+/* --- Layar "menunggu": skor + papan peringkat gaya podium --- */
 .board-off-panel{height:100%;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px}
-.board-off-inner{max-width:420px;width:100%;text-align:center;color:#222}
+.board-off-inner{max-width:460px;width:100%;text-align:center;color:#222}
 .board-off-kicker{display:block;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:#8a8f99;font-weight:700}
 .board-off-score{font-size:3.4rem;font-weight:800;color:#171a23;margin:6px 0 18px;font-family:var(--font-mono)}
 .board-off-inner h3{margin:18px 0 8px;font-size:1rem}
 .board-off-inner .live-leaderboard-row{text-align:left}
+
+/* --- Podium (top 3) buat papan peringkat, dipakai di layar menunggu siswa,
+   pembahasan tiap soal, dan panel admin --- */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 0}
+.podium-spot{display:flex;flex-direction:column;align-items:center;width:92px}
+.podium-1{order:2}.podium-2{order:1}.podium-3{order:3}
+.podium-medal{font-size:1.7rem;line-height:1}
+.podium-name{font-weight:700;font-size:.8rem;margin-top:4px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium-score{font-family:var(--font-mono);font-weight:800;font-size:.9rem;color:var(--color-navy);margin-top:1px}
+.podium-bar{width:100%;border-radius:12px 12px 4px 4px;margin-top:8px}
+.podium-1 .podium-bar{height:88px;background:linear-gradient(180deg,var(--color-gold),var(--color-gold-2));box-shadow:0 6px 16px -6px rgba(244,183,64,.6)}
+.podium-2 .podium-bar{height:62px;background:linear-gradient(180deg,#D3D7E0,#AEB3C1)}
+.podium-3 .podium-bar{height:44px;background:linear-gradient(180deg,#E6AC79,#C9834B)}
 
 /* --- Mode fullscreen browser (Fullscreen API) --- */
 .live-student-shell:fullscreen,.live-student-shell:-webkit-full-screen{background:#11131a}
@@ -667,4 +670,3 @@ tbody tr:hover { background: #FAF7EE; }
 .pdf-canvas-wrap canvas{display:block}
 .pdf-stage-status{position:absolute;color:#fff;background:#171a23cc;padding:8px 16px;border-radius:999px;font-size:.85rem;font-weight:700;z-index:7}
 .pdf-stage-status[hidden]{display:none}
-#live_board{z-index:4}

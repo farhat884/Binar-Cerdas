@@ -129,39 +129,6 @@ def kelas_config(session_id):
     return redirect(url_for("live_admin.kelola", session_id=session_id))
 
 
-@live_admin_bp.route("/<session_id>/izin-coret", methods=["POST"])
-@admin_required
-def izin_coret(session_id):
-    """Pengajar pilih sendiri siapa yang boleh mencoret di papan tulis --
-    bisa diubah kapan saja selagi kelas berjalan, bukan cuma di lobi."""
-    sess = _get_owned_session_or_none(session_id)
-    if not sess:
-        flash("Sesi live tidak ditemukan.", "danger")
-        return redirect(url_for("live_admin.daftar"))
-    ids = request.form.getlist("draw_user_ids")
-    live_model.set_draw_allowed(session_id, ids)
-    if ids:
-        flash(f"{len(ids)} siswa sekarang boleh mencoret di papan tulis.", "success")
-    else:
-        flash("Izin mencoret dicabut dari semua siswa.", "info")
-    return redirect(url_for("live_admin.kelola", session_id=session_id))
-
-
-@live_admin_bp.route("/<session_id>/papan-toggle", methods=["POST"])
-@admin_required
-def papan_toggle(session_id):
-    """Saklar utama papan tulis: nyala -> layar SEMUA siswa otomatis pindah
-    nampilin papan tulis (siswa ikut lewat polling /status). Bisa dipanggil
-    kapan saja selama kelas berjalan. Siapa yang boleh ikut nyoret tetap
-    diatur terpisah lewat 'Izin papan tulis' (izin_coret di bawah)."""
-    sess = _get_owned_session_or_none(session_id)
-    if not sess:
-        return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    aktif = request.form.get("aktif") == "on"
-    live_model.set_papan_aktif(session_id, aktif)
-    return jsonify({"ok": True, "papan_aktif": aktif})
-
-
 @live_admin_bp.route("/<session_id>/aktifkan-checkpoint", methods=["POST"])
 @admin_required
 def aktifkan_checkpoint(session_id):
@@ -266,20 +233,6 @@ def quiz_toggle(session_id):
             live_model.end_quiz_to_teaching(session_id)
         flash("Kuis dimatikan. Kelas kembali ke mode mengajar.", "info")
     return redirect(url_for("live_admin.kelola", session_id=session_id))
-
-
-@live_admin_bp.route("/<session_id>/drawing", methods=["POST"])
-@admin_required
-def drawing(session_id):
-    sess = _get_owned_session_or_none(session_id)
-    if not sess:
-        return jsonify({"error":"Sesi tidak ditemukan"}), 404
-    data=request.get_json(silent=True) or {}
-    if data.get("clear"):
-        live_model.clear_drawing(session_id)
-    elif data.get("stroke"):
-        live_model.add_drawing_stroke(session_id, data["stroke"])
-    return jsonify({"ok": True})
 
 
 @live_admin_bp.route("/<session_id>/soal", methods=["POST"])
@@ -444,28 +397,12 @@ def _soal_aktif_dengan_jawaban(sess):
     return dict(questions[idx], nomor=idx + 1)
 
 
-def _auto_tutup_jika_waktu_habis(sess):
-    """Kalau waktu jawab soal udah habis (sisa_detik 0) tapi admin belum sempat
-    klik 'Tutup soal & bahas' -- misal lagi sibuk jelasin di kelas -- status
-    otomatis dipindah ke JEDA di sini. Tanpa ini, siswa yang sudah jawab bisa
-    nyangkut selamanya di teks "Jawaban terkirim, tunggu pembahasan" sampai
-    admin ingat buat klik tombolnya. Dipanggil dari endpoint /status DUA sisi
-    (admin & siswa) yang di-poll tiap ~1-2 detik, jadi siapa pun yang polling
-    duluan setelah waktu habis bakal men-trigger transisi ini. Transisi
-    JEDA -> soal berikutnya TETAP manual (pengajar yang atur kapan lanjut,
-    biar ada waktu buat bahas jawabannya dulu)."""
-    if sess["status"] == live_model.STATUS_SOAL and sess.get("current_started_at") and (_sisa_detik(sess) or 0) <= 0:
-        return live_model.advance_session(sess["id"])
-    return sess
-
-
 @live_admin_bp.route("/<session_id>/status")
 @admin_required
 def status(session_id):
     sess = _get_owned_session_or_none(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    sess = _auto_tutup_jika_waktu_habis(sess)
     peserta = live_model.get_leaderboard(session_id)
     total_soal = len(sess.get("questions") or [])
     idx = sess.get("current_index", -1)
@@ -483,8 +420,7 @@ def status(session_id):
         "sudah_jawab": sudah_jawab,
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in peserta[:10]],
         "mode": sess.get("mode", "mengajar"),
-        "drawing": sess.get("drawing") or [], "draw_allowed_ids": sess.get("draw_allowed_ids") or [],
-        "quiz_enabled": sess.get("quiz_enabled", False), "papan_aktif": sess.get("papan_aktif", False),
+        "quiz_enabled": sess.get("quiz_enabled", False),
         "active_checkpoint": sess.get("active_checkpoint", ""),
     })
 
@@ -548,7 +484,6 @@ def status(session_id):
     sess = live_model.get_session(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404
-    sess = _auto_tutup_jika_waktu_habis(sess)
     peserta = live_model.get_participant(session_id, session["user_id"])
     if not peserta:
         return jsonify({"error": "Kamu belum join sesi ini."}), 403
@@ -579,24 +514,10 @@ def status(session_id):
         "peringkat_saya": peringkat_saya,
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in leaderboard[:10]],
         "mode": sess.get("mode", "mengajar"),
-        "drawing": sess.get("drawing") or [], "student_draw_enabled": session["user_id"] in (sess.get("draw_allowed_ids") or []),
-        "quiz_enabled": sess.get("quiz_enabled", False), "papan_aktif": sess.get("papan_aktif", False),
+        "quiz_enabled": sess.get("quiz_enabled", False),
         "active_checkpoint": sess.get("active_checkpoint", ""),
         "quiz_allowed": session["user_id"] in (sess.get("quiz_assignments") or {})    })
 
-
-@live_student_bp.route("/<session_id>/drawing", methods=["POST"])
-@student_required
-def student_drawing(session_id):
-    sess = live_model.get_session(session_id)
-    if not sess:
-        return jsonify({"error":"Sesi tidak ditemukan"}), 404
-    if session["user_id"] not in (sess.get("draw_allowed_ids") or []):
-        return jsonify({"error":"Pengajar belum mengizinkan kamu mencoret."}), 403
-    data=request.get_json(silent=True) or {}
-    if data.get("stroke"):
-        live_model.add_drawing_stroke(session_id, data["stroke"])
-    return jsonify({"ok": True})
 
 @live_student_bp.route("/<session_id>/jawab", methods=["POST"])
 @student_required

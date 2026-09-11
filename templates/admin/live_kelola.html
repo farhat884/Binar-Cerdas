@@ -14,7 +14,7 @@
   <div class="live-config-grid">
     <section class="card-simple">
       <h2>1. Sumber soal (Kelas → Mapel → Bab)</h2>
-      <p class="muted">Gak ada tampilan materi/PDF lagi di Kelas Live — layar siswa cuma papan tulis (pas kamu nyalain) atau skor &amp; papan peringkat. Pilihan di bawah cuma nentuin soal dari Bank Soal mana yang dipakai buat "Atur kuis" &amp; "Kuis Cepat".</p>
+      <p class="muted">Gak ada papan tulis atau materi/PDF lagi di Kelas Live — cuma kuis, dipecah per tahapan/bagian. Pilihan di bawah cuma nentuin soal dari Bank Soal mana yang dipakai buat "Atur kuis" &amp; "Kuis per Tahapan".</p>
       <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
         <div class="field-row">
           <div class="field"><label>Kelas</label>
@@ -29,7 +29,6 @@
         </div>
         <button class="btn btn-gold" type="submit">Simpan sumber soal</button>
       </form>
-      <p class="muted" style="margin-top:10px">Izin mencoret &amp; nyala/matiin papan tulis diatur belakangan pas kelas sudah berjalan, bukan di sini.</p>
       <script id="kelas_map_data" type="application/json">{{ kelas_map|tojson }}</script>
       <script id="bab_materials_data" type="application/json">{{ materials|tojson }}</script>
       <script>
@@ -137,12 +136,10 @@
   {% else %}
   <div id="live_admin_root" class="live-teacher-panel"
        data-status-url="{{ url_for('live_admin.status', session_id=sesi.id) }}"
-       data-drawing-url="{{ url_for('live_admin.drawing', session_id=sesi.id) }}"
-       data-papan-toggle-url="{{ url_for('live_admin.papan_toggle', session_id=sesi.id) }}"
        data-checkpoint-url="{{ url_for('live_admin.aktifkan_checkpoint', session_id=sesi.id) }}"
        data-durasi="{{ sesi.durasi_detik }}">
     <div class="teacher-toolbar">
-      <div><span id="admin_mode" class="live-status-pill">Mengajar</span><span id="admin_progress" class="muted"></span></div>
+      <div><span id="admin_mode" class="live-status-pill">Menunggu</span><span id="admin_progress" class="muted"></span></div>
       <div class="toolbar-actions">
         {% if sesi.quiz_question_ids %}<button id="btn_quiz_prebuilt" class="btn btn-gold">▶ Nyalakan kuis siap-pakai ({{ sesi.quiz_question_ids|length }} soal)</button>{% endif %}
         <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none"><button class="btn btn-gold" id="btn_lanjut">Tutup soal</button></form>
@@ -150,50 +147,36 @@
       </div>
     </div>
     <div class="teacher-layout">
-      <section class="teacher-board-wrap">
-        <div class="page-nav">
-          <button id="btn_papan_toggle" class="btn btn-gold" type="button">🖊️ Nyalakan papan tulis ke siswa</button>
-          <span id="papan_status_text" class="muted"></span>
+      <section>
+        <div class="card-simple" style="margin-bottom:14px">
+          <h3>Kontrol kelas</h3>
+          <p><b id="admin_students">0</b> siswa online · <b id="admin_answered">0</b> sudah jawab</p>
+          <div id="admin_question" class="live-current-question"></div>
         </div>
-        <div class="board-tools"><button id="clear_board" class="btn btn-ghost btn-sm">🧹 Bersihkan</button><div class="pen-size-group"><button class="pen-size-btn active" data-w="3">✏️ Pensil</button><button class="pen-size-btn" data-w="8">🖊️ Spidol</button><button class="pen-size-btn" data-w="14">🖍️ Tebal</button></div><span class="muted">Bisa dicoret kapan saja — nyala/matinya tampilan ke siswa diatur tombol di atas.</span></div>
-        <canvas id="live_board"></canvas>
-      </section>
-      <aside class="teacher-side card-simple">
-        <h3>Kontrol kelas</h3>
-        <p><b id="admin_students">0</b> siswa online · <b id="admin_answered">0</b> sudah jawab</p>
-        <div id="admin_question" class="live-current-question"></div>
-        <hr>
-        <h3>🖊️ Izin papan tulis</h3>
-        <p class="muted" style="margin:0 0 8px">Pilih siswa yang boleh ikut mencoret di papan tulis sekarang. Bisa diubah kapan saja.</p>
-        {% if peserta %}
-        <form method="POST" action="{{ url_for('live_admin.izin_coret', session_id=sesi.id) }}">
-          {% for p in peserta %}
-          <label class="live-check"><input type="checkbox" name="draw_user_ids" value="{{ p.user_id }}" {% if p.user_id in sesi.draw_allowed_ids %}checked{% endif %}> {{ p.nama }}</label>
-          {% endfor %}
-          <button class="btn btn-gold btn-sm" type="submit" style="margin-top:8px">Terapkan izin</button>
-        </form>
-        <p class="muted" style="font-size:.75rem;margin-top:6px">Siswa yang baru join belum muncul di sini sampai halaman ini di-refresh.</p>
-        {% else %}<p class="muted">Belum ada siswa yang join.</p>{% endif %}
         {% if checkpoints %}
-        <hr>
-        <h3>🎯 Kuis Cepat per Bagian</h3>
-        <p class="muted" style="margin:0 0 8px">Baru selesai jelasin satu bagian? Langsung tembak kuis singkatnya di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
-        <div class="checkpoint-quiz-list">
-          {% for c in checkpoints %}
-          <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
-            <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
-              <button class="btn btn-gold btn-sm cp-fire-btn">▶ Nyalakan</button>
+        <div class="card-simple">
+          <h3>🎯 Kuis per Tahapan</h3>
+          <p class="muted" style="margin:0 0 8px">Mau ngetes paham atau engga di satu bagian tertentu (misal "Logika")? Nyalakan kuis bagian itu di sini — soal diambil acak, jadi bisa beda tiap dinyalakan.</p>
+          <div class="checkpoint-quiz-list">
+            {% for c in checkpoints %}
+            <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
+              <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
+                <button class="btn btn-gold btn-sm cp-fire-btn">▶ Nyalakan</button>
+              </div>
             </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
         {% elif sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
-        <hr><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tombol Kuis Cepat muncul di sini.</p>
+        <div class="card-simple"><p class="muted">Belum ada soal berlabel "Bagian/Checkpoint" untuk bab ini. Tambahkan lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> supaya tahapan-tahapan kuis muncul di sini.</p></div>
         {% endif %}
-        <hr>
-        <h3>Peserta kuis</h3><div id="admin_leaderboard"></div>
+      </section>
+      <aside class="teacher-side card-simple">
+        <h3>🏆 Papan Peringkat</h3>
+        <div id="admin_podium" class="podium"></div>
+        <div id="admin_leaderboard"></div>
       </aside>
     </div>
   </div>
@@ -203,50 +186,40 @@
 {% if sesi.status != 'lobi' %}
 <script>
 (() => {
- const root=document.getElementById('live_admin_root'), board=document.getElementById('live_board'), ctx=board.getContext('2d');
- const statusUrl=root.dataset.statusUrl, drawingUrl=root.dataset.drawingUrl;
- const papanToggleUrl=root.dataset.papanToggleUrl, checkpointUrl=root.dataset.checkpointUrl;
- let drawing=[], drawingActive=false, last={x:0,y:0}, penW=3, papanAktif=false, papanBusy=false;
- document.querySelectorAll('.pen-size-btn').forEach(btn=>{btn.onclick=()=>{penW=+btn.dataset.w;document.querySelectorAll('.pen-size-btn').forEach(b=>b.classList.toggle('active',b===btn))}});
- const papanBtn=document.getElementById('btn_papan_toggle'), papanText=document.getElementById('papan_status_text');
- function renderPapanBtn(){
-   papanBtn.textContent = papanAktif ? '⏹ Matikan papan tulis' : '🖊️ Nyalakan papan tulis ke siswa';
-   papanBtn.className = papanAktif ? 'btn btn-ghost' : 'btn btn-gold';
-   papanText.textContent = papanAktif ? 'Papan tulis lagi tampil ke semua siswa.' : 'Layar siswa lagi nampilin skor & papan peringkat.';
- }
- papanBtn.onclick = async () => {
-   if(papanBusy) return; papanBusy = true;
-   const target = !papanAktif;
-   try{
-     const res = await fetch(papanToggleUrl,{method:'POST',body:new URLSearchParams({aktif: target ? 'on' : 'off'})});
-     const data = await res.json().catch(()=>({}));
-     if(res.ok){ papanAktif = !!data.papan_aktif; renderPapanBtn(); }
-   }catch(e){}
-   papanBusy = false;
- };
+ const root=document.getElementById('live_admin_root');
+ const statusUrl=root.dataset.statusUrl, checkpointUrl=root.dataset.checkpointUrl;
  document.querySelectorAll('.cp-fire-btn').forEach(btn=>{
    btn.onclick=async()=>{
      const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const jumlah=item.querySelector('.cp-jumlah').value||3;
      btn.disabled=true; btn.textContent='Menyalakan…';
      const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah,acak_per_siswa:'on'})});
      const data=await res.json().catch(()=>({}));
-     if(!res.ok){alert(data.error||'Gagal menyalakan kuis cepat.')}
+     if(!res.ok){alert(data.error||'Gagal menyalakan kuis.')}
      btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
    };
  });
  const prebuiltBtn=document.getElementById('btn_quiz_prebuilt');
  if(prebuiltBtn){prebuiltBtn.onclick=async()=>{const f=new URLSearchParams({enabled:'on'});await fetch(location.pathname+'/quiz-toggle',{method:'POST',body:f});poll()}}
- function resize(){const r=board.getBoundingClientRect(); board.width=Math.floor(r.width*devicePixelRatio); board.height=Math.floor(r.height*devicePixelRatio); ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); render();}
- function render(){ctx.clearRect(0,0,board.clientWidth,board.clientHeight);ctx.lineCap='round';ctx.lineJoin='round'; for(const st of drawing){ctx.beginPath();ctx.lineWidth=st.w||3;ctx.moveTo(st.x1*board.clientWidth,st.y1*board.clientHeight);ctx.lineTo(st.x2*board.clientWidth,st.y2*board.clientHeight);ctx.stroke();}}
- async function send(st){try{await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stroke:st})})}catch(e){}}
- board.addEventListener('pointerdown',e=>{drawingActive=true;last={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};board.setPointerCapture(e.pointerId)});
- board.addEventListener('pointermove',e=>{if(!drawingActive)return;const now={x:e.offsetX/board.clientWidth,y:e.offsetY/board.clientHeight};const st={x1:last.x,y1:last.y,x2:now.x,y2:now.y,w:penW};drawing.push(st);render();send(st);last=now});
- board.addEventListener('pointerup',()=>drawingActive=false); board.addEventListener('pointercancel',()=>drawingActive=false);
- document.getElementById('clear_board').onclick=async()=>{drawing=[];render();await fetch(drawingUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clear:true})})};
- window.addEventListener('resize',resize); resize();
- async function poll(){try{const d=await (await fetch(statusUrl)).json();drawing=d.drawing||[];render();if(!papanBusy){papanAktif=!!d.papan_aktif;renderPapanBtn()}document.getElementById('admin_mode').textContent=d.status==='soal'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENGAJAR';document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';document.getElementById('admin_students').textContent=d.jumlah_peserta;document.getElementById('admin_answered').textContent=d.sudah_jawab;document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Jelasin di papan tulis. Kuis cepat bisa dinyalakan kapan saja dari panel kanan.';document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';renderLB(d.leaderboard||[])}catch(e){}}
- function renderLB(a){document.getElementById('admin_leaderboard').innerHTML=a.length?a.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+1} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'<span class="muted">Belum ada skor.</span>'}
- renderPapanBtn(); poll();setInterval(poll,2000);
+ function medal(r){return r===1?'🥇':r===2?'🥈':'🥉'}
+ function renderPapan(arr){
+   const podiumEl=document.getElementById('admin_podium'), listEl=document.getElementById('admin_leaderboard');
+   if(!arr.length){podiumEl.innerHTML='';listEl.innerHTML='<span class="muted">Belum ada skor.</span>';return}
+   const top=arr.slice(0,3), rest=arr.slice(3);
+   podiumEl.innerHTML=[2,1,3].filter(r=>top[r-1]).map(r=>{const p=top[r-1];return `<div class="podium-spot podium-${r}"><div class="podium-medal">${medal(r)}</div><div class="podium-name">${p.nama}</div><div class="podium-score">${p.skor}</div><div class="podium-bar"></div></div>`}).join('');
+   listEl.innerHTML=rest.length?rest.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+4} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'';
+ }
+ async function poll(){try{const d=await (await fetch(statusUrl)).json();
+   document.getElementById('admin_mode').textContent=d.status==='soal'||d.status==='jeda'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENUNGGU';
+   document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';
+   document.getElementById('admin_students').textContent=d.jumlah_peserta;
+   document.getElementById('admin_answered').textContent=d.sudah_jawab;
+   document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';
+   document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';
+   document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';
+   if(prebuiltBtn)prebuiltBtn.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
+   renderPapan(d.leaderboard||[]);
+ }catch(e){}}
+ poll();setInterval(poll,2000);
 })();
 </script>
 {% endif %}
