@@ -110,6 +110,24 @@ window.teksPilihanDariForm = function (qEl, huruf) {
   return teks || huruf;
 };
 
+// Kasih highlight warna langsung di pilihan jawaban A/B/C/D (bukan cuma di
+// kotak "Jawaban Benar!/Belum Tepat"), biar siswa langsung lihat mana yang
+// benar & mana yang salah dipilih. Dipakai di halaman ujian & latihan materi
+// setelah jawaban dicek ke server.
+window.tandaiPilihanJawaban = function (qEl, huruf_dipilih, huruf_benar) {
+  if (!qEl) return;
+  qEl.querySelectorAll('input[type="radio"]').forEach((input) => {
+    const label = input.closest("label.answer-option");
+    if (!label) return;
+    label.classList.remove("correct-answer", "wrong-answer");
+    if (input.value === huruf_benar) {
+      label.classList.add("correct-answer");
+    } else if (input.value === huruf_dipilih) {
+      label.classList.add("wrong-answer");
+    }
+  });
+};
+
 // Preview LaTeX langsung di form Bank Soal (biar admin bisa lihat soal
 // matriks/pecahan/dll ke-render sebelum disimpan). Tinggal kasih atribut
 // data-latex-source="id-elemen-preview" di textarea/input sumbernya.

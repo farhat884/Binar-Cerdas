@@ -788,6 +788,18 @@ def _tandai_kelengkapan(questions):
 @admin_required
 def hapus_soal(question_id): delete_question(question_id); flash("Soal dihapus.","info"); return redirect(url_for("admin.soal"))
 
+@admin_bp.route("/soal/hapus-banyak",methods=["POST"])
+@admin_required
+def hapus_banyak_soal():
+    """Hapus banyak soal sekaligus dari checkbox yang dicentang di tabel Bank Soal."""
+    ids=request.form.getlist("delete_ids")
+    if not ids:
+        flash("Belum ada soal yang dicentang buat dihapus.","danger"); return redirect(url_for("admin.soal"))
+    for qid in ids:
+        delete_question(qid)
+    flash(f"{len(ids)} soal berhasil dihapus sekaligus.","info")
+    return redirect(url_for("admin.soal"))
+
 @admin_bp.route("/soal/<question_id>/edit",methods=["GET","POST"])
 @admin_required
 def edit_soal(question_id):

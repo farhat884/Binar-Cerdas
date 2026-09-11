@@ -116,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const radios = qEl.querySelectorAll('input[type="radio"]');
     radios.forEach((r) => { r.disabled = true; if (r.value === hasil.selected) r.checked = true; });
     jawabanTerkumpul[qEl.dataset.questionId] = hasil.selected;
+    window.tandaiPilihanJawaban(qEl, hasil.selected, hasil.jawaban_benar);
     resultBox.className = "quiz-result " + (hasil.benar ? "is-correct" : "is-wrong");
     resultBox.style.display = "block";
     resultBox.innerHTML =
@@ -238,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         radios.forEach((r) => (r.disabled = true));
         jawabanTerkumpul[questionId] = checked.value;
+        window.tandaiPilihanJawaban(qEl, checked.value, data.jawaban_benar);
         resultBox.className = "quiz-result " + (data.benar ? "is-correct" : "is-wrong");
         resultBox.style.display = "block";
         resultBox.innerHTML =

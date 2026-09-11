@@ -64,6 +64,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector(".quiz-form");
   if (!form) return;
+  // PENTING: radio yang sudah dijawab di-disable biar gak bisa diubah lagi,
+  // tapi browser gak ngirim value dari input yang disabled pas form di-submit.
+  // Makanya sebelum submit beneran, aktifkan lagi semua radio (cuma buat
+  // keperluan pengiriman data, tampilannya udah gak bisa diklik ulang karena
+  // sudah pindah ke soal lain / next-btn tersembunyi).
+  form.addEventListener("submit", () => {
+    form.querySelectorAll('input[type="radio"]:disabled').forEach((r) => { r.disabled = false; });
+  });
   const questions = Array.from(form.querySelectorAll(".quiz-question"));
   const progressEl = document.querySelector(".quiz-progress");
   const barEl = document.querySelector(".quiz-bar span");
@@ -88,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextBtn = qEl.querySelector(".next-btn");
     const radios = qEl.querySelectorAll('input[type="radio"]');
     radios.forEach((r) => { r.disabled = true; if (r.value === hasil.selected) r.checked = true; });
+    window.tandaiPilihanJawaban(qEl, hasil.selected, hasil.jawaban_benar);
     resultBox.className = "quiz-result " + (hasil.benar ? "is-correct" : "is-wrong");
     resultBox.style.display = "block";
     resultBox.innerHTML =
@@ -175,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         radios.forEach((r) => (r.disabled = true));
+        window.tandaiPilihanJawaban(qEl, checked.value, data.jawaban_benar);
         resultBox.className = "quiz-result " + (data.benar ? "is-correct" : "is-wrong");
         resultBox.style.display = "block";
         resultBox.innerHTML =
