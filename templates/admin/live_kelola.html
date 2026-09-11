@@ -212,7 +212,7 @@
    document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';
    document.getElementById('admin_students').textContent=d.jumlah_peserta;
    document.getElementById('admin_answered').textContent=d.sudah_jawab;
-   document.getElementById('admin_question').textContent=d.soal_aktif?.pertanyaan||'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';
+   const aqEl=document.getElementById('admin_question');aqEl.textContent=d.soal_aktif?.pertanyaan||'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';if(window.typesetMath)window.typesetMath(aqEl);
    document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';
    document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';
    if(prebuiltForm)prebuiltForm.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
