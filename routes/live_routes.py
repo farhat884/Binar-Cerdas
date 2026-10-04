@@ -52,6 +52,11 @@ def _get_owned_session_or_none(session_id):
     return sess
 
 
+# Ulangan Harian (UH) itu level Bab, bukan level Tahapan, jadi di Live semua
+# soal UH pada bab terpilih dikumpulkan dalam satu kelompok sendiri.
+UH_GROUP = "Ulangan Harian Bab"
+
+
 def _norm(v):
     """Samakan teks buat perbandingan: abaikan spasi ganda & huruf besar/kecil."""
     return " ".join(str(v or "").split()).lower()
@@ -74,6 +79,19 @@ def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
     out = []
     for q in get_questions(**extra_filters):
         m = materials.get((q.get("material_id") or "").strip())
+        if (q.get("tipe") or "").strip().upper() == "UH":
+            cocok_uh = (_norm(q.get("kelas")) == _norm(kelas)
+                        and _norm(q.get("mapel")) == _norm(mapel)
+                        and _norm(q.get("bab")) == _norm(bab))
+            if not cocok_uh and m:
+                cocok_uh = (_norm(m.get("kelas")) == _norm(kelas)
+                            and _norm(m.get("mapel")) == _norm(mapel)
+                            and _norm(m.get("bab")) == _norm(bab))
+            if cocok_uh and (not checkpoint or _norm(checkpoint) == _norm(UH_GROUP)):
+                q = dict(q)
+                q["checkpoint"] = UH_GROUP
+                out.append(q)
+            continue
         if not m:
             continue
         judul = (m.get("judul") or "").strip()
@@ -114,6 +132,8 @@ def _kelompokkan_soal(bank_questions, materials=None):
     for nama, qs in by_group.items():
         groups.append({"nama": nama, "soal": qs, "checkpoint": nama})
     groups.sort(key=lambda g: order_map.get(g["nama"], (999999, g["nama"])))
+    # Kelompok Ulangan Harian Bab selalu di paling bawah.
+    groups.sort(key=lambda g: g["nama"] == UH_GROUP)
     return groups
 
 
@@ -189,7 +209,7 @@ def aktifkan_checkpoint(session_id):
     if not checkpoint:
         return jsonify({"error": "Bagian/checkpoint wajib dipilih."}), 400
     try:
-        jumlah = max(1, min(20, int(request.form.get("jumlah", 3))))
+        jumlah = max(1, min(100, int(request.form.get("jumlah", 3))))
     except (TypeError, ValueError):
         jumlah = 3
     bank = _soal_kelas_mapel_bab(kelas, mapel, bab, checkpoint=checkpoint)
