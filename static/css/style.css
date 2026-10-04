@@ -670,3 +670,23 @@ tbody tr:hover { background: #FAF7EE; }
 .pdf-canvas-wrap canvas{display:block}
 .pdf-stage-status{position:absolute;color:#fff;background:#171a23cc;padding:8px 16px;border-radius:999px;font-size:.85rem;font-weight:700;z-index:7}
 .pdf-stage-status[hidden]{display:none}
+
+/* Live UAS free-navigation mode */
+.live-question-navigation{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px}
+.live-question-navigator{display:flex;gap:6px;flex-wrap:wrap;flex:1;justify-content:center}
+.live-question-nav{width:38px;height:38px;border:1px solid var(--border,#ddd);border-radius:9px;background:#fff;cursor:pointer;font-weight:700}
+.live-question-nav.answered{opacity:.65}
+.live-question-nav.active{outline:3px solid rgba(245,190,40,.25);background:#f5c83b}
+.live-pause-banner{padding:12px 14px;margin:10px 0 14px;border-radius:10px;background:#fff4cf;border:1px solid #f0d77b;font-weight:700}
+
+/* Live UAS: fixed order + per-student monitoring */
+.live-fixed-order-note{padding:10px 12px;border:1px solid #e8e8e8;border-radius:10px;background:#fafafa;color:var(--color-ink);font-size:.9rem;margin:10px 0 14px}
+.admin-student-monitor{display:flex;flex-direction:column;gap:12px;max-height:620px;overflow:auto}
+.student-progress-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}
+.student-progress-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px}
+.student-progress-numbers{display:flex;gap:5px;flex-wrap:wrap}
+.student-progress-number,.live-question-nav{width:34px;height:34px;border-radius:8px;border:1px solid #d9dce3;background:#e7e9ed;color:#4b5563;font-weight:800;display:inline-flex;align-items:center;justify-content:center}.live-question-nav{cursor:pointer}.student-progress-number.is-current{box-shadow:0 0 0 3px rgba(245,190,40,.28)}
+.student-progress-number.is-correct,.live-question-nav.is-correct{background:#d9f3df;border-color:#55ad6b;color:#187333}
+.student-progress-number.is-wrong,.live-question-nav.is-wrong{background:#f9d8d8;border-color:#db6565;color:#a52323}
+.student-progress-number.is-empty,.live-question-nav.is-empty{background:#e7e9ed;border-color:#d5d8df;color:#68707d}
+.live-question-nav.active{outline:3px solid rgba(245,190,40,.35);transform:translateY(-1px)}

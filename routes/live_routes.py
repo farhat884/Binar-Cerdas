@@ -19,7 +19,6 @@ from utils.formatter import parse_full_mcq
 from models.materi_model import get_all_materials
 from models.program_model import get_kelas_map
 from models.soal_model import get_questions
-import random
 import models.live_model as live_model
 
 live_admin_bp = Blueprint("live_admin", __name__)
@@ -152,12 +151,11 @@ def aktifkan_checkpoint(session_id):
         jumlah = max(1, min(20, int(request.form.get("jumlah", 3))))
     except (TypeError, ValueError):
         jumlah = 3
-    acak_per_siswa = request.form.get("acak_per_siswa", "on") == "on"
     bank = _soal_kelas_mapel_bab(kelas, mapel, bab, tipe="latihan", checkpoint=checkpoint)
     if not bank:
         return jsonify({"error": f"Belum ada soal untuk bagian '{checkpoint}'."}), 400
-    ambil = random.sample(bank, min(jumlah, len(bank)))
-    random.shuffle(ambil)
+    # Urutan bank dipertahankan. Tidak ada pengacakan soal maupun urutan per siswa.
+    ambil = bank[:jumlah]
     questions = [{"id": q["id"], "pertanyaan": q.get("pertanyaan", ""),
                   "pilihan": q.get("pilihan") or ["", "", "", ""],
                   "jawaban_benar": q.get("jawaban_benar", "A"),
@@ -167,7 +165,7 @@ def aktifkan_checkpoint(session_id):
     target_ids = [p["user_id"] for p in peserta]
     if not target_ids:
         return jsonify({"error": "Belum ada siswa yang join."}), 400
-    live_model.activate_checkpoint_quiz(session_id, checkpoint, questions, target_ids, acak_per_siswa)
+    live_model.activate_checkpoint_quiz(session_id, checkpoint, questions, target_ids, False)
     return jsonify({"ok": True})
 
 
@@ -192,8 +190,7 @@ def atur_kuis(session_id):
     if not questions:
         flash("Pilih minimal satu soal dari latihan/bank soal.", "danger")
         return redirect(url_for("live_admin.kelola", session_id=session_id))
-    if request.form.get("acak_soal") == "on":
-        random.shuffle(questions)
+    # Urutan mengikuti urutan soal yang dipilih pengajar. Tidak ada shuffle.
     live_model.set_quiz_questions(session_id, questions)
     live_model.set_quiz_enabled(session_id, False)
     target_ids = request.form.getlist("target_user_ids")
@@ -201,12 +198,8 @@ def atur_kuis(session_id):
     if not target_ids or "__all__" in target_ids:
         target_ids = [p["user_id"] for p in peserta]
     assignments = {}
-    per_student = request.form.get("acak_per_siswa") == "on"
     for uid in target_ids:
-        order = [q["id"] for q in questions]
-        if per_student:
-            random.shuffle(order)
-        assignments[uid] = order
+        assignments[uid] = [q["id"] for q in questions]
     live_model.set_quiz_assignments(session_id, assignments)
     flash(f"{len(questions)} soal siap digunakan untuk {len(assignments)} siswa.", "success")
     return redirect(url_for("live_admin.kelola", session_id=session_id))
@@ -221,15 +214,17 @@ def quiz_toggle(session_id):
     enabled = request.form.get("enabled") == "on"
     if enabled:
         assignments = sess.get("quiz_assignments") or {}
-        if not assignments and sess.get("quiz_question_ids"):
-            # Assignment bisa kosong kalau "Atur kuis" disimpan SEBELUM ada
-            # siswa yang join (target "Semua siswa yang join" saat itu
-            # nemuin peserta kosong). Bangun ulang otomatis dari siswa yang
-            # SUDAH join sekarang, pakai urutan soal yang sudah disimpan.
+        if sess.get("quiz_question_ids"):
+            # Pastikan semua siswa yang sudah join punya assignment. Ini juga
+            # menangani siswa yang baru join setelah tombol "Atur kuis" disimpan.
             peserta = live_model.get_participants(session_id)
-            if peserta:
-                order = list(sess.get("quiz_question_ids") or [])
-                assignments = {p["user_id"]: list(order) for p in peserta}
+            order = list(sess.get("quiz_question_ids") or [])
+            changed = False
+            for p in peserta:
+                if p["user_id"] not in assignments:
+                    assignments[p["user_id"]] = list(order)
+                    changed = True
+            if changed:
                 live_model.set_quiz_assignments(session_id, assignments)
         if not assignments:
             flash("Belum ada siswa yang join kelas ini, atau soal kuis belum diatur lewat 'Atur kuis'.", "danger")
@@ -243,6 +238,19 @@ def quiz_toggle(session_id):
             live_model.end_quiz_to_teaching(session_id)
         flash("Kuis dimatikan. Kelas kembali ke mode mengajar.", "info")
     return redirect(url_for("live_admin.kelola", session_id=session_id))
+
+
+@live_admin_bp.route("/<session_id>/quiz-pause", methods=["POST"])
+@admin_required
+def quiz_pause(session_id):
+    sess = _get_owned_session_or_none(session_id)
+    if not sess:
+        return jsonify({"error": "Sesi tidak ditemukan."}), 404
+    if sess.get("status") != live_model.STATUS_SOAL or not sess.get("quiz_enabled"):
+        return jsonify({"error": "Kuis belum aktif."}), 400
+    paused = not sess.get("quiz_paused", False)
+    live_model.set_quiz_paused(session_id, paused)
+    return jsonify({"ok": True, "paused": paused})
 
 
 @live_admin_bp.route("/<session_id>/soal", methods=["POST"])
@@ -364,19 +372,8 @@ def hapus(session_id):
 
 
 def _sisa_detik(sess):
-    if sess["status"] != live_model.STATUS_SOAL or not sess.get("current_started_at"):
-        return None
-    mulai = sess["current_started_at"]
-    if isinstance(mulai, str):
-        try:
-            mulai = datetime.datetime.fromisoformat(mulai.replace("Z", "+00:00"))
-        except ValueError:
-            return 0
-    if mulai.tzinfo is None:
-        mulai = mulai.replace(tzinfo=datetime.timezone.utc)
-    sekarang = datetime.datetime.now(datetime.timezone.utc)
-    berlalu = (sekarang - mulai).total_seconds()
-    return max(0, round(sess.get("durasi_detik", live_model.DURASI_DEFAULT) - berlalu))
+    # Latihan UAS Live tidak dibatasi waktu.
+    return None
 
 
 def _soal_aktif_publik(sess, user_id=None):
@@ -416,22 +413,41 @@ def status(session_id):
     peserta = live_model.get_leaderboard(session_id)
     total_soal = len(sess.get("questions") or [])
     idx = sess.get("current_index", -1)
-    soal_aktif = _soal_aktif_dengan_jawaban(sess) if sess["status"] in (live_model.STATUS_SOAL, live_model.STATUS_JEDA) else None
-    sudah_jawab = 0
-    if soal_aktif:
-        sudah_jawab = sum(1 for p in peserta if soal_aktif["id"] in (p.get("jawaban") or {}))
+    sudah_jawab = sum(len(p.get("jawaban") or {}) for p in peserta) if sess.get("status") == live_model.STATUS_SOAL else 0
+    questions_by_id = {q.get("id"): q for q in (sess.get("questions") or [])}
+    assignments = sess.get("quiz_assignments") or {}
+    monitor = []
+    for p in peserta:
+        order = assignments.get(p.get("user_id")) or list(sess.get("quiz_question_ids") or [])
+        answers = p.get("jawaban") or {}
+        items = []
+        for number, qid in enumerate(order, 1):
+            q = questions_by_id.get(qid)
+            if not q:
+                continue
+            a = answers.get(qid) or {}
+            if not a:
+                status_q = "unanswered"
+            elif a.get("benar") is True:
+                status_q = "correct"
+            else:
+                status_q = "wrong"
+            items.append({"nomor": number, "id": qid, "status": status_q,
+                          "selected": a.get("selected", "") if a else "",
+                          "benar": a.get("benar") if a else None})
+        terjawab = sum(1 for x in items if x["status"] != "unanswered")
+        current_id = p.get("current_question_id") or (order[0] if order else "")
+        current_number = next((x["nomor"] for x in items if x["id"] == current_id), None)
+        monitor.append({"user_id": p.get("user_id"), "nama": p.get("nama"), "skor": p.get("skor", 0),
+                        "terjawab": terjawab, "total": len(items), "current_number": current_number, "soal": items})
     return jsonify({
-        "status": sess["status"],
-        "current_index": idx,
-        "total_soal": total_soal,
-        "sisa_detik": _sisa_detik(sess),
-        "soal_aktif": soal_aktif,
-        "jumlah_peserta": len(peserta),
+        "status": sess["status"], "current_index": idx, "total_soal": total_soal,
+        "sisa_detik": _sisa_detik(sess), "soal_aktif": None, "jumlah_peserta": len(peserta),
         "sudah_jawab": sudah_jawab,
+        "monitor_siswa": monitor,
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in peserta[:10]],
-        "mode": sess.get("mode", "mengajar"),
-        "quiz_enabled": sess.get("quiz_enabled", False),
-        "active_checkpoint": sess.get("active_checkpoint", ""),
+        "mode": sess.get("mode", "mengajar"), "quiz_enabled": sess.get("quiz_enabled", False),
+        "active_checkpoint": sess.get("active_checkpoint", ""), "quiz_paused": sess.get("quiz_paused", False),
     })
 
 
@@ -497,36 +513,62 @@ def status(session_id):
     peserta = live_model.get_participant(session_id, session["user_id"])
     if not peserta:
         return jsonify({"error": "Kamu belum join sesi ini."}), 403
-    total_soal = len(sess.get("questions") or [])
-    soal_publik = _soal_aktif_publik(sess, session["user_id"]) if sess["status"] == live_model.STATUS_SOAL else None
-    sudah_jawab_soal_ini = bool(soal_publik and soal_publik["id"] in (peserta.get("jawaban") or {}))
-    hasil_soal_ini = None
-    if sess["status"] == live_model.STATUS_JEDA and session["user_id"] in (sess.get("quiz_assignments") or {}):
-        soal = _soal_aktif_dengan_jawaban(sess)
-        if soal:
-            hasil_soal_ini = {
-                "pertanyaan": soal["pertanyaan"],
-                "jawaban_benar": soal["jawaban_benar"],
-                "penjelasan": soal.get("penjelasan", ""),
-                "jawaban_saya": (peserta.get("jawaban") or {}).get(soal["id"]),
-            }
+    order = (sess.get("quiz_assignments") or {}).get(session["user_id"]) or []
+    if not order and sess.get("quiz_question_ids"):
+        order = list(sess.get("quiz_question_ids") or [])
+    questions_by_id = {q.get("id"): q for q in (sess.get("questions") or [])}
+    answered = peserta.get("jawaban") or {}
+    public_questions = []
+    for i, qid in enumerate(order):
+        q = questions_by_id.get(qid)
+        if not q:
+            continue
+        public_questions.append({
+            "id": qid, "nomor": i + 1, "pertanyaan": q.get("pertanyaan", ""),
+            "pilihan": q.get("pilihan") or ["", "", "", ""],
+            "gambar_url": q.get("gambar_url"), "sudah_jawab": qid in answered,
+            "hasil": answered.get(qid)
+        })
+    current_id = peserta.get("current_question_id") or (order[0] if order else "")
+    if current_id and current_id not in order:
+        current_id = order[0] if order else ""
+    current = next((q for q in public_questions if q["id"] == current_id), None)
+    if current and current.get("hasil"):
+        qraw = questions_by_id.get(current_id) or {}
+        current["hasil"] = dict(current["hasil"], jawaban_benar=str(qraw.get("jawaban_benar") or "").strip().upper()[:1])
     leaderboard = live_model.get_leaderboard(session_id)
     peringkat_saya = next((i + 1 for i, p in enumerate(leaderboard) if p["user_id"] == session["user_id"]), None)
     return jsonify({
         "status": sess["status"],
-        "current_index": sess.get("current_index", -1),
-        "total_soal": total_soal,
-        "sisa_detik": _sisa_detik(sess),
-        "soal_aktif": soal_publik,
-        "sudah_jawab": sudah_jawab_soal_ini,
-        "hasil_soal_ini": hasil_soal_ini,
+        "current_index": next((i for i,q in enumerate(public_questions) if q["id"] == current_id), 0) if public_questions else -1,
+        "current_question_id": current_id,
+        "total_soal": len(public_questions),
+        "sisa_detik": None,
+        "soal_aktif": current if sess["status"] == live_model.STATUS_SOAL else None,
+        "soal_list": public_questions if sess["status"] == live_model.STATUS_SOAL else [],
+        "sudah_jawab": bool(current and current.get("sudah_jawab")),
+        "hasil_soal_ini": answered.get(current_id),
         "skor_saya": peserta.get("skor", 0),
         "peringkat_saya": peringkat_saya,
+        "jumlah_terjawab": sum(1 for qid in order if qid in answered),
         "leaderboard": [{"nama": p["nama"], "skor": p.get("skor", 0)} for p in leaderboard[:10]],
         "mode": sess.get("mode", "mengajar"),
         "quiz_enabled": sess.get("quiz_enabled", False),
+        "quiz_paused": sess.get("quiz_paused", False),
         "active_checkpoint": sess.get("active_checkpoint", ""),
-        "quiz_allowed": session["user_id"] in (sess.get("quiz_assignments") or {})    })
+        "quiz_allowed": session["user_id"] in (sess.get("quiz_assignments") or {}) or bool(sess.get("quiz_question_ids"))
+    })
+
+
+@live_student_bp.route("/<session_id>/pilih-soal", methods=["POST"])
+@student_required
+def pilih_soal(session_id):
+    data = request.get_json(silent=True) or {}
+    question_id = str(data.get("question_id", ""))
+    hasil, error = live_model.set_current_question(session_id, session["user_id"], question_id)
+    if error:
+        return jsonify({"error": error}), 400
+    return jsonify({"ok": True, "current_question_id": question_id})
 
 
 @live_student_bp.route("/<session_id>/jawab", methods=["POST"])
@@ -535,8 +577,7 @@ def jawab(session_id):
     data = request.get_json(silent=True) or {}
     question_id = str(data.get("question_id", ""))
     selected = str(data.get("selected", ""))[:5]
-    waktu_ms = data.get("waktu_ms", 0)
-    hasil, error = live_model.submit_answer(session_id, session["user_id"], question_id, selected, waktu_ms)
+    hasil, error = live_model.submit_answer(session_id, session["user_id"], question_id, selected, 0)
     if error:
         return jsonify({"error": error}), 400
     return jsonify({"ok": True, "hasil": hasil})

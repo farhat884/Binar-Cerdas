@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS "live_participants" (
   "user_id" TEXT,
   "jawaban" TEXT,
   "session_id" TEXT,
-  "nama" TEXT
+  "nama" TEXT,
+  "current_question_id" TEXT DEFAULT ''
 );
 
 INSERT INTO "live_participants" ("id", "joined_at", "skor", "user_id", "jawaban", "session_id", "nama") VALUES ('S1hiXaXHKsdOPqt3V2Bp__S2IGhxBCfeQ40qgtQPro', '{"_seconds":1788120657,"_nanoseconds":685154000}', '0', 'S2IGhxBCfeQ40qgtQPro', '{}', 'S1hiXaXHKsdOPqt3V2Bp', 'Juju');

@@ -85,8 +85,7 @@
           </div>
         </div>
         {% endfor %}
-        <label class="live-check"><input type="checkbox" name="acak_soal" checked> Acak urutan soal</label>
-        <label class="live-check"><input type="checkbox" name="acak_per_siswa"> Acak urutan berbeda untuk tiap siswa</label>
+        <div class="live-fixed-order-note"><b>Urutan soal tetap.</b> Semua siswa mengerjakan nomor 1, 2, 3, dan seterusnya dalam urutan yang sama, tetapi masing-masing bebas berpindah nomor.</div>
         <h3 style="margin-top:16px">Siapa yang mengerjakan?</h3>
         <label class="live-check"><input type="checkbox" name="target_user_ids" value="__all__" checked> Semua siswa yang join</label>
         {% if peserta %}
@@ -142,7 +141,7 @@
       <div><span id="admin_mode" class="live-status-pill">Menunggu</span><span id="admin_progress" class="muted"></span></div>
       <div class="toolbar-actions">
         {% if sesi.quiz_question_ids %}<form method="POST" action="{{ url_for('live_admin.quiz_toggle', session_id=sesi.id) }}" id="form_quiz_prebuilt" style="display:none"><input type="hidden" name="enabled" value="on"><button id="btn_quiz_prebuilt" class="btn btn-gold" type="submit">▶ Nyalakan kuis siap-pakai ({{ sesi.quiz_question_ids|length }} soal)</button></form>{% endif %}
-        <form method="POST" action="{{ url_for('live_admin.lanjut', session_id=sesi.id) }}" id="form_lanjut" style="display:none"><button class="btn btn-gold" id="btn_lanjut">Tutup soal</button></form>
+        <button type="button" class="btn btn-gold" id="btn_pause" style="display:none">⏸ Pause pengerjaan</button>
         <form method="POST" action="{{ url_for('live_admin.akhiri', session_id=sesi.id) }}" onsubmit="return confirm('Akhiri kelas?')"><button class="btn btn-ghost">Akhiri</button></form>
       </div>
     </div>
@@ -150,13 +149,13 @@
       <section>
         <div class="card-simple" style="margin-bottom:14px">
           <h3>Kontrol kelas</h3>
-          <p><b id="admin_students">0</b> siswa online · <b id="admin_answered">0</b> sudah jawab</p>
-          <div id="admin_question" class="live-current-question"></div>
+          <p><b id="admin_students">0</b> siswa online · <b id="admin_answered">0</b> jawaban masuk</p>
+          <div id="admin_question" class="live-current-question">Siswa bebas memilih soal dan berpindah soal kapan saja.</div>
         </div>
         {% if checkpoints %}
         <div class="card-simple">
           <h3>🎯 Kuis per Tahapan</h3>
-          <p class="muted" style="margin:0 0 8px">Uji pemahaman siswa per tahapan. Soal diambil acak dari Bank Soal.</p>
+          <p class="muted" style="margin:0 0 8px">Uji pemahaman siswa per tahapan. Soal mengikuti urutan Bank Soal, tanpa pengacakan.</p>
           <div class="checkpoint-quiz-list">
             {% for c in checkpoints %}
             <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
@@ -174,9 +173,9 @@
         {% endif %}
       </section>
       <aside class="teacher-side card-simple">
-        <h3>🏆 Papan Peringkat</h3>
-        <div id="admin_podium" class="podium"></div>
-        <div id="admin_leaderboard"></div>
+        <h3>Monitoring Siswa</h3>
+        <p class="muted" style="margin-top:-6px">Hijau = benar · merah = salah · abu-abu = belum diisi</p>
+        <div id="admin_student_monitor" class="admin-student-monitor"></div>
       </aside>
     </div>
   </div>
@@ -187,34 +186,43 @@
 <script>
 (() => {
  const root=document.getElementById('live_admin_root');
- const statusUrl=root.dataset.statusUrl, checkpointUrl=root.dataset.checkpointUrl;
+ const statusUrl=root.dataset.statusUrl, checkpointUrl=root.dataset.checkpointUrl, pauseUrl=root.dataset.statusUrl.replace('/status','/quiz-pause');
  document.querySelectorAll('.cp-fire-btn').forEach(btn=>{
    btn.onclick=async()=>{
      const item=btn.closest('.checkpoint-quiz-item'); const checkpoint=item.dataset.checkpoint; const jumlah=item.querySelector('.cp-jumlah').value||3;
      btn.disabled=true; btn.textContent='Menyalakan…';
-     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah,acak_per_siswa:'on'})});
+     const res=await fetch(checkpointUrl,{method:'POST',body:new URLSearchParams({checkpoint,jumlah})});
      const data=await res.json().catch(()=>({}));
      if(!res.ok){alert(data.error||'Gagal menyalakan kuis.')}
      btn.disabled=false; btn.textContent='▶ Nyalakan'; poll();
    };
  });
  const prebuiltForm=document.getElementById('form_quiz_prebuilt');
- function medal(r){return r===1?'🥇':r===2?'🥈':'🥉'}
- function renderPapan(arr){
-   const podiumEl=document.getElementById('admin_podium'), listEl=document.getElementById('admin_leaderboard');
-   if(!arr.length){podiumEl.innerHTML='';listEl.innerHTML='<span class="muted">Belum ada skor.</span>';return}
-   const top=arr.slice(0,3), rest=arr.slice(3);
-   podiumEl.innerHTML=[2,1,3].filter(r=>top[r-1]).map(r=>{const p=top[r-1];return `<div class="podium-spot podium-${r}"><div class="podium-medal">${medal(r)}</div><div class="podium-name">${p.nama}</div><div class="podium-score">${p.skor}</div><div class="podium-bar"></div></div>`}).join('');
-   listEl.innerHTML=rest.length?rest.map((p,i)=>`<div class="live-leaderboard-row"><span>#${i+4} ${p.nama}</span><b>${p.skor}</b></div>`).join(''):'';
+ function renderMonitor(students){
+   const el=document.getElementById('admin_student_monitor');
+   if(!el){return;}
+   if(!students.length){el.innerHTML='<span class="muted">Belum ada siswa yang bergabung.</span>';return;}
+   el.innerHTML=students.map(p=>{
+     const soal=(p.soal||[]).map(q=>{
+       const cls=q.status==='correct'?'is-correct':q.status==='wrong'?'is-wrong':'is-empty';
+       const title=q.status==='correct'?'Benar':q.status==='wrong'?`Salah${q.selected?` · Jawaban ${q.selected}`:''}`:'Belum diisi';
+       return `<span class="student-progress-number ${cls}${q.nomor===p.current_number?' is-current':''}" title="${title}">${q.nomor}</span>`;
+     }).join('');
+     return `<div class="student-progress-card">
+       <div class="student-progress-head"><div><b>${p.nama||'Siswa'}</b><div class="muted">${p.terjawab}/${p.total} terjawab · ${p.skor||0} poin${p.current_number?` · sedang di soal ${p.current_number}`:''}</div></div></div>
+       <div class="student-progress-numbers">${soal||'<span class="muted">Belum ada soal</span>'}</div>
+     </div>`;
+   }).join('');
  }
+ const pauseBtn=document.getElementById('btn_pause');
+ pauseBtn.onclick=async()=>{pauseBtn.disabled=true;try{const r=await fetch(pauseUrl,{method:'POST'});const d=await r.json();if(!r.ok)alert(d.error||'Gagal mengubah status pengerjaan');poll()}catch(e){alert('Gagal menghubungi server')}finally{pauseBtn.disabled=false}};
  async function poll(){try{const d=await (await fetch(statusUrl)).json();
-   document.getElementById('admin_mode').textContent=d.status==='soal'||d.status==='jeda'?('KUIS'+(d.active_checkpoint?': '+d.active_checkpoint:' AKTIF')):'MENUNGGU';
-   document.getElementById('admin_progress').textContent=d.status==='soal'?` · Soal ${d.current_index+1}/${d.total_soal}`:'';
+   document.getElementById('admin_mode').textContent=d.status==='soal'?(d.quiz_paused?'KUIS · DIJEDA':'KUIS · LATIHAN UAS'):'MENUNGGU';
+   document.getElementById('admin_progress').textContent=d.status==='soal'?` · ${d.total_soal} soal · tanpa batas waktu`:'';
    document.getElementById('admin_students').textContent=d.jumlah_peserta;
    document.getElementById('admin_answered').textContent=d.sudah_jawab;
-   const aqEl=document.getElementById('admin_question');aqEl.textContent=d.soal_aktif?.pertanyaan||'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';if(window.typesetMath)window.typesetMath(aqEl);
-   document.getElementById('form_lanjut').style.display=d.status==='soal'||d.status==='jeda'?'inline':'none';
-   document.getElementById('btn_lanjut').textContent=d.status==='soal'?'Tutup soal & bahas':'Soal berikutnya';
+   const aqEl=document.getElementById('admin_question');aqEl.textContent=d.status==='soal'?(d.quiz_paused?'Pengerjaan semua siswa sedang dijeda.':'Siswa bebas memilih soal. Pengajar dapat pause kapan saja.'):'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';
+   const pauseBtn=document.getElementById('btn_pause');pauseBtn.style.display=d.status==='soal'?'inline-block':'none';pauseBtn.textContent=d.quiz_paused?'▶ Lanjutkan pengerjaan':'⏸ Pause pengerjaan';pauseBtn.disabled=false;
    if(prebuiltForm)prebuiltForm.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
    renderPapan(d.leaderboard||[]);
  }catch(e){}}

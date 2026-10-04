@@ -27,7 +27,19 @@ LIVE_EXTRA_COLUMNS = {
     # Nama "bagian/checkpoint" kuis yang sedang aktif (kalau dinyalakan lewat
     # tombol Kuis Cepat), cuma buat ditampilkan di layar, bukan sumber soal.
     "active_checkpoint": "TEXT DEFAULT ''",
+    # Latihan UAS: pengajar dapat membekukan pengerjaan tanpa mengubah posisi soal siswa.
+    "quiz_paused": "TEXT DEFAULT 'false'",
 }
+
+def ensure_live_participant_columns():
+    try:
+        cols = {str(r.get("name")) for r in fetch_all("PRAGMA table_info(live_participants)")}
+        if "current_question_id" not in cols:
+            execute("ALTER TABLE live_participants ADD COLUMN current_question_id TEXT DEFAULT ''")
+    except Exception:
+        pass
+
+ensure_live_participant_columns()
 
 def ensure_live_columns():
     try:
@@ -47,7 +59,7 @@ def _decode_session(d):
 
 def _decode_participant(d):
     if not d:return None
-    d=dict(d); d["jawaban"]=json_loads(d.get("jawaban"), {}); d["skor"]=as_int(d.get("skor"),0); return d
+    d=dict(d); d["jawaban"]=json_loads(d.get("jawaban"), {}); d["skor"]=as_int(d.get("skor"),0); d["current_question_id"]=d.get("current_question_id") or ""; return d
 
 def _generate_kode():
     alfabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -56,8 +68,8 @@ def _generate_kode():
         if not get_session_by_kode(kode):return kode
 
 def create_session(admin_id,judul,mapel="",durasi_detik=DURASI_DEFAULT,target_kelas=""):
-    sid=new_id(); data={"id":sid,"admin_id":admin_id,"judul":judul or "Kelas Hari Ini","mapel":mapel or "","target_kelas":target_kelas or "","kode":_generate_kode(),"status":STATUS_LOBI,"mode":"mengajar","quiz_enabled":False,"quiz_question_ids":[],"quiz_assignments":{},"quiz_kelas":"","quiz_mapel":"","quiz_bab":"","questions":[],"current_index":-1,"durasi_detik":int(durasi_detik) if durasi_detik else DURASI_DEFAULT,"current_started_at":None,"created_at":utcnow_iso()}
-    execute("""INSERT INTO live_sessions (id,admin_id,judul,mapel,kode,status,questions,current_index,durasi_detik,current_started_at,created_at,mode,quiz_enabled,quiz_question_ids,quiz_assignments,target_kelas,quiz_kelas,quiz_mapel,quiz_bab) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(sid,data["admin_id"],data["judul"],data["mapel"],data["kode"],data["status"],"[]",-1,data["durasi_detik"],None,data["created_at"],"mengajar","false","[]","{}",data["target_kelas"],"","",""))
+    sid=new_id(); data={"id":sid,"admin_id":admin_id,"judul":judul or "Kelas Hari Ini","mapel":mapel or "","target_kelas":target_kelas or "","kode":_generate_kode(),"status":STATUS_LOBI,"mode":"mengajar","quiz_enabled":False,"quiz_question_ids":[],"quiz_assignments":{},"quiz_kelas":"","quiz_mapel":"","quiz_bab":"","quiz_paused":False,"questions":[],"current_index":-1,"durasi_detik":int(durasi_detik) if durasi_detik else DURASI_DEFAULT,"current_started_at":None,"created_at":utcnow_iso()}
+    execute("""INSERT INTO live_sessions (id,admin_id,judul,mapel,kode,status,questions,current_index,durasi_detik,current_started_at,created_at,mode,quiz_enabled,quiz_question_ids,quiz_assignments,target_kelas,quiz_kelas,quiz_mapel,quiz_bab,quiz_paused) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(sid,data["admin_id"],data["judul"],data["mapel"],data["kode"],data["status"],"[]",-1,data["durasi_detik"],None,data["created_at"],"mengajar","false","[]","{}",data["target_kelas"],"","","","false"))
     return data
 
 def get_session(session_id):return _decode_session(fetch_one("SELECT * FROM live_sessions WHERE id=? LIMIT 1",(session_id,)))
@@ -132,7 +144,7 @@ def start_class(session_id):
 def start_session(session_id):
     sess=get_session(session_id)
     if not sess or not sess.get("questions"):return None
-    execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=? WHERE id=?",(STATUS_SOAL,0,utcnow_iso(),"kuis",session_id)); return get_session(session_id)
+    execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=?,quiz_paused=? WHERE id=?",(STATUS_SOAL,0,utcnow_iso(),"kuis","false",session_id)); return get_session(session_id)
 
 def advance_session(session_id):
     sess=get_session(session_id)
@@ -144,56 +156,77 @@ def advance_session(session_id):
             # Pada Kelas Live, setelah kuis terakhir selesai kita kembali
             # otomatis ke mode menunggu (skor + podium), bukan menutup kelas.
             if sess.get("mode") == "kuis" or sess.get("quiz_enabled"):
-                execute("UPDATE live_sessions SET status=?,mode=?,quiz_enabled=?,active_checkpoint=?,current_started_at=? WHERE id=?",
-                        ("mengajar","mengajar","false","",None,session_id))
+                execute("UPDATE live_sessions SET status=?,mode=?,quiz_enabled=?,quiz_paused=?,active_checkpoint=?,current_started_at=? WHERE id=?",
+                        ("mengajar","mengajar","false","false","",None,session_id))
             else:
-                execute("UPDATE live_sessions SET status=? WHERE id=?",(STATUS_SELESAI,session_id))
+                execute("UPDATE live_sessions SET status=?,quiz_paused=? WHERE id=?",(STATUS_SELESAI,"false",session_id))
         else:
             execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=? WHERE id=?",(STATUS_SOAL,next_index,utcnow_iso(),session_id))
     return get_session(session_id)
-def end_session(session_id):execute("UPDATE live_sessions SET status=? WHERE id=?",(STATUS_SELESAI,session_id)); return get_session(session_id)
+def end_session(session_id):execute("UPDATE live_sessions SET status=?,quiz_paused=? WHERE id=?",(STATUS_SELESAI,"false",session_id)); return get_session(session_id)
 def end_quiz_to_teaching(session_id):
-    execute("UPDATE live_sessions SET status=?,mode=?,quiz_enabled=?,active_checkpoint=?,current_started_at=? WHERE id=?",
-            ("mengajar","mengajar","false","",None,session_id))
+    execute("UPDATE live_sessions SET status=?,mode=?,quiz_enabled=?,quiz_paused=?,active_checkpoint=?,current_started_at=? WHERE id=?",
+            ("mengajar","mengajar","false","false","",None,session_id))
     return get_session(session_id)
 def reset_session(session_id):
-    execute("UPDATE live_participants SET skor=?,jawaban=? WHERE session_id=?",(0,"{}",session_id)); execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=?,quiz_enabled=?,active_checkpoint=? WHERE id=?",(STATUS_LOBI,-1,None,"mengajar","false","",session_id)); return get_session(session_id)
+    execute("UPDATE live_participants SET skor=?,jawaban=?,current_question_id=? WHERE session_id=?",(0,"{}","",session_id)); execute("UPDATE live_sessions SET status=?,current_index=?,current_started_at=?,mode=?,quiz_enabled=?,quiz_paused=?,active_checkpoint=? WHERE id=?",(STATUS_LOBI,-1,None,"mengajar","false","false","",session_id)); return get_session(session_id)
 def _participant_id(session_id,user_id):return f"{session_id}__{user_id}"
 def join_session(session_id,user_id,nama):
     pid=_participant_id(session_id,user_id); old=get_participant(session_id,user_id)
     if old:return old
     data={"id":pid,"session_id":session_id,"user_id":user_id,"nama":nama,"skor":0,"jawaban":{},"joined_at":utcnow_iso()}
-    execute("INSERT INTO live_participants (id,session_id,user_id,nama,skor,jawaban,joined_at) VALUES (?,?,?,?,?,?,?)",(pid,session_id,user_id,nama,0,"{}",data["joined_at"])); return data
+    execute("INSERT INTO live_participants (id,session_id,user_id,nama,skor,jawaban,joined_at,current_question_id) VALUES (?,?,?,?,?,?,?,?)",(pid,session_id,user_id,nama,0,"{}",data["joined_at"],"")); return data
 def get_participant(session_id,user_id):return _decode_participant(fetch_one("SELECT * FROM live_participants WHERE id=? LIMIT 1",(_participant_id(session_id,user_id),)))
 def get_participants(session_id):return sorted([_decode_participant(x) for x in fetch_all("SELECT * FROM live_participants WHERE session_id=?",(session_id,))],key=lambda x:str(x.get("joined_at") or ""))
 def get_leaderboard(session_id):return sorted(get_participants(session_id),key=lambda x:x.get("skor",0),reverse=True)
-def hitung_skor(benar,waktu_ms,durasi_detik):
-    if not benar:return 0
-    durasi_ms=max(1,durasi_detik*1000); sisa_rasio=max(0.0,min(1.0,1-(waktu_ms/durasi_ms))); return int(500+round(500*sisa_rasio))
-def submit_answer(session_id,user_id,question_id,selected,waktu_ms):
+def _normalisasi_opsi(value):
+    """Normalisasi kunci jawaban A-D agar penilaian live konsisten."""
+    value = str(value or "").strip().upper()
+    if value and value[0] in "ABCD":
+        return value[0]
+    return value
+
+
+def hitung_skor(benar, waktu_ms=0, durasi_detik=DURASI_DEFAULT):
+    """Latihan UAS tidak memakai timer: jawaban benar mendapat skor tetap."""
+    return 1000 if benar else 0
+
+def set_current_question(session_id, user_id, question_id):
+    data = get_participant(session_id, user_id)
+    if not data:
+        return None, "Kamu belum join sesi ini."
+    sess = get_session(session_id)
+    if not sess or not sess.get("quiz_enabled"):
+        return None, "Kuis belum aktif."
+    order = (sess.get("quiz_assignments") or {}).get(user_id) or []
+    if question_id not in order:
+        return None, "Soal tidak tersedia untuk kamu."
+    execute("UPDATE live_participants SET current_question_id=? WHERE id=?", (question_id, _participant_id(session_id,user_id)))
+    return {"current_question_id": question_id}, None
+
+def submit_answer(session_id,user_id,question_id,selected,waktu_ms=0):
     sess=get_session(session_id)
     if not sess:return None,"Sesi tidak ditemukan."
-    if sess["status"]!=STATUS_SOAL:return None,"Soal ini sudah ditutup."
+    if sess["status"]!=STATUS_SOAL or not sess.get("quiz_enabled"):return None,"Kuis sedang tidak aktif."
+    if sess.get("quiz_paused"):return None,"Pengerjaan sedang dijeda oleh pengajar."
     questions=sess.get("questions") or []; q=next((x for x in questions if x["id"]==question_id),None)
     if not q:return None,"Soal tidak ditemukan."
-    idx=sess.get("current_index",-1)
-    if idx<0 or idx>=len(questions):return None,"Soal ini bukan soal yang sedang aktif."
-    # Tiap siswa bisa punya urutan soal sendiri (diacak per-siswa) lewat
-    # quiz_assignments -- jadi soal "aktif" buat siswa ITU belum tentu sama
-    # dengan questions[idx] (urutan global/default). Validasi harus pakai
-    # urutan milik siswa itu sendiri kalau ada, baru fallback ke urutan
-    # global kalau siswa itu gak punya assignment (mode lama/tanpa acak).
-    order=(sess.get("quiz_assignments") or {}).get(user_id)
-    expected_id=order[idx] if order and 0<=idx<len(order) else questions[idx]["id"]
-    if expected_id!=question_id:return None,"Soal ini bukan soal yang sedang aktif."
     data=get_participant(session_id,user_id)
     if not data:return None,"Kamu belum join sesi ini."
+    order=(sess.get("quiz_assignments") or {}).get(user_id) or []
+    if question_id not in order:return None,"Soal ini tidak tersedia untuk kamu."
     jawaban=data.get("jawaban") or {}
     if question_id in jawaban:return jawaban[question_id],None
-    benar=selected==q.get("jawaban_benar"); waktu_ms=max(0,int(waktu_ms or 0)); skor_soal=hitung_skor(benar,waktu_ms,sess.get("durasi_detik",DURASI_DEFAULT)); hasil={"selected":selected,"benar":benar,"skor":skor_soal,"waktu_ms":waktu_ms}; jawaban[question_id]=hasil
+    selected = _normalisasi_opsi(selected)
+    kunci = _normalisasi_opsi(q.get("jawaban_benar"))
+    benar=selected==kunci; skor_soal=hitung_skor(benar,0,0)
+    hasil={"selected":selected,"benar":benar,"skor":skor_soal,"waktu_ms":0}; jawaban[question_id]=hasil
     execute("UPDATE live_participants SET jawaban=?,skor=? WHERE id=?",(json_dumps(jawaban),data.get("skor",0)+skor_soal,_participant_id(session_id,user_id))); return hasil,None
 
 
+def set_quiz_paused(session_id, paused):
+    execute("UPDATE live_sessions SET quiz_paused=? WHERE id=?", ("true" if paused else "false", session_id))
+    return get_session(session_id)
 
 def set_quiz_source(session_id, kelas, mapel, bab):
     """Set sumber soal 'Kuis Cepat' untuk kelas ini lewat Kelas+Mapel+Bab
@@ -230,10 +263,9 @@ def activate_checkpoint_quiz(session_id, checkpoint, questions, target_user_ids,
     assignments = {}
     order_base = [q["id"] for q in questions]
     for uid in target_user_ids:
-        order = list(order_base)
-        if acak_per_siswa:
-            random.shuffle(order)
-        assignments[uid] = order
+        # Semua siswa mendapat urutan yang sama persis. Parameter lama tetap
+        # diterima agar sesi/database lama tidak rusak, tetapi tidak dipakai.
+        assignments[uid] = list(order_base)
     set_quiz_assignments(session_id, assignments)
     execute("UPDATE live_sessions SET active_checkpoint=? WHERE id=?", ((checkpoint or "").strip(), session_id))
     set_quiz_enabled(session_id, True)
