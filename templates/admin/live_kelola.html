@@ -13,8 +13,8 @@
   {% if sesi.status == 'lobi' %}
   <div class="live-config-grid">
     <section class="card-simple">
-      <h2>1. Sumber soal (Kelas → Mapel → Bab)</h2>
-      <p class="muted">Pilih sumber soal dari Bank Soal untuk kuis kelas ini. Soal dikelompokkan otomatis per tahapan/bagian.</p>
+      <h2>1. Sumber soal (Kelas → Mapel → Bab → Tahapan)</h2>
+      <p class="muted">Live Kelas Hari Ini mengambil <b>Latihan Tahapan</b> dari Bank Soal. Setiap soal wajib terhubung ke Tahapan Materi yang sesuai.</p>
       <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
         <div class="field-row">
           <div class="field"><label>Kelas</label>
@@ -71,8 +71,8 @@
     </section>
 
     <section class="card-simple">
-      <h2>2. Atur kuis</h2>
-      <p class="muted">Semua soal pada bab ini dikelompokkan per tahapan. Pilih tahapan yang ingin dipakai.</p>
+      <h2>2. Atur kuis latihan UAS</h2>
+      <p class="muted">Soal otomatis mengikuti <b>Tahapan Materi</b> pada bab tersebut. Tidak ada kelompok “Tanpa tahapan”. Pilih tahapan dan soal yang ingin dipakai.</p>
       {% if grouped_questions %}
       <form method="POST" action="{{ url_for('live_admin.atur_kuis', session_id=sesi.id) }}">
         {% for grup in grouped_questions %}
@@ -102,7 +102,7 @@
       </script>
       {% else %}
         {% if sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
-        <div class="live-empty">Bab "<b>{{ sesi.quiz_mapel }} · {{ sesi.quiz_bab }}</b>" sudah dipilih, tapi belum ada soal untuk bab ini di Bank Soal. Tambahkan dulu lewat <a href="{{ url_for('admin.soal') }}">Bank Soal</a> (pastikan Kelas/Mapel/Bab-nya sama persis).</div>
+        <div class="live-empty">Belum ada <b>Latihan Tahapan</b> yang terhubung ke Tahapan Materi pada bab "<b>{{ sesi.quiz_mapel }} · {{ sesi.quiz_bab }}</b>". Atur Kelas/Mapel/Bab/Tahapan Materi soal di <a href="{{ url_for('admin.soal') }}">Bank Soal</a>.</div>
         {% else %}
         <div class="live-empty">Pilih Kelas → Mapel → Bab dulu di atas agar soal pada bab tersebut muncul di sini.</div>
         {% endif %}
@@ -120,16 +120,9 @@
 
   <details class="card-simple" style="margin-top:16px">
     <summary><b>Tambah soal manual / impor dari Word</b></summary>
-    <form method="POST" action="{{ url_for('live_admin.tambah_soal', session_id=sesi.id) }}" style="margin-top:16px">
-      <div class="field"><label>Pertanyaan</label><textarea name="pertanyaan" required></textarea></div>
-      <div class="field-row">{% for l in ['a','b','c','d'] %}<div class="field"><label>Pilihan {{ l|upper }}</label><input name="pilihan_{{ l }}" required></div>{% endfor %}</div>
-      <div class="field-row"><div class="field"><label>Jawaban benar</label><select name="jawaban_benar">{% for l in ['A','B','C','D'] %}<option>{{ l }}</option>{% endfor %}</select></div><div class="field"><label>Penjelasan</label><input name="penjelasan"></div></div>
-      <button class="btn btn-gold">+ Tambah soal manual</button>
-    </form>
-    <form method="POST" action="{{ url_for('live_admin.impor_soal', session_id=sesi.id) }}" style="margin-top:16px">
-      <div class="field"><label>Impor banyak soal</label><textarea name="teks_soal" rows="8" placeholder="1. Pertanyaan...&#10;A. ...&#10;B. ...&#10;C. ...&#10;D. ...&#10;JAWABAN: B"></textarea></div>
-      <button class="btn btn-ghost">Impor soal</button>
-    </form>
+    <div class="live-empty" style="margin-top:14px">
+      Untuk <b>Live Kelas Hari Ini</b>, soal sebaiknya dibuat melalui <a href="{{ url_for('admin.soal') }}">Bank Soal</a> lalu ditautkan ke <b>Bab → Tahapan Materi</b>. Dengan begitu monitoring dan Kuis per Tahapan tetap konsisten.
+    </div>
   </details>
 
   {% else %}

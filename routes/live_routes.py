@@ -53,30 +53,41 @@ def _get_owned_session_or_none(session_id):
 
 
 def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
-    """Soal yang match Kelas+Mapel+Bab langsung dari Bank Soal -- ini sekarang
-    satu-satunya sumber soal buat Kelas Live, gak ditautkan ke materi/PDF
-    lagi sama sekali."""
+    """Sumber Live selalu mengikuti *Latihan Tahapan* di Bank Soal.
+
+    Relasi soal -> Tahapan Materi berasal dari ``material_id``. Soal yang tidak
+    punya Tahapan Materi sengaja tidak dimasukkan ke Live Kelas Hari Ini agar
+    tidak muncul lagi sebagai kelompok "Tanpa tahapan". "Latihan UAS" di Live
+    berarti latihan komprehensif dengan navigasi bebas, bukan tipe soal UAS yang
+    berdiri sendiri tanpa tahapan."""
     if not (kelas and mapel and bab):
         return []
-    return get_questions(kelas=kelas, mapel=mapel, bab=bab, **extra_filters)
+    filters = {"kelas": kelas, "mapel": mapel, "bab": bab, "tipe": "latihan"}
+    filters.update(extra_filters)
+    questions = get_questions(**filters)
+    return [q for q in questions if (q.get("material_id") or "").strip() and (q.get("checkpoint") or "").strip()]
 
 
-def _kelompokkan_soal(bank_questions):
-    """Kelompokkan soal buat ditampilkan & buat tombol 'Kuis Cepat': murni
-    berdasarkan label Bagian/Checkpoint yang diisi pas nambah soal. Soal
-    tanpa checkpoint dikumpulkan ke 'Tanpa tahapan' -- tetap tampil buat
-    dipilih manual di 'Atur kuis', tapi gak dapat tombol Kuis Cepat sendiri
-    (checkpoint kosong berarti gak ada label buat ditembak)."""
+def _kelompokkan_soal(bank_questions, materials=None):
+    """Kelompokkan soal berdasarkan Tahapan Materi resminya, bukan label bebas.
+    Urutan mengikuti urutan subbab/tahapan di Materi."""
     by_group = {}
     for q in bank_questions:
         cp = (q.get("checkpoint") or "").strip()
-        nama = cp if cp else "Tanpa tahapan"
-        by_group.setdefault(nama, []).append(q)
-    tanpa = by_group.pop("Tanpa tahapan", [])
-    grup = [{"nama": nama, "soal": qs, "checkpoint": nama} for nama, qs in sorted(by_group.items())]
-    if tanpa:
-        grup.append({"nama": "Tanpa tahapan", "soal": tanpa, "checkpoint": None})
-    return grup
+        if not cp:
+            continue
+        by_group.setdefault(cp, []).append(q)
+
+    order_map = {}
+    for m in materials or []:
+        if (m.get("judul") or "").strip():
+            order_map[m["judul"].strip()] = (int(m.get("urutan_subbab", 1) or 1), str(m.get("judul") or ""))
+
+    groups = []
+    for nama, qs in by_group.items():
+        groups.append({"nama": nama, "soal": qs, "checkpoint": nama})
+    groups.sort(key=lambda g: order_map.get(g["nama"], (999999, g["nama"])))
+    return groups
 
 
 @live_admin_bp.route("/<session_id>")
@@ -96,7 +107,11 @@ def kelola(session_id):
     grouped_questions = []
     if sess.get("quiz_kelas") and sess.get("quiz_mapel") and sess.get("quiz_bab"):
         bank_questions = _soal_kelas_mapel_bab(sess["quiz_kelas"], sess["quiz_mapel"], sess["quiz_bab"])
-        grup = _kelompokkan_soal(bank_questions)
+        stage_materials = [m for m in materials
+                           if str(m.get("kelas")) == str(sess["quiz_kelas"])
+                           and m.get("mapel") == sess["quiz_mapel"]
+                           and m.get("bab") == sess["quiz_bab"]]
+        grup = _kelompokkan_soal(bank_questions, stage_materials)
         grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
         # "Kuis Cepat": cuma grup yang punya label checkpoint, dan cuma hitung
         # soal tipe "latihan" -- soal UH/UTS/UAS gak dipakai buat kuis dadakan.
@@ -151,7 +166,7 @@ def aktifkan_checkpoint(session_id):
         jumlah = max(1, min(20, int(request.form.get("jumlah", 3))))
     except (TypeError, ValueError):
         jumlah = 3
-    bank = _soal_kelas_mapel_bab(kelas, mapel, bab, tipe="latihan", checkpoint=checkpoint)
+    bank = _soal_kelas_mapel_bab(kelas, mapel, bab, checkpoint=checkpoint)
     if not bank:
         return jsonify({"error": f"Belum ada soal untuk bagian '{checkpoint}'."}), 400
     # Urutan bank dipertahankan. Tidak ada pengacakan soal maupun urutan per siswa.

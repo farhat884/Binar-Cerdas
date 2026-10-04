@@ -19,8 +19,8 @@ LIVE_EXTRA_COLUMNS = {
     # "Kelas Hari Ini" ditujukan untuk jenjang/kelas tertentu (misal "Kelas 11"),
     # tapi siswa kelas lain tetap bisa ikut nebeng sementara -> lihat get_today_open_sessions().
     "target_kelas": "TEXT DEFAULT ''",
-    # Sumber soal buat "Kuis Cepat" per-checkpoint: dipilih dari Bank Soal
-    # lewat Kelas+Mapel+Bab langsung (bukan ditautkan ke tahapan materi lagi).
+    # Sumber soal Live mengikuti Kelas+Mapel+Bab lalu Tahapan Materi.
+    # Soal tanpa Tahapan Materi tidak boleh masuk ke sesi Live.
     "quiz_kelas": "TEXT DEFAULT ''",
     "quiz_mapel": "TEXT DEFAULT ''",
     "quiz_bab": "TEXT DEFAULT ''",
@@ -229,10 +229,8 @@ def set_quiz_paused(session_id, paused):
     return get_session(session_id)
 
 def set_quiz_source(session_id, kelas, mapel, bab):
-    """Set sumber soal 'Kuis Cepat' untuk kelas ini lewat Kelas+Mapel+Bab
-    langsung dari Bank Soal (bukan ditautkan ke materi/tahapan lagi).
-    Cuma boleh diubah selagi sesi masih di lobi -- lihat pengecekan di
-    routes/live_routes.py:kelas_config()."""
+    """Set konteks sumber soal Live. Tahapan Materi tetap menjadi relasi soal;
+    field ini hanya menyimpan Kelas+Mapel+Bab yang sedang dibuka di lobi."""
     execute("UPDATE live_sessions SET quiz_kelas=?, quiz_mapel=?, quiz_bab=? WHERE id=?",
             (kelas or "", mapel or "", bab or "", session_id))
     return get_session(session_id)
@@ -250,13 +248,9 @@ def set_quiz_questions(session_id, questions):
 def set_quiz_assignments(session_id, assignments):
     execute("UPDATE live_sessions SET quiz_assignments=? WHERE id=?", (json_dumps(assignments or {}), session_id))
 
-def activate_checkpoint_quiz(session_id, checkpoint, questions, target_user_ids, acak_per_siswa=True):
-    """Nyalain 'Kuis Cepat' buat SATU bagian/checkpoint, kapan pun saat kelas
-    sedang berjalan (bukan cuma waktu lobi) -- gaya Ruang Guru: pengajar lagi
-    ngejelasin, tiba-tiba nyalain kuis singkat soal bagian yang barusan
-    dibahas. `questions` sudah berupa hasil random-pick DARI BANK SOAL saat
-    tombol ini diklik, jadi tiap kali dinyalakan (walau checkpoint yang sama)
-    soalnya bisa beda -- cuma tipe/bagiannya yang sama."""
+def activate_checkpoint_quiz(session_id, checkpoint, questions, target_user_ids, acak_per_siswa=False):
+    """Nyalakan kuis untuk SATU Tahapan Materi. Urutan soal yang dikirim route
+    dipertahankan sama untuk semua siswa; tidak ada pengacakan per siswa."""
     if not questions or not target_user_ids:
         return None
     set_quiz_questions(session_id, questions)
