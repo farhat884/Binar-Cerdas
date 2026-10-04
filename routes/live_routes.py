@@ -52,25 +52,47 @@ def _get_owned_session_or_none(session_id):
     return sess
 
 
-def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
-    """Sumber Live mengikuti soal Bank Soal yang terhubung ke *Tahapan Materi*.
+def _norm(v):
+    """Samakan teks buat perbandingan: abaikan spasi ganda & huruf besar/kecil."""
+    return " ".join(str(v or "").split()).lower()
 
-    Relasi soal -> Tahapan Materi berasal dari ``material_id``. Soal yang tidak
-    punya Tahapan Materi sengaja tidak dimasukkan ke Live Kelas Hari Ini agar
-    tidak muncul lagi sebagai kelompok "Tanpa tahapan". Mode Live tidak mengubah
-    tipe soal; Latihan, UH, UTS, dan UAS tetap dibaca sesuai Bank Soal."""
+
+def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
+    """Sumber Live = soal Bank Soal yang tertaut ke *Tahapan Materi*.
+
+    Tahapan soal SELALU diambil dari judul Tahapan Materi yang tertaut lewat
+    ``material_id`` (bukan dari kolom ``checkpoint`` yang tersimpan, karena
+    kolom itu bisa kosong/basi kalau judul materi diubah atau soal lama), jadi
+    tahapan Live = tahapan Materi. Soal cocok dengan Kelas+Mapel+Bab kalau
+    field soalnya ATAU materi yang tertaut cocok (dibandingkan tanpa
+    membedakan spasi/huruf besar-kecil). Soal tanpa Tahapan Materi tetap
+    tidak dimasukkan. Semua tipe soal (Latihan, UH, UTS, UAS) ikut terbaca."""
     if not (kelas and mapel and bab):
         return []
-    # Semua tipe soal boleh masuk Live selama soal tersebut terhubung ke
-    # Tahapan Materi. Jangan paksa tipe="latihan" karena Bank Soal memang
-    # memiliki Latihan, UH, UTS, dan UAS yang semuanya bisa dipakai untuk
-    # latihan Live.
-    filters = {"kelas": kelas, "mapel": mapel, "bab": bab}
-    filters.update(extra_filters)
-    questions = get_questions(**filters)
-    return [q for q in questions
-            if (q.get("material_id") or "").strip()
-            and (q.get("checkpoint") or "").strip()]
+    checkpoint = extra_filters.pop("checkpoint", None)
+    materials = {m["id"]: m for m in get_all_materials() if m.get("id")}
+    out = []
+    for q in get_questions(**extra_filters):
+        m = materials.get((q.get("material_id") or "").strip())
+        if not m:
+            continue
+        judul = (m.get("judul") or "").strip()
+        if not judul:
+            continue
+        cocok_soal = (_norm(q.get("kelas")) == _norm(kelas)
+                      and _norm(q.get("mapel")) == _norm(mapel)
+                      and _norm(q.get("bab")) == _norm(bab))
+        cocok_materi = (_norm(m.get("kelas")) == _norm(kelas)
+                        and _norm(m.get("mapel")) == _norm(mapel)
+                        and _norm(m.get("bab")) == _norm(bab))
+        if not (cocok_soal or cocok_materi):
+            continue
+        if checkpoint and _norm(judul) != _norm(checkpoint):
+            continue
+        q = dict(q)
+        q["checkpoint"] = judul
+        out.append(q)
+    return out
 
 
 def _kelompokkan_soal(bank_questions, materials=None):
@@ -113,9 +135,9 @@ def kelola(session_id):
     if sess.get("quiz_kelas") and sess.get("quiz_mapel") and sess.get("quiz_bab"):
         bank_questions = _soal_kelas_mapel_bab(sess["quiz_kelas"], sess["quiz_mapel"], sess["quiz_bab"])
         stage_materials = [m for m in materials
-                           if str(m.get("kelas")) == str(sess["quiz_kelas"])
-                           and m.get("mapel") == sess["quiz_mapel"]
-                           and m.get("bab") == sess["quiz_bab"]]
+                           if _norm(m.get("kelas")) == _norm(sess["quiz_kelas"])
+                           and _norm(m.get("mapel")) == _norm(sess["quiz_mapel"])
+                           and _norm(m.get("bab")) == _norm(sess["quiz_bab"])]
         grup = _kelompokkan_soal(bank_questions, stage_materials)
         grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
         # Kuis per Tahapan membaca semua tipe soal yang tersedia pada tahapan.
