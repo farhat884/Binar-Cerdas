@@ -53,19 +53,24 @@ def _get_owned_session_or_none(session_id):
 
 
 def _soal_kelas_mapel_bab(kelas, mapel, bab, **extra_filters):
-    """Sumber Live selalu mengikuti *Latihan Tahapan* di Bank Soal.
+    """Sumber Live mengikuti soal Bank Soal yang terhubung ke *Tahapan Materi*.
 
     Relasi soal -> Tahapan Materi berasal dari ``material_id``. Soal yang tidak
     punya Tahapan Materi sengaja tidak dimasukkan ke Live Kelas Hari Ini agar
-    tidak muncul lagi sebagai kelompok "Tanpa tahapan". "Latihan UAS" di Live
-    berarti latihan komprehensif dengan navigasi bebas, bukan tipe soal UAS yang
-    berdiri sendiri tanpa tahapan."""
+    tidak muncul lagi sebagai kelompok "Tanpa tahapan". Mode Live tidak mengubah
+    tipe soal; Latihan, UH, UTS, dan UAS tetap dibaca sesuai Bank Soal."""
     if not (kelas and mapel and bab):
         return []
-    filters = {"kelas": kelas, "mapel": mapel, "bab": bab, "tipe": "latihan"}
+    # Semua tipe soal boleh masuk Live selama soal tersebut terhubung ke
+    # Tahapan Materi. Jangan paksa tipe="latihan" karena Bank Soal memang
+    # memiliki Latihan, UH, UTS, dan UAS yang semuanya bisa dipakai untuk
+    # latihan Live.
+    filters = {"kelas": kelas, "mapel": mapel, "bab": bab}
     filters.update(extra_filters)
     questions = get_questions(**filters)
-    return [q for q in questions if (q.get("material_id") or "").strip() and (q.get("checkpoint") or "").strip()]
+    return [q for q in questions
+            if (q.get("material_id") or "").strip()
+            and (q.get("checkpoint") or "").strip()]
 
 
 def _kelompokkan_soal(bank_questions, materials=None):
@@ -113,12 +118,12 @@ def kelola(session_id):
                            and m.get("bab") == sess["quiz_bab"]]
         grup = _kelompokkan_soal(bank_questions, stage_materials)
         grouped_questions = [{"nama": g["nama"], "soal": g["soal"]} for g in grup]
-        # "Kuis Cepat": cuma grup yang punya label checkpoint, dan cuma hitung
-        # soal tipe "latihan" -- soal UH/UTS/UAS gak dipakai buat kuis dadakan.
+        # Kuis per Tahapan membaca semua tipe soal yang tersedia pada tahapan.
+        # Tipe tidak lagi dipaksa menjadi "latihan".
         for g in grup:
             if not g["checkpoint"]:
                 continue
-            jumlah = len([q for q in g["soal"] if (q.get("tipe") or "latihan") == "latihan"])
+            jumlah = len(g["soal"])
             if jumlah:
                 checkpoints.append({"nama": g["nama"], "jumlah": jumlah, "checkpoint": g["checkpoint"]})
     return render_template("admin/live_kelola.html", sesi=sess, peserta=peserta,
@@ -148,11 +153,10 @@ def kelas_config(session_id):
 def aktifkan_checkpoint(session_id):
     """'Kuis Cepat' ala Ruang Guru: pengajar lagi menjelaskan, lalu tiba-tiba
     menyalakan kuis singkat untuk SATU bagian/checkpoint yang baru dibahas.
-    Soalnya diambil ACAK dari Bank Soal (Kelas+Mapel+Bab yang sudah diatur di
-    kelas-config) bertag checkpoint yang sama, jadi setiap dinyalakan (walau
-    bagiannya sama) soal yang keluar bisa beda -- tapi jenis/temanya tetap
-    sama. Bisa dipanggil kapan saja saat 'mengajar', tanpa perlu balik ke
-    lobi dulu."""
+    Soalnya diambil dari Bank Soal (Kelas+Mapel+Bab yang sudah diatur di
+    kelas-config) dan harus bertag Tahapan Materi yang sama. Semua tipe soal
+    (Latihan, UH, UTS, UAS) tetap terbaca. Urutan soal mengikuti Bank Soal
+    dan tidak diacak."""
     sess = _get_owned_session_or_none(session_id)
     if not sess:
         return jsonify({"error": "Sesi tidak ditemukan."}), 404

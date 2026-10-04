@@ -14,7 +14,7 @@
   <div class="live-config-grid">
     <section class="card-simple">
       <h2>1. Sumber soal (Kelas → Mapel → Bab → Tahapan)</h2>
-      <p class="muted">Live Kelas Hari Ini mengambil <b>Latihan Tahapan</b> dari Bank Soal. Setiap soal wajib terhubung ke Tahapan Materi yang sesuai.</p>
+      <p class="muted">Live Kelas Hari Ini mengambil soal dari <b>Bank Soal</b> berdasarkan Kelas → Mapel → Bab → Tahapan Materi. Semua tipe soal (<b>Latihan, UH, UTS, UAS</b>) tetap terbaca selama terhubung ke Tahapan Materi.</p>
       <form method="POST" action="{{ url_for('live_admin.kelas_config', session_id=sesi.id) }}" id="form_materi_config">
         <div class="field-row">
           <div class="field"><label>Kelas</label>
@@ -71,8 +71,8 @@
     </section>
 
     <section class="card-simple">
-      <h2>2. Atur kuis latihan UAS</h2>
-      <p class="muted">Soal otomatis mengikuti <b>Tahapan Materi</b> pada bab tersebut. Tidak ada kelompok “Tanpa tahapan”. Pilih tahapan dan soal yang ingin dipakai.</p>
+      <h2>2. Atur kuis Live</h2>
+      <p class="muted">Soal otomatis mengikuti <b>Tahapan Materi</b> pada bab tersebut. Tipe soal tetap mengikuti Bank Soal: Latihan, UH, UTS, atau UAS. Tidak ada kelompok “Tanpa tahapan”.</p>
       {% if grouped_questions %}
       <form method="POST" action="{{ url_for('live_admin.atur_kuis', session_id=sesi.id) }}">
         {% for grup in grouped_questions %}
@@ -80,7 +80,7 @@
           <label class="live-check" style="font-weight:700"><input type="checkbox" class="cp-select-all" data-group="{{ loop.index0 }}"> {{ grup.nama }} <span class="muted" style="font-weight:400">({{ grup.soal|length }} soal)</span></label>
           <div class="live-question-list" data-group="{{ loop.index0 }}" style="margin-top:6px">
           {% for q in grup.soal %}
-            <label class="live-question-pick"><input type="checkbox" name="question_ids" value="{{ q.id }}" data-group="{{ loop.index0 }}" {% if q.id in sesi.quiz_question_ids %}checked{% endif %}><span>{{ q.pertanyaan }}</span></label>
+            <label class="live-question-pick"><input type="checkbox" name="question_ids" value="{{ q.id }}" data-group="{{ loop.index0 }}" {% if q.id in sesi.quiz_question_ids %}checked{% endif %}><span><small class="muted" style="display:block;margin-bottom:2px">{% if q.tipe == 'latihan' %}Latihan Tahapan{% elif q.tipe == 'UH' %}Ulangan Harian{% elif q.tipe == 'UTS' %}UTS{% elif q.tipe == 'UAS' %}UAS{% else %}{{ q.tipe or 'Soal' }}{% endif %}</small>{{ q.pertanyaan }}</span></label>
           {% endfor %}
           </div>
         </div>
@@ -102,7 +102,7 @@
       </script>
       {% else %}
         {% if sesi.quiz_kelas and sesi.quiz_mapel and sesi.quiz_bab %}
-        <div class="live-empty">Belum ada <b>Latihan Tahapan</b> yang terhubung ke Tahapan Materi pada bab "<b>{{ sesi.quiz_mapel }} · {{ sesi.quiz_bab }}</b>". Atur Kelas/Mapel/Bab/Tahapan Materi soal di <a href="{{ url_for('admin.soal') }}">Bank Soal</a>.</div>
+        <div class="live-empty">Belum ada soal yang terhubung ke <b>Tahapan Materi</b> pada bab "<b>{{ sesi.quiz_mapel }} · {{ sesi.quiz_bab }}</b>". Pastikan Kelas, Mapel, Bab, Tahapan Materi, dan Tipe Soal sudah diatur di <a href="{{ url_for('admin.soal') }}">Bank Soal</a>.</div>
         {% else %}
         <div class="live-empty">Pilih Kelas → Mapel → Bab dulu di atas agar soal pada bab tersebut muncul di sini.</div>
         {% endif %}
@@ -152,7 +152,7 @@
           <div class="checkpoint-quiz-list">
             {% for c in checkpoints %}
             <div class="checkpoint-quiz-item" data-checkpoint="{{ c.checkpoint or '' }}">
-              <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank</div></div>
+              <div><div class="cp-name">{{ c.nama }}</div><div class="cp-count">{{ c.jumlah }} soal di bank · semua tipe</div></div>
               <div style="display:flex;align-items:center;gap:6px">
                 <input type="number" class="cp-jumlah" min="1" max="{{ c.jumlah }}" value="{{ [3, c.jumlah] | min }}" title="Jumlah soal">
                 <button class="btn btn-gold btn-sm cp-fire-btn">▶ Nyalakan</button>
