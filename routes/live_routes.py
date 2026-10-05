@@ -465,6 +465,41 @@ def _soal_aktif_dengan_jawaban(sess):
     return dict(questions[idx], nomor=idx + 1)
 
 
+@live_admin_bp.route("/<session_id>/soal/<question_id>/detail")
+@admin_required
+def detail_soal(session_id, question_id):
+    """Detail satu soal buat dibahas di kelas: teks soal, kunci, dan siapa saja
+    yang memilih tiap opsi (plus yang belum menjawab)."""
+    sess = _get_owned_session_or_none(session_id)
+    if not sess:
+        return jsonify({"error": "Sesi tidak ditemukan."}), 404
+    q = next((x for x in (sess.get("questions") or []) if x.get("id") == question_id), None)
+    if not q:
+        return jsonify({"error": "Soal tidak ditemukan."}), 404
+    assignments = sess.get("quiz_assignments") or {}
+    default_order = list(sess.get("quiz_question_ids") or [])
+    pilih = {"A": [], "B": [], "C": [], "D": []}
+    belum = []
+    for p in live_model.get_participants(session_id):
+        order = assignments.get(p.get("user_id")) or default_order
+        if question_id not in order:
+            continue
+        a = (p.get("jawaban") or {}).get(question_id)
+        huruf = str((a or {}).get("selected") or "").strip().upper()[:1]
+        if huruf in pilih:
+            pilih[huruf].append(p.get("nama") or "Siswa")
+        else:
+            belum.append(p.get("nama") or "Siswa")
+    nomor = default_order.index(question_id) + 1 if question_id in default_order else None
+    return jsonify({
+        "id": question_id, "nomor": nomor, "pertanyaan": q.get("pertanyaan", ""),
+        "pilihan": q.get("pilihan") or ["", "", "", ""],
+        "jawaban_benar": str(q.get("jawaban_benar") or "").strip().upper()[:1],
+        "penjelasan": q.get("penjelasan") or "", "gambar_url": q.get("gambar_url"),
+        "pemilih": pilih, "belum_menjawab": belum,
+    })
+
+
 @live_admin_bp.route("/<session_id>/status")
 @admin_required
 def status(session_id):

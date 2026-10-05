@@ -192,6 +192,23 @@
 </main></div>
 
 {% if sesi.status != 'lobi' %}
+<style>
+#soal_modal[hidden]{display:none}
+#soal_modal{position:fixed;inset:0;background:rgba(14,21,51,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.soal-modal-box{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:22px;position:relative}
+#soal_modal_close{position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:1.6rem;cursor:pointer;line-height:1}
+.soal-modal-siswa{display:inline-block;margin:4px 0 10px;padding:4px 10px;border-radius:999px;background:#fff3da;font-weight:700;font-size:.88rem}
+.soal-modal-q{font-size:1.1rem;line-height:1.6;margin:8px 0 14px}
+.soal-modal-opt{border:1.5px solid #e1e4ea;border-radius:12px;padding:10px 12px;margin:8px 0}
+.soal-modal-opt.is-key{border-color:#2FA65C;background:#EFFAF2}
+.soal-modal-opt.is-picked{box-shadow:0 0 0 3px rgba(228,87,76,.35)}
+.soal-modal-opt.is-key.is-picked{box-shadow:0 0 0 3px rgba(47,166,92,.35)}
+.soal-modal-opt-text{font-weight:700}
+.soal-modal-opt-who,.soal-modal-who{font-size:.84rem;color:#68707d;margin-top:4px}
+.student-progress-number{cursor:pointer}
+.student-progress-number.is-current{outline:2px solid #0E1533}
+</style>
+<div id="soal_modal" hidden><div class="soal-modal-box"><button type="button" id="soal_modal_close" aria-label="Tutup">×</button><div id="soal_modal_body"></div></div></div>
 <script>
 (() => {
  const root=document.getElementById('live_admin_root');
@@ -207,6 +224,7 @@
    };
  });
  const prebuiltForm=document.getElementById('form_quiz_prebuilt');
+ const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function renderMonitor(students){
    const el=document.getElementById('admin_student_monitor');
    if(!el){return;}
@@ -214,15 +232,46 @@
    el.innerHTML=students.map(p=>{
      const soal=(p.soal||[]).map(q=>{
        const cls=q.status==='correct'?'is-correct':q.status==='wrong'?'is-wrong':'is-empty';
-       const title=q.status==='correct'?'Benar':q.status==='wrong'?`Salah${q.selected?` · Jawaban ${q.selected}`:''}`:'Belum diisi';
-       return `<span class="student-progress-number ${cls}${q.nomor===p.current_number?' is-current':''}" title="${title}">${q.nomor}</span>`;
+       const title=q.status==='correct'?'Benar':q.status==='wrong'?`Salah${q.selected?` · Jawaban ${esc(q.selected)}`:''}`:'Belum diisi';
+       return `<button type="button" class="student-progress-number ${cls}${q.nomor===p.current_number?' is-current':''}" title="${title} · klik untuk lihat soal" data-qid="${esc(q.id)}" data-nama="${esc(p.nama||'Siswa')}" data-selected="${esc(q.selected||'')}" data-status="${q.status}">${q.nomor}</button>`;
      }).join('');
      return `<div class="student-progress-card">
-       <div class="student-progress-head"><div><b>${p.nama||'Siswa'}</b><div class="muted">${p.terjawab}/${p.total} terjawab · ${p.skor||0} poin${p.current_number?` · sedang di soal ${p.current_number}`:''}</div></div></div>
+       <div class="student-progress-head"><div><b>${esc(p.nama||'Siswa')}</b><div class="muted">${p.terjawab}/${p.total} terjawab · ${p.skor||0} poin${p.current_number?` · sedang di soal ${p.current_number}`:''}</div></div></div>
        <div class="student-progress-numbers">${soal||'<span class="muted">Belum ada soal</span>'}</div>
      </div>`;
    }).join('');
  }
+ const modal=document.getElementById('soal_modal'), modalBody=document.getElementById('soal_modal_body');
+ const STATUS_LABEL={correct:'benar',wrong:'salah',unanswered:'belum diisi'};
+ function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+ async function bukaSoal(qid,nama,selected,status){
+   modalBody.textContent='Memuat soal…'; modal.hidden=false;
+   try{
+     const r=await fetch(statusUrl.replace('/status','/soal/'+encodeURIComponent(qid)+'/detail'));
+     const d=await r.json(); if(!r.ok) throw new Error(d.error||'Gagal memuat soal');
+     modalBody.textContent='';
+     modalBody.appendChild(el('h3',null,'Soal '+(d.nomor||'')));
+     if(nama) modalBody.appendChild(el('div','soal-modal-siswa',`${nama}: ${selected?'menjawab '+selected:'belum menjawab'} (${STATUS_LABEL[status]||status})`));
+     modalBody.appendChild(el('div','soal-modal-q',d.pertanyaan));
+     if(d.gambar_url){const im=el('img');im.src=d.gambar_url;im.style.maxWidth='100%';modalBody.appendChild(im)}
+     ['A','B','C','D'].forEach((h,i)=>{
+       const names=(d.pemilih||{})[h]||[];
+       const row=el('div','soal-modal-opt'+(h===d.jawaban_benar?' is-key':'')+(h===selected?' is-picked':''));
+       row.appendChild(el('div','soal-modal-opt-text',h+'. '+((d.pilihan||[])[i]||'')+(h===d.jawaban_benar?'  ✓ kunci':'')));
+       row.appendChild(el('div','soal-modal-opt-who',names.length?`${names.length} siswa: ${names.join(', ')}`:'0 siswa'));
+       modalBody.appendChild(row);
+     });
+     if((d.belum_menjawab||[]).length) modalBody.appendChild(el('div','soal-modal-who',`Belum menjawab (${d.belum_menjawab.length}): ${d.belum_menjawab.join(', ')}`));
+     if(d.penjelasan) modalBody.appendChild(el('div','soal-modal-who','Penjelasan: '+d.penjelasan));
+     if(window.typesetMath) window.typesetMath(modalBody);
+   }catch(e){modalBody.textContent=e.message||'Gagal memuat soal'}
+ }
+ document.getElementById('admin_student_monitor').addEventListener('click',e=>{
+   const b=e.target.closest('.student-progress-number'); if(!b)return;
+   bukaSoal(b.dataset.qid,b.dataset.nama,b.dataset.selected,b.dataset.status);
+ });
+ document.getElementById('soal_modal_close').onclick=()=>{modal.hidden=true};
+ modal.addEventListener('click',e=>{if(e.target===modal)modal.hidden=true});
  const pauseBtn=document.getElementById('btn_pause');
  pauseBtn.onclick=async()=>{pauseBtn.disabled=true;try{const r=await fetch(pauseUrl,{method:'POST'});const d=await r.json();if(!r.ok)alert(d.error||'Gagal mengubah status pengerjaan');poll()}catch(e){alert('Gagal menghubungi server')}finally{pauseBtn.disabled=false}};
  async function poll(){try{const d=await (await fetch(statusUrl)).json();
@@ -233,7 +282,7 @@
    const aqEl=document.getElementById('admin_question');aqEl.textContent=d.status==='soal'?(d.quiz_paused?'Pengerjaan semua siswa sedang dijeda.':'Siswa bebas memilih soal. Pengajar dapat pause kapan saja.'):'Belum ada kuis yang aktif. Nyalakan kuis per tahapan atau kuis siap-pakai di atas.';
    const pauseBtn=document.getElementById('btn_pause');pauseBtn.style.display=d.status==='soal'?'inline-block':'none';pauseBtn.textContent=d.quiz_paused?'▶ Lanjutkan pengerjaan':'⏸ Pause pengerjaan';pauseBtn.disabled=false;
    if(prebuiltForm)prebuiltForm.style.display=(d.status==='mengajar'&&d.quiz_enabled===false)?'inline-block':'none';
-   renderPapan(d.leaderboard||[]);
+   renderMonitor(d.monitor_siswa||[]);
  }catch(e){}}
  poll();setInterval(poll,2000);
 })();
