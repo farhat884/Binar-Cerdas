@@ -129,10 +129,30 @@ def add_questions_bulk(session_id,soal_list):
     for i,soal in enumerate(soal_list):questions.append({"id":f"q{base+i+1}_{now_ts}_{i}","pertanyaan":soal["pertanyaan"],"pilihan":soal["pilihan"],"jawaban_benar":soal["jawaban_benar"],"penjelasan":soal.get("penjelasan","") or ""})
     execute("UPDATE live_sessions SET questions=? WHERE id=?",(json_dumps(questions),session_id)); return len(soal_list)
 
+def import_questions_to_quiz(session_id,soal_list):
+    """Impor soal manual (hasil parse_full_mcq) SEKALIGUS menyiapkannya sebagai kuis siap-pakai:
+    soal masuk ke sess['questions'], id-nya ditambah ke quiz_question_ids, dan ditambahkan
+    ke assignment siswa yang sudah join (siswa yang join belakangan diurus quiz_toggle)."""
+    sess=get_session(session_id)
+    if not sess or not soal_list:return 0
+    questions=sess.get("questions") or []; now_ts=int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+    base=len(questions); new_ids=[]
+    for i,soal in enumerate(soal_list):
+        qid=f"m{base+i+1}_{now_ts}_{i}"; new_ids.append(qid)
+        questions.append({"id":qid,"pertanyaan":soal["pertanyaan"],"pilihan":soal["pilihan"],"jawaban_benar":soal["jawaban_benar"],"penjelasan":soal.get("penjelasan","") or ""})
+    ids=list(sess.get("quiz_question_ids") or [])+new_ids
+    assignments=dict(sess.get("quiz_assignments") or {})
+    for uid in list(assignments.keys()):assignments[uid]=list(assignments[uid])+new_ids
+    execute("UPDATE live_sessions SET questions=?, quiz_question_ids=?, quiz_assignments=? WHERE id=?",(json_dumps(questions),json_dumps(ids),json_dumps(assignments),session_id))
+    return len(new_ids)
+
 def delete_question(session_id,question_id):
     sess=get_session(session_id)
     if not sess:return
-    questions=[q for q in (sess.get("questions") or []) if q.get("id")!=question_id]; execute("UPDATE live_sessions SET questions=? WHERE id=?",(json_dumps(questions),session_id))
+    questions=[q for q in (sess.get("questions") or []) if q.get("id")!=question_id]
+    ids=[i for i in (sess.get("quiz_question_ids") or []) if i!=question_id]
+    assignments={u:[i for i in lst if i!=question_id] for u,lst in (sess.get("quiz_assignments") or {}).items()}
+    execute("UPDATE live_sessions SET questions=?, quiz_question_ids=?, quiz_assignments=? WHERE id=?",(json_dumps(questions),json_dumps(ids),json_dumps(assignments),session_id))
 
 def start_class(session_id):
     sess=get_session(session_id)

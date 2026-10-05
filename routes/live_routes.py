@@ -369,8 +369,8 @@ def impor_soal(session_id):
         flash("Gak ada soal yang kebaca dari teks yang ditempel. Cek lagi formatnya (harus ada nomor, pilihan A-D, dan baris JAWABAN).", "danger")
         return redirect(url_for("live_admin.kelola", session_id=session_id))
     if berhasil:
-        live_model.add_questions_bulk(session_id, berhasil)
-        pesan = f"{len(berhasil)} soal berhasil diimpor ke sesi live."
+        live_model.import_questions_to_quiz(session_id, berhasil)
+        pesan = f"{len(berhasil)} soal berhasil diimpor dan siap dipakai untuk kuis."
     else:
         pesan = "Gak ada satupun soal yang berhasil diimpor."
     if gagal:

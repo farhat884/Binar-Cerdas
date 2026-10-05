@@ -118,11 +118,27 @@
     {% if sesi.quiz_question_ids %}<span class="live-ready">✓ {{ sesi.quiz_question_ids|length }} soal siap</span>{% endif %}
   </section>
 
-  <details class="card-simple" style="margin-top:16px">
-    <summary><b>Tambah soal manual / impor dari Word</b></summary>
-    <div class="live-empty" style="margin-top:14px">
-      Untuk <b>Live Kelas Hari Ini</b>, soal sebaiknya dibuat melalui <a href="{{ url_for('admin.soal') }}">Bank Soal</a> lalu ditautkan ke <b>Bab → Tahapan Materi</b>. Dengan begitu monitoring dan Kuis per Tahapan tetap konsisten.
+  <details class="card-simple" style="margin-top:16px" {% if sesi.questions %}open{% endif %}>
+    <summary><b>Impor soal manual sekaligus (soal + pilihan + jawaban)</b>{% if sesi.questions %} <span class="live-ready">{{ sesi.questions|length }} soal tersimpan di kelas ini</span>{% endif %}</summary>
+    <p class="muted" style="margin:12px 0">Tempel banyak soal sekaligus dari Word/Notes. Soal langsung masuk ke kelas ini dan siap dinyalakan lewat tombol <b>Nyalakan kuis siap-pakai</b> setelah kelas dimulai, tanpa perlu lewat Bank Soal.</p>
+    <form method="POST" action="{{ url_for('live_admin.impor_soal', session_id=sesi.id) }}">
+      <div class="field">
+        <label>Teks Soal</label>
+        <textarea name="teks_soal" rows="14" required placeholder="1. Ibukota Indonesia adalah?&#10;A. Bandung&#10;B. Jakarta&#10;C. Surabaya&#10;D. Medan&#10;JAWABAN: B&#10;&#10;2. Berapa hasil dari 5 + 3?&#10;A. 7&#10;B. 8&#10;C. 9&#10;D. 10&#10;JAWABAN: B"></textarea>
+        <small class="muted">Format tiap soal: nomor + titik (<code>1.</code>), 4 baris pilihan <code>A.</code> <code>B.</code> <code>C.</code> <code>D.</code>, lalu baris <code>JAWABAN: huruf</code>. Boleh pakai LaTeX ($...$). Soal yang formatnya kurang akan dilaporkan gagal dan tidak disimpan; soal lain tetap masuk.</small>
+      </div>
+      <button type="submit" class="btn btn-gold">Impor semua soal</button>
+    </form>
+    {% if sesi.questions %}
+    <div style="margin-top:16px"><b>Soal di kelas ini</b>
+      {% for q in sesi.questions %}
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--color-border)">
+        <span><small class="muted">No. {{ loop.index }} · jawaban {{ q.jawaban_benar }}</small><br>{{ q.pertanyaan }}</span>
+        <form method="POST" action="{{ url_for('live_admin.hapus_soal', session_id=sesi.id, question_id=q.id) }}" onsubmit="return confirm('Hapus soal ini?')"><button class="btn btn-danger btn-sm" type="submit">Hapus</button></form>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
   </details>
 
   {% else %}
