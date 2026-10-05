@@ -55,7 +55,7 @@ ensure_live_columns()
 
 def _decode_session(d):
     if not d:return None
-    d=dict(d); d["questions"]=json_loads(d.get("questions"), []); d["quiz_question_ids"]=json_loads(d.get("quiz_question_ids"), []); d["quiz_assignments"]=json_loads(d.get("quiz_assignments"), {}); d["quiz_enabled"]=str(d.get("quiz_enabled","false")).lower() in ("true","1","yes","on"); d["mode"]=d.get("mode") or "mengajar"; d["current_index"]=as_int(d.get("current_index"),-1); d["durasi_detik"]=as_int(d.get("durasi_detik"),DURASI_DEFAULT); d["target_kelas"]=d.get("target_kelas") or ""; d["quiz_kelas"]=d.get("quiz_kelas") or ""; d["quiz_mapel"]=d.get("quiz_mapel") or ""; d["quiz_bab"]=d.get("quiz_bab") or ""; d["active_checkpoint"]=d.get("active_checkpoint") or ""; return d
+    d=dict(d); d["questions"]=json_loads(d.get("questions"), []); d["quiz_question_ids"]=json_loads(d.get("quiz_question_ids"), []); d["quiz_assignments"]=json_loads(d.get("quiz_assignments"), {}); d["quiz_enabled"]=str(d.get("quiz_enabled","false")).lower() in ("true","1","yes","on"); d["quiz_paused"]=str(d.get("quiz_paused") or "false").lower() in ("true","1","yes","on"); d["mode"]=d.get("mode") or "mengajar"; d["current_index"]=as_int(d.get("current_index"),-1); d["durasi_detik"]=as_int(d.get("durasi_detik"),DURASI_DEFAULT); d["target_kelas"]=d.get("target_kelas") or ""; d["quiz_kelas"]=d.get("quiz_kelas") or ""; d["quiz_mapel"]=d.get("quiz_mapel") or ""; d["quiz_bab"]=d.get("quiz_bab") or ""; d["active_checkpoint"]=d.get("active_checkpoint") or ""; return d
 
 def _decode_participant(d):
     if not d:return None
