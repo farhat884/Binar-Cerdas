@@ -211,6 +211,11 @@ def hitung_skor(benar, waktu_ms=0, durasi_detik=DURASI_DEFAULT):
     """Latihan UAS tidak memakai timer: jawaban benar mendapat skor tetap."""
     return 1000 if benar else 0
 
+def _order_for(sess, user_id):
+    """Urutan soal milik siswa. Siswa yang join SETELAH kuis dinyalakan belum punya
+    assignment, jadi jatuh ke daftar soal kuis aktif (sama seperti route /status)."""
+    return (sess.get("quiz_assignments") or {}).get(user_id) or list(sess.get("quiz_question_ids") or [])
+
 def set_current_question(session_id, user_id, question_id):
     data = get_participant(session_id, user_id)
     if not data:
@@ -218,7 +223,7 @@ def set_current_question(session_id, user_id, question_id):
     sess = get_session(session_id)
     if not sess or not sess.get("quiz_enabled"):
         return None, "Kuis belum aktif."
-    order = (sess.get("quiz_assignments") or {}).get(user_id) or []
+    order = _order_for(sess, user_id)
     if question_id not in order:
         return None, "Soal tidak tersedia untuk kamu."
     execute("UPDATE live_participants SET current_question_id=? WHERE id=?", (question_id, _participant_id(session_id,user_id)))
@@ -233,7 +238,7 @@ def submit_answer(session_id,user_id,question_id,selected,waktu_ms=0):
     if not q:return None,"Soal tidak ditemukan."
     data=get_participant(session_id,user_id)
     if not data:return None,"Kamu belum join sesi ini."
-    order=(sess.get("quiz_assignments") or {}).get(user_id) or []
+    order=_order_for(sess,user_id)
     if question_id not in order:return None,"Soal ini tidak tersedia untuk kamu."
     jawaban=data.get("jawaban") or {}
     if question_id in jawaban:return jawaban[question_id],None
